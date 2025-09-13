@@ -1173,10 +1173,9 @@ const countResult = await db.query(
         // Sačuvaj glavni dokument u dokumenti tabelu
         const documentResult = await db.query(
             `INSERT INTO dokumenti (
-    datum, partner, tip_dokumenta, naziv_artikla, 
-    kolicina, iznos_bez_pdv, iznos_sa_pdv, pdv_iznos, rabat, komercijalist_id
-)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
+                datum, partner, tip_dokumenta, naziv_artikla, 
+                kolicina, iznos_bez_pdv, iznos_sa_pdv, pdv_iznos, rabat
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
             [
                 today,
                 partner,
@@ -1186,8 +1185,7 @@ const countResult = await db.query(
                 parseFloat(calculatedUkupanIznos.iznosBezPdv) || 0,
                 parseFloat(calculatedUkupanIznos.iznosSaPdv) || 0,
                 parseFloat(calculatedUkupanIznos.pdvIznos) || 0,
-                rabatValue,
-                komercijalist_id
+                rabatValue
             ]
         );
 

@@ -2,6 +2,8 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import pg from "pg";
 import dotenv from 'dotenv';
+import session from 'express-session';
+import bcrypt from 'bcrypt';
 
 dotenv.config();
 const app = express();
@@ -19,7 +21,115 @@ const db = new pg.Client({
     ssl: { rejectUnauthorized: false },
 })
 db.connect();
+const ADMIN_HASH = '$2b$12$GlMBYvuE3/jZuhfrZcagXOv.w3uVmwQEo5hdhqlpXtw9mOTbyfgfa';
+const SERVIS_HASH = '$2b$12$ztQ6n4HizuDrK59ujHGid.dQ2nz1Tt3fBdq4RPsKPQpnX6Z4XOETa';
+// session setup
+app.use(session({
+  name: 'sid',
+  secret: process.env.SESSION_SECRET || 'replace_this_in_prod',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: true,
+    // secure: true, // enable in production with HTTPS
+    maxAge: 1000 * 60 * 60 * 4 // 4 hours
+  }
+}));
 
+// Simple list of public paths that don't require auth
+const PUBLIC_PATHS = new Set([
+  '/', '/login', '/logout',
+  '/favicon.ico'
+]);
+
+// Middleware that restricts access based on role stored in session
+app.use((req, res, next) => {
+  // allow static files (public folder) and public routes
+  const url = req.path;
+
+  if (PUBLIC_PATHS.has(url) || url.startsWith('/public') || url.startsWith('/api/public')) {
+    return next();
+  }
+
+  // if no session role, redirect to login
+  if (!req.session || !req.session.role) {
+    return res.redirect('/');
+  }
+
+  // admin can access everything
+  if (req.session.role === 'admin') return next();
+
+  // servis can access only /servis routes and its subpaths
+  if (req.session.role === 'servis') {
+    if (url === '/servis' || url.startsWith('/servis/')) return next();
+    // optionally allow some ajax endpoints used by servis UI here
+    return res.status(403).send('Pristup zabranjen za servis nalog.');
+  }
+
+  // default deny
+  return res.status(403).send('Pristup zabranjen.');
+});
+
+// Login page (GET) - render view or send form
+app.get('/', (req, res) => {
+  // if already logged in, redirect appropriately
+  if (req.session && req.session.role === 'admin') return res.redirect('/partneri'); // example
+  if (req.session && req.session.role === 'servis') return res.redirect('/servis');
+
+  // render EJS login form (see example below)
+  return res.render('login.ejs', { message: null });
+});
+
+// Login handler (POST)
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body || {};
+
+  if (!username || !password) {
+    return res.render('login.ejs', { message: 'Korisničko ime i lozinka su obavezni.' });
+  }
+
+  try {
+    if (username === 'admin') {
+      const match = await bcrypt.compare(password, ADMIN_HASH);
+      if (match) {
+        req.session.role = 'admin';
+        req.session.username = 'admin';
+        return res.redirect('/partneri'); // ili neka početna ruta za admina
+      }
+    }
+
+    if (username === 'servis') {
+      const match = await bcrypt.compare(password, SERVIS_HASH);
+      if (match) {
+        req.session.role = 'servis';
+        req.session.username = 'servis';
+        return res.redirect('/servis');
+      }
+    }
+
+    // failed login
+    return res.render('login.ejs', { message: 'Neispravno korisničko ime ili lozinka.' });
+  } catch (err) {
+    console.error('Login error:', err);
+    return res.status(500).send('Server error prilikom prijave.');
+  }
+});
+// Logout (GET) - kada se ode na domen.com/logout
+app.get('/logout', (req, res) => {
+  req.session.destroy(err => {
+    res.clearCookie('sid');
+    return res.redirect('/');
+  });
+});
+
+// Logout
+app.post('/logout', (req, res) => {
+  req.session.destroy(err => {
+    res.clearCookie('sid');
+    return res.redirect('/');
+  });
+});
 // PARTNERI ROUTES - UPDATED sa Rabat kolonom
 app.get("/partneri", async(req, res) => {
     try {
@@ -726,12 +836,19 @@ app.get("/api/lager/stats", async (req, res) => {
     }
 });
 
-// KOMERCIJALISTI ROUTES
+// =============================================================================
+// KOMERCIJALISTI ROUTES - SA DINAMIČKIM PERFORMANSAMA IZ DOKUMENTI TABELE
+// =============================================================================
+
 app.get("/komercijalisti", async (req, res) => {
     try {
+        // Učitaj osnovne podatke komercijalista (bez performansi - one se računaju u frontendu)
         const komercijalisti = (await db.query(
-            'SELECT * FROM komercijalisti ORDER BY ime_prezime'
+            'SELECT id, ime_prezime, status FROM komercijalisti ORDER BY ime_prezime'
         )).rows;
+        
+        console.log('Loaded komercijalisti for rendering:', komercijalisti.length);
+        
         res.render("komercijalisti.ejs", { komercijalisti });
     } catch (error) {
         console.error("Error fetching komercijalisti:", error);
@@ -739,75 +856,164 @@ app.get("/komercijalisti", async (req, res) => {
     }
 });
 
-// API endpoint za komercijaliste (JSON response)
+// API endpoint za komercijaliste sa kompletnim podacima iz dokumenti tabele
 app.get("/api/komercijalisti", async(req, res) => {
     try {
+        const { datum_od, datum_do } = req.query;
+        
+        // Osnovni podaci komercijalista
         const komercijalisti = (await db.query(
-            'SELECT * FROM komercijalisti ORDER BY ime_prezime'
+            'SELECT id, ime_prezime, status FROM komercijalisti ORDER BY ime_prezime'
         )).rows;
         
-        console.log('API Komercijalisti response:', komercijalisti.length, 'komercijalisti found');
-        if (komercijalisti.length > 0) {
-            console.log('Sample komercijalist structure:', Object.keys(komercijalisti[0]));
+        // Pripremi WHERE klauzulu za filtriranje po datumu
+        let dateFilter = '';
+        let queryParams = [];
+        let paramCount = 0;
+        
+        if (datum_od) {
+            paramCount++;
+            dateFilter += ` AND d.datum >= $${paramCount}`;
+            queryParams.push(datum_od);
         }
         
-        res.json(komercijalisti);
+        if (datum_do) {
+            paramCount++;
+            dateFilter += ` AND d.datum <= $${paramCount}`;
+            queryParams.push(datum_do);
+        }
+        
+        // Dobij statistike za svakog komercijalista iz dokumenti tabele
+        const statsQuery = `
+            SELECT 
+                k.id,
+                k.ime_prezime,
+                k.status,
+                COALESCE(COUNT(d.id), 0) as broj_dokumenata,
+                COALESCE(SUM(d.iznos_sa_pdv), 0) as ukupan_promet,
+                COALESCE(COUNT(DISTINCT d.partner), 0) as broj_kupaca,
+                COALESCE(AVG(d.iznos_sa_pdv), 0) as prosecna_vrednost_dokumenta
+            FROM komercijalisti k
+            LEFT JOIN dokumenti d ON d.komercijalist_id = k.id${dateFilter}
+            GROUP BY k.id, k.ime_prezime, k.status
+            ORDER BY k.ime_prezime
+        `;
+        
+        const komercijalistiStats = (await db.query(statsQuery, queryParams)).rows;
+        
+        console.log('API Komercijalisti response with stats:', komercijalistiStats.length, 'komercijalisti found');
+        
+        res.json(komercijalistiStats);
     } catch (error) {
-        console.error("Error fetching komercijalisti:", error);
-        res.status(500).json({ error: "Greška pri dohvatanju komercijalista." });
+        console.error("Error fetching komercijalisti with stats:", error);
+        res.status(500).json({ error: "Greška pri dohvatanju komercijalista sa statistikama." });
     }
 });
 
-// Uzmi pojedinačnog komercijalista po ID-u
+// Uzmi pojedinačnog komercijalista po ID-u sa statistikama
 app.get("/komercijalisti/:id", async(req, res) => {
     const id = req.params.id;
+    const { datum_od, datum_do } = req.query;
+    
     try {
-        const result = await db.query('SELECT * FROM komercijalisti WHERE id = $1', [id]);
-        if (result.rows.length === 0) {
+        // Osnovni podaci komercijalista
+        const komercijalistResult = await db.query(
+            'SELECT id, ime_prezime, status FROM komercijalisti WHERE id = $1', 
+            [id]
+        );
+        
+        if (komercijalistResult.rows.length === 0) {
             return res.status(404).json({ error: 'Komercijalist nije pronađen' });
         }
-        res.json(result.rows[0]);
+        
+        const komercijalist = komercijalistResult.rows[0];
+        
+        // Pripremi WHERE klauzulu za filtriranje po datumu
+        let dateFilter = '';
+        let queryParams = [id];
+        let paramCount = 1;
+        
+        if (datum_od) {
+            paramCount++;
+            dateFilter += ` AND datum >= $${paramCount}`;
+            queryParams.push(datum_od);
+        }
+        
+        if (datum_do) {
+            paramCount++;
+            dateFilter += ` AND datum <= $${paramCount}`;
+            queryParams.push(datum_do);
+        }
+        
+        // Dobij statistike iz dokumenti tabele
+        const statsQuery = `
+            SELECT 
+                COUNT(*) as broj_dokumenata,
+                COALESCE(SUM(iznos_sa_pdv), 0) as ukupan_promet,
+                COUNT(DISTINCT partner) as broj_kupaca,
+                COALESCE(AVG(iznos_sa_pdv), 0) as prosecna_vrednost_dokumenta
+            FROM dokumenti 
+            WHERE komercijalist_id = $1${dateFilter}
+        `;
+        
+        const stats = (await db.query(statsQuery, queryParams)).rows[0];
+        
+        // Kombinuj osnovne podatke sa statistikama
+        const result = {
+            ...komercijalist,
+            broj_dokumenata: parseInt(stats.broj_dokumenata) || 0,
+            ukupan_promet: parseFloat(stats.ukupan_promet) || 0,
+            broj_kupaca: parseInt(stats.broj_kupaca) || 0,
+            prosecna_vrednost_dokumenta: parseFloat(stats.prosecna_vrednost_dokumenta) || 0
+        };
+        
+        res.json(result);
     } catch (error) {
-        console.error("Error fetching komercijalist:", error);
+        console.error("Error fetching komercijalist with stats:", error);
         res.status(500).json({ error: "Greška pri dohvatanju komercijalista." });
     }
 });
 
-// Dodaj novog komercijalista
+// Dodaj novog komercijalista (samo osnovni podaci)
 app.post("/komercijalisti", async (req, res) => {
-    const k = req.body;
+    const { ime_prezime, status } = req.body;
+    
     try {
         // Validacija obaveznih polja
-        if (!k.ime_prezime) {
+        if (!ime_prezime) {
             return res.status(400).json({ error: "Ime i prezime je obavezno." });
-        }
-
-        // Parsiranje numeričkih vrednosti
-        const broj_kupaca = parseInt(k.broj_kupaca) || 0;
-        const mjesecna_prodaja = parseFloat(k.mjesecna_prodaja) || 0;
-        const performanse = parseFloat(k.performanse) || 0;
-
-        // Validacija performansi (trebaju biti između 0 i 100)
-        if (performanse < 0 || performanse > 100) {
-            return res.status(400).json({ error: "Performanse moraju biti između 0 i 100%." });
         }
 
         // Validacija statusa
         const validStatuses = ['aktivan', 'neaktivan', 'pauza'];
-        const status = k.status || 'aktivan';
-        if (!validStatuses.includes(status)) {
+        const finalStatus = status || 'aktivan';
+        if (!validStatuses.includes(finalStatus)) {
             return res.status(400).json({ error: "Status mora biti 'aktivan', 'neaktivan' ili 'pauza'." });
         }
 
-        await db.query(
-            `INSERT INTO komercijalisti (ime_prezime, broj_kupaca, mjesecna_prodaja, performanse, status)
-            VALUES ($1, $2, $3, $4, $5)`,
-            [k.ime_prezime, broj_kupaca, mjesecna_prodaja, performanse, status]
+        // Proveri da li komercijalist sa istim imenom već postoji
+        const existingKomercijalist = await db.query(
+            'SELECT id FROM komercijalisti WHERE LOWER(ime_prezime) = LOWER($1)', 
+            [ime_prezime]
         );
+        
+        if (existingKomercijalist.rows.length > 0) {
+            return res.status(400).json({ error: "Komercijalist sa tim imenom već postoji." });
+        }
+
+        const result = await db.query(
+            `INSERT INTO komercijalisti (ime_prezime, status)
+            VALUES ($1, $2) RETURNING id`,
+            [ime_prezime, finalStatus]
+        );
+
+        console.log(`New komercijalist created with ID: ${result.rows[0].id}`);
 
         res.status(201).json({ 
             message: "Komercijalist je uspešno dodat.",
-            ime_prezime: k.ime_prezime
+            id: result.rows[0].id,
+            ime_prezime: ime_prezime,
+            status: finalStatus
         });
     } catch (error) {
         console.error("Error adding komercijalist:", error);
@@ -815,15 +1021,16 @@ app.post("/komercijalisti", async (req, res) => {
     }
 });
 
-// Izmeni komercijalista
+// Izmeni komercijalista (samo osnovni podaci)
 app.put("/komercijalisti/:id", async (req, res) => {
     const id = req.params.id;
-    const k = req.body;
+    const { ime_prezime, status } = req.body;
+    
     try {
-        console.log(`Updating komercijalist ${id} with data:`, k);
+        console.log(`Updating komercijalist ${id} with data:`, { ime_prezime, status });
 
         // Validacija obaveznih polja
-        if (!k.ime_prezime) {
+        if (!ime_prezime) {
             return res.status(400).json({ error: "Ime i prezime je obavezno." });
         }
 
@@ -835,39 +1042,38 @@ app.put("/komercijalisti/:id", async (req, res) => {
 
         const existing = existingKomercijalist.rows[0];
 
-        // Parsiranje numeričkih vrednosti sa fallback na postojeće vrednosti
-        const broj_kupaca = parseInt(k.broj_kupaca) || existing.broj_kupaca || 0;
-        const mjesecna_prodaja = parseFloat(k.mjesecna_prodaja) || existing.mjesecna_prodaja || 0;
-        const performanse = parseFloat(k.performanse) !== undefined ? parseFloat(k.performanse) : existing.performanse || 0;
-
-        // Validacija performansi
-        if (performanse < 0 || performanse > 100) {
-            return res.status(400).json({ error: "Performanse moraju biti između 0 i 100%." });
-        }
-
         // Validacija statusa
         const validStatuses = ['aktivan', 'neaktivan', 'pauza'];
-        const status = k.status || existing.status || 'aktivan';
-        if (!validStatuses.includes(status)) {
+        const finalStatus = status || existing.status || 'aktivan';
+        if (!validStatuses.includes(finalStatus)) {
             return res.status(400).json({ error: "Status mora biti 'aktivan', 'neaktivan' ili 'pauza'." });
+        }
+
+        // Proveri da li komercijalist sa istim imenom već postoji (osim trenutnog)
+        const duplicateCheck = await db.query(
+            'SELECT id FROM komercijalisti WHERE LOWER(ime_prezime) = LOWER($1) AND id != $2', 
+            [ime_prezime, id]
+        );
+        
+        if (duplicateCheck.rows.length > 0) {
+            return res.status(400).json({ error: "Komercijalist sa tim imenom već postoji." });
         }
 
         await db.query(
             `UPDATE komercijalisti SET 
                 ime_prezime = $1,
-                broj_kupaca = $2,
-                mjesecna_prodaja = $3,
-                performanse = $4,
-                status = $5
-             WHERE id = $6`,
-            [k.ime_prezime, broj_kupaca, mjesecna_prodaja, performanse, status, id]
+                status = $2
+             WHERE id = $3`,
+            [ime_prezime, finalStatus, id]
         );
 
         console.log(`Komercijalist ${id} successfully updated`);
         
         res.json({ 
             message: "Komercijalist je uspešno ažuriran.",
-            id: id
+            id: id,
+            ime_prezime: ime_prezime,
+            status: finalStatus
         });
     } catch (error) {
         console.error("Error updating komercijalist:", error);
@@ -880,13 +1086,31 @@ app.delete("/komercijalisti/:id", async (req, res) => {
     const id = req.params.id;
     try {
         // Proveri da li komercijalist postoji
-        const existingKomercijalist = await db.query('SELECT id FROM komercijalisti WHERE id = $1', [id]);
+        const existingKomercijalist = await db.query('SELECT id, ime_prezime FROM komercijalisti WHERE id = $1', [id]);
         if (existingKomercijalist.rows.length === 0) {
             return res.status(404).json({ error: "Komercijalist nije pronađen." });
         }
 
+        const komercijalistName = existingKomercijalist.rows[0].ime_prezime;
+
+        // Proveri da li komercijalist ima povezane dokumente
+        const documentsCheck = await db.query('SELECT COUNT(*) as count FROM dokumenti WHERE komercijalist_id = $1', [id]);
+        const documentCount = parseInt(documentsCheck.rows[0].count);
+
+        if (documentCount > 0) {
+            return res.status(400).json({ 
+                error: `Ne možete obrisati komercijalista "${komercijalistName}" jer ima ${documentCount} povezanih dokumenata.` 
+            });
+        }
+
         await db.query('DELETE FROM komercijalisti WHERE id = $1', [id]);
-        res.json({ message: "Komercijalist je uspešno obrisan." });
+        
+        console.log(`Deleted komercijalist ${id}: ${komercijalistName}`);
+        
+        res.json({ 
+            message: `Komercijalist "${komercijalistName}" je uspešno obrisan.`,
+            deleted_name: komercijalistName
+        });
     } catch (error) {
         console.error("Error deleting komercijalist:", error);
         if (error.code === '23503') { // PostgreSQL foreign key violation
@@ -899,19 +1123,46 @@ app.delete("/komercijalisti/:id", async (req, res) => {
 
 // Pretraži komercijaliste po imenu
 app.get("/api/komercijalisti/search", async (req, res) => {
-    const { query } = req.query;
+    const { query, datum_od, datum_do } = req.query;
     
     if (!query || query.length < 2) {
         return res.status(400).json({ error: "Upit mora imati najmanje 2 karaktera." });
     }
 
     try {
-        const searchResult = await db.query(
-            `SELECT * FROM komercijalisti 
-             WHERE LOWER(ime_prezime) LIKE LOWER($1)
-             ORDER BY ime_prezime`,
-            [`%${query}%`]
-        );
+        // Pripremi WHERE klauzulu za filtriranje po datumu
+        let dateFilter = '';
+        let queryParams = [`%${query}%`];
+        let paramCount = 1;
+        
+        if (datum_od) {
+            paramCount++;
+            dateFilter += ` AND d.datum >= $${paramCount}`;
+            queryParams.push(datum_od);
+        }
+        
+        if (datum_do) {
+            paramCount++;
+            dateFilter += ` AND d.datum <= $${paramCount}`;
+            queryParams.push(datum_do);
+        }
+
+        const searchQuery = `
+            SELECT 
+                k.id,
+                k.ime_prezime,
+                k.status,
+                COALESCE(COUNT(d.id), 0) as broj_dokumenata,
+                COALESCE(SUM(d.iznos_sa_pdv), 0) as ukupan_promet,
+                COALESCE(COUNT(DISTINCT d.partner), 0) as broj_kupaca
+            FROM komercijalisti k
+            LEFT JOIN dokumenti d ON d.komercijalist_id = k.id${dateFilter}
+            WHERE LOWER(k.ime_prezime) LIKE LOWER($1)
+            GROUP BY k.id, k.ime_prezime, k.status
+            ORDER BY k.ime_prezime
+        `;
+
+        const searchResult = await db.query(searchQuery, queryParams);
 
         res.json(searchResult.rows);
     } catch (error) {
@@ -920,34 +1171,83 @@ app.get("/api/komercijalisti/search", async (req, res) => {
     }
 });
 
-// Komercijalisti statistike
+// Komercijalisti statistike sa dinamičkim podacima
 app.get("/api/komercijalisti/stats", async (req, res) => {
     try {
-        const stats = await db.query(`
+        const { datum_od, datum_do } = req.query;
+        
+        // Pripremi WHERE klauzulu za filtriranje po datumu
+        let dateFilter = '';
+        let queryParams = [];
+        let paramCount = 0;
+        
+        if (datum_od) {
+            paramCount++;
+            dateFilter += ` AND d.datum >= $${paramCount}`;
+            queryParams.push(datum_od);
+        }
+        
+        if (datum_do) {
+            paramCount++;
+            dateFilter += ` AND d.datum <= $${paramCount}`;
+            queryParams.push(datum_do);
+        }
+
+        // Osnovne statistike
+        const basicStats = await db.query(`
             SELECT 
                 COUNT(*) as total_komercijalisti,
                 COUNT(CASE WHEN status = 'aktivan' THEN 1 END) as aktivni,
                 COUNT(CASE WHEN status = 'neaktivan' THEN 1 END) as neaktivni,
-                COUNT(CASE WHEN status = 'pauza' THEN 1 END) as na_pauzi,
-                ROUND(AVG(performanse), 2) as avg_performanse,
-                ROUND(SUM(mjesecna_prodaja), 2) as total_mjesecna_prodaja,
-                SUM(broj_kupaca) as total_kupaca,
-                ROUND(AVG(broj_kupaca), 2) as avg_kupaca_po_komercijalisti
+                COUNT(CASE WHEN status = 'pauza' THEN 1 END) as na_pauzi
             FROM komercijalisti
         `);
 
-        const topPerformers = await db.query(`
-            SELECT ime_prezime, performanse, mjesecna_prodaja, broj_kupaca, status
-            FROM komercijalisti 
-            WHERE status = 'aktivan'
-            ORDER BY performanse DESC 
-            LIMIT 5
-        `);
+        // Statistike iz dokumenti tabele
+        const documentStatsQuery = `
+            SELECT 
+                COUNT(d.*) as total_dokumenata,
+                COALESCE(SUM(d.iznos_sa_pdv), 0) as total_promet,
+                COUNT(DISTINCT d.partner) as unique_partners,
+                COUNT(DISTINCT d.komercijalist_id) as active_komercijalisti_with_docs,
+                COALESCE(AVG(d.iznos_sa_pdv), 0) as avg_document_value
+            FROM dokumenti d
+            WHERE 1=1${dateFilter}
+        `;
 
-        res.json({
-            ...stats.rows[0],
-            top_performers: topPerformers.rows
-        });
+        const documentStats = await db.query(documentStatsQuery, queryParams);
+
+        // Top performeri na osnovu prometa
+        const topPerformersQuery = `
+            SELECT 
+                k.ime_prezime,
+                k.status,
+                COUNT(d.id) as broj_dokumenata,
+                COALESCE(SUM(d.iznos_sa_pdv), 0) as ukupan_promet,
+                COUNT(DISTINCT d.partner) as broj_kupaca,
+                COALESCE(AVG(d.iznos_sa_pdv), 0) as prosecna_vrednost
+            FROM komercijalisti k
+            LEFT JOIN dokumenti d ON d.komercijalist_id = k.id${dateFilter}
+            WHERE k.status = 'aktivan'
+            GROUP BY k.id, k.ime_prezime, k.status
+            ORDER BY ukupan_promet DESC, broj_dokumenata DESC
+            LIMIT 5
+        `;
+
+        const topPerformers = await db.query(topPerformersQuery, queryParams);
+
+        // Kombinuj rezultate
+        const result = {
+            ...basicStats.rows[0],
+            ...documentStats.rows[0],
+            top_performers: topPerformers.rows,
+            date_range: {
+                datum_od: datum_od || null,
+                datum_do: datum_do || null
+            }
+        };
+
+        res.json(result);
     } catch (error) {
         console.error("Error fetching komercijalisti stats:", error);
         res.status(500).json({ error: "Greška pri dohvatanju statistika komercijalista." });
@@ -967,26 +1267,111 @@ app.patch("/komercijalisti/:id/status", async (req, res) => {
         }
 
         // Proveri da li komercijalist postoji
-        const existingKomercijalist = await db.query('SELECT id FROM komercijalisti WHERE id = $1', [id]);
+        const existingKomercijalist = await db.query(
+            'SELECT id, ime_prezime, status as current_status FROM komercijalisti WHERE id = $1', 
+            [id]
+        );
+        
         if (existingKomercijalist.rows.length === 0) {
             return res.status(404).json({ error: "Komercijalist nije pronađen." });
         }
 
+        const komercijalist = existingKomercijalist.rows[0];
+
         // Ažuriraj samo status
         await db.query('UPDATE komercijalisti SET status = $1 WHERE id = $2', [status, id]);
         
-        console.log(`Successfully updated status for komercijalist ${id} to ${status}`);
+        console.log(`Successfully updated status for komercijalist ${id} (${komercijalist.ime_prezime}) from ${komercijalist.current_status} to ${status}`);
         
         res.json({ 
-            message: "Status komercijalista je uspešno ažuriran.",
+            message: `Status komercijalista "${komercijalist.ime_prezime}" je uspešno ažuriran sa "${komercijalist.current_status}" na "${status}".`,
             id: id,
-            newStatus: status
+            ime_prezime: komercijalist.ime_prezime,
+            old_status: komercijalist.current_status,
+            new_status: status
         });
     } catch (error) {
         console.error("Error updating komercijalist status:", error);
         res.status(500).json({ error: "Greška pri ažuriranju statusa komercijalista: " + error.message });
     }
 });
+
+// Detaljni pregled komercijalista sa svim dokumentima
+app.get("/komercijalisti/:id/dokumenti", async (req, res) => {
+    const id = req.params.id;
+    const { datum_od, datum_do, limit = 50 } = req.query;
+    
+    try {
+        // Proveri da li komercijalist postoji
+        const komercijalistResult = await db.query(
+            'SELECT id, ime_prezime, status FROM komercijalisti WHERE id = $1', 
+            [id]
+        );
+        
+        if (komercijalistResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Komercijalist nije pronađen' });
+        }
+
+        const komercijalist = komercijalistResult.rows[0];
+
+        // Pripremi WHERE klauzulu za filtriranje po datumu
+        let dateFilter = '';
+        let queryParams = [id];
+        let paramCount = 1;
+        
+        if (datum_od) {
+            paramCount++;
+            dateFilter += ` AND datum >= $${paramCount}`;
+            queryParams.push(datum_od);
+        }
+        
+        if (datum_do) {
+            paramCount++;
+            dateFilter += ` AND datum <= $${paramCount}`;
+            queryParams.push(datum_do);
+        }
+
+        // Dodaj limit
+        paramCount++;
+        queryParams.push(parseInt(limit));
+
+        // Dobij sve dokumente komercijalista
+        const documentsQuery = `
+            SELECT 
+                id,
+                datum,
+                partner,
+                tip_dokumenta,
+                naziv_artikla,
+                kolicina,
+                iznos_bez_pdv,
+                iznos_sa_pdv,
+                pdv_iznos,
+                rabat
+            FROM dokumenti 
+            WHERE komercijalist_id = $1${dateFilter}
+            ORDER BY datum DESC, id DESC
+            LIMIT $${paramCount}
+        `;
+
+        const documents = await db.query(documentsQuery, queryParams);
+
+        res.json({
+            komercijalist: komercijalist,
+            dokumenti: documents.rows,
+            total_count: documents.rows.length,
+            filters: {
+                datum_od: datum_od || null,
+                datum_do: datum_do || null,
+                limit: parseInt(limit)
+            }
+        });
+    } catch (error) {
+        console.error("Error fetching komercijalist documents:", error);
+        res.status(500).json({ error: "Greška pri dohvatanju dokumenata komercijalista." });
+    }
+});
+
 
 // =============================================================================
 // NOVA SEKCIJA: PRAVLJENJE DOKUMENATA - UNIFIED DOCUMENT CREATION
@@ -995,7 +1380,6 @@ app.patch("/komercijalisti/:id/status", async (req, res) => {
 // Glavna ruta za prikaz stranice za pravljenje dokumenata
 app.get("/pravljenjedokumenta", async (req, res) => {
     try {
-        // Učitaj sve potrebne podatke za kreiranje dokumenata
         const [dokumenti, lagerArtikli, komercijalisti, partneri] = await Promise.all([
             db.query('SELECT * FROM dokumenti ORDER BY datum DESC, id DESC'),
             db.query('SELECT * FROM lager ORDER BY sifra'),
@@ -1003,11 +1387,21 @@ app.get("/pravljenjedokumenta", async (req, res) => {
             db.query('SELECT * FROM partneri ORDER BY "Naziv_partnera"')
         ]);
 
+        const rows = dokumenti.rows;
+
+        // Izračunaj sume
+        const ukupnoBezPdv = rows.reduce((sum, d) => sum + (parseFloat(d.iznos_bez_pdv) || 0), 0);
+        const ukupnoPdv    = rows.reduce((sum, d) => sum + (parseFloat(d.pdv_iznos) || 0), 0);
+        const ukupnoSaPdv  = rows.reduce((sum, d) => sum + (parseFloat(d.iznos_sa_pdv) || 0), 0);
+
         res.render("pravljenjedokumenta.ejs", { 
-            dokumenti: dokumenti.rows,
+            dokumenti: rows,
             lagerArtikli: lagerArtikli.rows,
             komercijalisti: komercijalisti.rows,
-            partneri: partneri.rows
+            partneri: partneri.rows,
+            ukupnoBezPdv,
+            ukupnoPdv,
+            ukupnoSaPdv
         });
     } catch (error) {
         console.error("Error fetching data for pravljenjedokumenta:", error);
@@ -1015,9 +1409,9 @@ app.get("/pravljenjedokumenta", async (req, res) => {
     }
 });
 
+
 // API endpoint za kreiranje novog dokumenta (univerzalni)
 app.post("/api/pravljenjedokumenta", async (req, res) => {
-    
     try {
         await db.query('BEGIN');
         
@@ -1027,8 +1421,7 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
             komercijalist_id,
             artikli, 
             rabat, 
-            ukupanIznos,
-            napomene 
+            ukupanIznos
         } = req.body;
         
         // Validacija osnovnih podataka
@@ -1082,21 +1475,19 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
         }
         
         // Npr. year = 2025, month = 9
-const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+        const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+        const endDateObj = new Date(year, month, 1); // JS meseci su 0-based
+        const endDate = endDateObj.toISOString().split("T")[0]; 
 
-// Napravi objekat datuma i pomeri ga na sledeći mesec
-const endDateObj = new Date(year, month, 1); // JS meseci su 0-based, zato ide "month" bez -1
-const endDate = endDateObj.toISOString().split("T")[0]; // prvi dan sledećeg meseca
-const countResult = await db.query(
-  `SELECT COUNT(*) as count 
-   FROM dokumenti 
-   WHERE tip_dokumenta LIKE $1
-   AND datum >= $2::date
-   AND datum <  $3::date`,
-  [documentTypePattern, startDate, endDate]
-);
+        const countResult = await db.query(
+          `SELECT COUNT(*) as count 
+           FROM dokumenti 
+           WHERE tip_dokumenta LIKE $1
+           AND datum >= $2::date
+           AND datum <  $3::date`,
+          [documentTypePattern, startDate, endDate]
+        );
 
-        
         const documentNumber = `${documentPrefix}-${String(parseInt(countResult.rows[0].count) + 1).padStart(3, '0')}-${year}${month}`;
         
         // Obradi artikle i ažuriraj lager (samo za otpremnica i kalkulacija)
@@ -1124,7 +1515,6 @@ const countResult = await db.query(
                     continue;
                 }
                 
-                console.log(`Deducting ${requestedQuantity} from lager for artikal ${artikal.sifra}`);
                 await db.query(
                     'UPDATE lager SET kolicina = kolicina - $1 WHERE sifra = $2',
                     [requestedQuantity, artikal.sifra]
@@ -1164,18 +1554,19 @@ const countResult = await db.query(
         
         // Kalkulacije za iznose
         const rabatValue = parseFloat(rabat) || 0;
-        const calculatedUkupanIznos = ukupanIznos || {
-            iznosBezPdv: 0,
-            iznosSaPdv: 0,
-            pdvIznos: 0
-        };
+        const calculatedUkupanIznos = {
+    iznosBezPdv: parseFloat(req.body.ukupnoBezPdv) || 0,
+    iznosSaPdv: parseFloat(req.body.ukupnoSaPdv) || 0,
+    pdvIznos: parseFloat(req.body.ukupanPdv) || 0
+};
+
         
         // Sačuvaj glavni dokument u dokumenti tabelu
         const documentResult = await db.query(
             `INSERT INTO dokumenti (
-    datum, partner, tip_dokumenta, naziv_artikla, 
-    kolicina, iznos_bez_pdv, iznos_sa_pdv, pdv_iznos, rabat, komercijalist_id
-)
+                datum, partner, tip_dokumenta, naziv_artikla, 
+                kolicina, iznos_bez_pdv, iznos_sa_pdv, pdv_iznos, rabat, komercijalist_id
+            )
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
             [
                 today,
@@ -1193,7 +1584,7 @@ const countResult = await db.query(
 
         const documentId = documentResult.rows[0].id;
         
-        // Ažuriraj podatke komercijalista (povećaj broj kupaca ako je novi partner)
+        // Proveri da li je partner nov
         const existingPartnerCheck = await db.query(
             'SELECT COUNT(*) as count FROM dokumenti WHERE partner = $1 AND id < $2', 
             [partner, documentId]
@@ -1201,29 +1592,8 @@ const countResult = await db.query(
         
         const isNewPartner = parseInt(existingPartnerCheck.rows[0].count) === 0;
         
-        // Ažuriraj mjesečnu prodaju komercijalista
-        const monthlyIncrease = parseFloat(calculatedUkupanIznos.iznosSaPdv) || 0;
-        let updateQuery = 'UPDATE komercijalisti SET mjesecna_prodaja = mjesecna_prodaja + $1';
-        let updateParams = [monthlyIncrease];
-        
-        if (isNewPartner) {
-            updateQuery += ', broj_kupaca = broj_kupaca + 1';
-        }
-        
-        updateQuery += ' WHERE id = $2';
-        updateParams.push(komercijalist_id);
-        
-        await db.query(updateQuery, updateParams);
-        
-        // Ažuriraj performanse komercijalista (jednostavna kalkulacija)
-        const newPerformanceScore = Math.min(100, komercijalist.performanse + (monthlyIncrease / 1000));
-        await db.query(
-            'UPDATE komercijalisti SET performanse = $1 WHERE id = $2',
-            [parseFloat(newPerformanceScore.toFixed(2)), komercijalist_id]
-        );
-        
         await db.query('COMMIT');
-        
+
         res.json({ 
             success: true, 
             documentNumber: documentNumber,
@@ -1242,7 +1612,6 @@ const countResult = await db.query(
     } 
 });
 
-// API endpoint za pregled dokumenata sa filtriranjem
 app.get("/api/pravljenjedokumenta/dokumenti", async (req, res) => {
     try {
         const { 
@@ -1265,35 +1634,36 @@ app.get("/api/pravljenjedokumenta/dokumenti", async (req, res) => {
         
         if (tip_dokumenta) {
             paramCount++;
-            query += ` AND d.tip_dokumenta LIKE ${paramCount}`;
+            query += ` AND d.tip_dokumenta LIKE $${paramCount}`;
             params.push(`${tip_dokumenta}%`);
         }
         
         if (partner) {
             paramCount++;
-            query += ` AND d.partner ILIKE ${paramCount}`;
+            query += ` AND d.partner ILIKE $${paramCount}`;
             params.push(`%${partner}%`);
         }
         
         if (komercijalist) {
             paramCount++;
-            query += ` AND k.ime_prezime ILIKE ${paramCount}`;
+            query += ` AND k.ime_prezime ILIKE $${paramCount}`;
             params.push(`%${komercijalist}%`);
         }
         
         if (datum_od) {
             paramCount++;
-            query += ` AND d.datum >= ${paramCount}`;
+            query += ` AND d.datum >= $${paramCount}`;
             params.push(datum_od);
         }
         
         if (datum_do) {
             paramCount++;
-            query += ` AND d.datum <= ${paramCount}`;
+            query += ` AND d.datum <= $${paramCount}`;
             params.push(datum_do);
         }
         
-        query += ` ORDER BY d.datum DESC, d.id DESC LIMIT ${paramCount + 1}`;
+        paramCount++;
+        query += ` ORDER BY d.datum DESC, d.id DESC LIMIT $${paramCount}`;
         params.push(parseInt(limit));
         
         const dokumenti = (await db.query(query, params)).rows;
@@ -1309,9 +1679,9 @@ app.get("/api/pravljenjedokumenta/stats", async (req, res) => {
     try {
         const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
         
-        const startDate = `${currentMonth}-01`;               // npr. "2025-09-01"
+        const startDate = `${currentMonth}-01`;               
         const endDate = new Date(currentMonth + "-01");
-        endDate.setMonth(endDate.getMonth() + 1);            // prvi dan sledećeg meseca
+        endDate.setMonth(endDate.getMonth() + 1);            
         const endDateStr = endDate.toISOString().split("T")[0];
 
         const stats = await db.query(`
@@ -1328,17 +1698,15 @@ app.get("/api/pravljenjedokumenta/stats", async (req, res) => {
             FROM dokumenti
         `, [startDate, endDateStr]);
 
-
         const topKomercijalisti = await db.query(`
             SELECT 
                 k.ime_prezime,
                 COUNT(d.id) as broj_dokumenata,
-                ROUND(SUM(d.iznos_sa_pdv), 2) as ukupna_vrednost,
-                k.performanse
+                ROUND(SUM(d.iznos_sa_pdv), 2) as ukupna_vrednost
             FROM komercijalisti k
             LEFT JOIN dokumenti d ON d.komercijalist_id = k.id
             WHERE k.status = 'aktivan'
-            GROUP BY k.id, k.ime_prezime, k.performanse
+            GROUP BY k.id, k.ime_prezime
             ORDER BY ukupna_vrednost DESC
             LIMIT 5
         `);
@@ -1354,12 +1722,145 @@ app.get("/api/pravljenjedokumenta/stats", async (req, res) => {
     }
 });
 
+
 // =============================================================================
 // OSTALE POSTOJEĆE RUTE (zadržane zbog kompatibilnosti)
 // =============================================================================
 
-app.get("/prometrobe", async (req, res) => {
-    res.render("prometrobe.ejs");
+app.get('/prometrobe', async (req, res) => {
+    try {
+        // Get all promet robe data
+        const prometData = await db.query(`
+            SELECT 
+                id,
+                TO_CHAR(datum, 'YYYY-MM-DD') as datum,
+                gr,
+                sifra,
+                ean,
+                naziv,
+                magacin,
+                partner,
+                jm,
+                kol_ulaz,
+                kol_izlaz
+            FROM promet_robe 
+            ORDER BY datum DESC
+        `);
+
+        // Get unique values for filter dropdowns
+        const magacini = await db.query('SELECT DISTINCT magacin FROM promet_robe WHERE magacin IS NOT NULL ORDER BY magacin');
+        const partneri = await db.query('SELECT DISTINCT partner FROM promet_robe WHERE partner IS NOT NULL ORDER BY partner');
+        const grupe = await db.query('SELECT DISTINCT gr FROM promet_robe WHERE gr IS NOT NULL ORDER BY gr');
+
+        res.render('prometrobe.ejs', {
+            prometData: prometData.rows,
+            magacini: magacini.rows,
+            partneri: partneri.rows,
+            grupe: grupe.rows
+        });
+    } catch (err) {
+        console.error('Error fetching promet robe data:', err);
+        res.status(500).send('Server error');
+    }
+});
+
+// Route to add new promet robe entry
+app.post('/prometrobe/add', async (req, res) => {
+    try {
+        const {
+            datum,
+            gr,
+            sifra,
+            ean,
+            naziv,
+            magacin,
+            partner,
+            jm,
+            kol_ulaz,
+            kol_izlaz
+        } = req.body;
+
+        await db.query(`
+            INSERT INTO promet_robe (datum, gr, sifra, ean, naziv, magacin, partner, jm, kol_ulaz, kol_izlaz)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        `, [datum, gr, sifra, ean || null, naziv, magacin, partner, jm || null, kol_ulaz || null, kol_izlaz || null]);
+
+        res.redirect('/prometrobe');
+    } catch (err) {
+        console.error('Error adding promet robe entry:', err);
+        res.status(500).send('Server error');
+    }
+});
+
+// API route for filtering data
+app.get('/api/prometrobe/filter', async (req, res) => {
+    try {
+        const {
+            dateFrom,
+            dateTo,
+            magacin,
+            partner,
+            grupa
+        } = req.query;
+
+        let query = `
+            SELECT 
+                id,
+                TO_CHAR(datum, 'YYYY-MM-DD') as datum,
+                gr,
+                sifra,
+                ean,
+                naziv,
+                magacin,
+                partner,
+                jm,
+                kol_ulaz,
+                kol_izlaz
+            FROM promet_robe 
+            WHERE 1=1
+        `;
+        
+        const params = [];
+        let paramCount = 0;
+
+        if (dateFrom) {
+            paramCount++;
+            query += ` AND datum >= $${paramCount}`;
+            params.push(dateFrom);
+        }
+
+        if (dateTo) {
+            paramCount++;
+            query += ` AND datum <= $${paramCount}`;
+            params.push(dateTo);
+        }
+
+        if (magacin) {
+            paramCount++;
+            query += ` AND magacin = $${paramCount}`;
+            params.push(magacin);
+        }
+
+        if (partner) {
+            paramCount++;
+            query += ` AND partner = $${paramCount}`;
+            params.push(partner);
+        }
+
+        if (grupa) {
+            paramCount++;
+            query += ` AND gr = $${paramCount}`;
+            params.push(grupa);
+        }
+
+        query += ' ORDER BY datum DESC';
+
+        const result = await db.query(query, params);
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Error filtering promet robe data:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 // DOKUMENTI ROUTES - UNCHANGED (works with any structure)
@@ -1418,13 +1919,14 @@ app.post("/dokumenti", async (req, res) => {
 
         await db.query(
             `INSERT INTO dokumenti (
-                datum, partner, tip_dokumenta, naziv_artikla, 
+                datum, partner, tip_dokumenta, magacin, naziv_artikla, 
                 kolicina, iznos_bez_pdv, iznos_sa_pdv, pdv_iznos, rabat
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
             [
                 d.datum,
                 d.partner,
                 d.tip_dokumenta,
+                d.magacin,          // NOVO
                 d.naziv_artikla,
                 kolicina,
                 iznos_bez_pdv,
@@ -1433,6 +1935,7 @@ app.post("/dokumenti", async (req, res) => {
                 rabat
             ]
         );
+
         res.sendStatus(201);
     } catch (error) {
         console.error("Error adding dokument:", error);
@@ -1588,13 +2091,546 @@ app.get("/magacini", (req, res) => {
     res.render("magacini.ejs");
 });
 
-app.get("/uplate", (req, res) => {
-    res.render("uplate.ejs");
+app.get("/uplate", async(req, res) => {
+    try {
+        const uplate = (await db.query(
+            'SELECT * FROM "uplate" ORDER BY "datum" DESC'
+        )).rows;
+        res.render("uplate.ejs", { uplate });
+    } catch (error) {
+        console.error("Error fetching uplate:", error);
+        res.status(500).send("Greška pri dohvatanju uplata.");
+    }
 });
 
-app.get("/servis", (req, res) => {
-    res.render("servis.ejs");
+// Get all payments as JSON (for AJAX requests)
+app.get("/api/uplate", async(req, res) => {
+    try {
+        const uplate = (await db.query(
+            'SELECT * FROM "uplate" ORDER BY "datum" DESC'
+        )).rows;
+        res.json(uplate);
+    } catch (error) {
+        console.error("Error fetching uplate:", error);
+        res.status(500).json({ error: "Greška pri dohvatanju uplata." });
+    }
 });
+
+// Get single payment by ID
+app.get("/api/uplate/:id", async(req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await db.query('SELECT * FROM "uplate" WHERE "id" = $1', [id]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Uplata nije pronađena." });
+        }
+        
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("Error fetching uplata:", error);
+        res.status(500).json({ error: "Greška pri dohvatanju uplate." });
+    }
+});
+
+// Add new payment
+app.post("/api/uplate", async(req, res) => {
+    try {
+        const { datum, kupac, iznos, nacin, status, dokument, komercijalist, napomene } = req.body;
+        
+        const result = await db.query(`
+            INSERT INTO "uplate" (datum, kupac, iznos, nacin, status, dokument, komercijalist, napomene) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+            RETURNING *
+        `, [datum, kupac, iznos, nacin, status || 'primljena', dokument, komercijalist, napomene]);
+        
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        console.error("Error adding uplata:", error);
+        res.status(500).json({ error: "Greška pri dodavanju uplate." });
+    }
+});
+
+// Update payment
+app.put("/api/uplate/:id", async(req, res) => {
+    try {
+        const { id } = req.params;
+        const { datum, kupac, iznos, nacin, status, dokument, komercijalist, napomene } = req.body;
+        
+        const result = await db.query(`
+            UPDATE "uplate" 
+            SET datum = $1, kupac = $2, iznos = $3, nacin = $4, status = $5, 
+                dokument = $6, komercijalist = $7, napomene = $8
+            WHERE id = $9 
+            RETURNING *
+        `, [datum, kupac, iznos, nacin, status, dokument, komercijalist, napomene, id]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Uplata nije pronađena." });
+        }
+        
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("Error updating uplata:", error);
+        res.status(500).json({ error: "Greška pri ažuriranju uplate." });
+    }
+});
+
+// Delete payment
+app.delete("/api/uplate/:id", async(req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const result = await db.query('DELETE FROM "uplate" WHERE id = $1 RETURNING *', [id]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Uplata nije pronađena." });
+        }
+        
+        res.json({ message: "Uplata je uspješno obrisana.", uplata: result.rows[0] });
+    } catch (error) {
+        console.error("Error deleting uplata:", error);
+        res.status(500).json({ error: "Greška pri brisanju uplate." });
+    }
+});
+
+// Get payment statistics
+app.get("/api/uplate/stats/summary", async(req, res) => {
+    try {
+        const { from, to } = req.query;
+        
+        let dateFilter = '';
+        let params = [];
+        
+        if (from && to) {
+            dateFilter = 'WHERE datum >= $1 AND datum <= $2';
+            params = [from, to + ' 23:59:59'];
+        } else if (from) {
+            dateFilter = 'WHERE datum >= $1';
+            params = [from];
+        } else if (to) {
+            dateFilter = 'WHERE datum <= $1';
+            params = [to + ' 23:59:59'];
+        }
+        
+        const statsQuery = `
+            SELECT 
+                COUNT(*) as total_count,
+                COALESCE(SUM(CASE WHEN status != 'odbijena' THEN iznos ELSE 0 END), 0) as total_amount,
+                COALESCE(SUM(CASE WHEN status = 'primljena' THEN iznos ELSE 0 END), 0) as successful_amount,
+                COALESCE(SUM(CASE WHEN status = 'odbijena' THEN iznos ELSE 0 END), 0) as failed_amount,
+                COUNT(CASE WHEN status = 'cekanje' THEN 1 END) as pending_count,
+                COALESCE(AVG(CASE WHEN status != 'odbijena' THEN iznos END), 0) as avg_payment
+            FROM "uplate" ${dateFilter}
+        `;
+        
+        const result = await db.query(statsQuery, params);
+        const stats = result.rows[0];
+        
+        res.json({
+            totalPayments: parseFloat(stats.total_amount),
+            paymentCount: parseInt(stats.total_count),
+            avgPayment: parseFloat(stats.avg_payment),
+            pendingPayments: parseInt(stats.pending_count),
+            successfulAmount: parseFloat(stats.successful_amount),
+            failedAmount: parseFloat(stats.failed_amount)
+        });
+    } catch (error) {
+        console.error("Error fetching payment stats:", error);
+        res.status(500).json({ error: "Greška pri dohvatanju statistika." });
+    }
+});
+// Helper funkcije za normalizaciju
+function normalizePrioritet(val) {
+    const map = {
+        'nizak': 'Nizak',
+        'srednji': 'Srednji',
+        'visok': 'Visok'
+    };
+    if (!val) return 'Srednji'; // default
+    const lower = String(val).trim().toLowerCase();
+    return map[lower] || 'Srednji';
+}
+
+function normalizeGarancija(val) {
+    const map = {
+        'u-garanciji': 'U garanciji',
+        'u garanciji': 'U garanciji',
+        'van-garancije': 'Nije u garanciji',
+        'nije u garanciji': 'Nije u garanciji'
+    };
+    if (!val) return 'Nije u garanciji'; // default
+    const lower = String(val).trim().toLowerCase();
+    return map[lower] || 'Nije u garanciji';
+}
+
+// GET - Lista svih servisa
+app.get("/servis", async (req, res) => {
+    try {
+        const servisi = (await db.query(
+            `SELECT 
+                id,
+                broj_servisa,
+                ime_kupca,
+                telefon,
+                email,
+                proizvod_model,
+                serijski_broj,
+                status_garancije,
+                opis_kvara,
+                tehnicar,
+                prioritet,
+                procenjena_cena,
+                napomene,
+                datum_kreiranja,
+                status
+            FROM servisi 
+            ORDER BY datum_kreiranja DESC`
+        )).rows;
+        
+        res.render("servis.ejs", { 
+            servisi: servisi,
+            title: 'Servis'
+        });
+    } catch (error) {
+        console.error("Error fetching servisi:", error);
+        res.status(500).send("Greška pri dohvatanju servisa.");
+    }
+});
+
+// POST - Create new service
+app.post("/servis/add", async (req, res) => {
+    try {
+        const {
+            ime_kupca,
+            telefon,
+            email,
+            proizvod_model,
+            serijski_broj,
+            status_garancije,
+            opis_kvara,
+            tehnicar,
+            prioritet,
+            procenjena_cena,
+            napomene
+        } = req.body;
+        
+        // Normalizacija
+        const prioritetNorm = normalizePrioritet(prioritet);
+        const statusGarancijeNorm = normalizeGarancija(status_garancije);
+
+        // Get next service number
+        const maxResult = await db.query(
+            'SELECT COALESCE(MAX(CAST(broj_servisa AS INTEGER)), 0) as max_broj FROM servisi'
+        );
+        const nextNumber = String(maxResult.rows[0].max_broj + 1).padStart(3, '0');
+        
+        // Insert new service
+        const result = await db.query(`
+            INSERT INTO servisi (
+                broj_servisa,
+                ime_kupca,
+                telefon,
+                email,
+                proizvod_model,
+                serijski_broj,
+                status_garancije,
+                opis_kvara,
+                tehnicar,
+                prioritet,
+                procenjena_cena,
+                napomene,
+                datum_kreiranja,
+                status
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), 'primljen')
+            RETURNING id
+        `, [
+            nextNumber,
+            ime_kupca,
+            telefon,
+            email || null,
+            proizvod_model,
+            serijski_broj,
+            statusGarancijeNorm,
+            opis_kvara,
+            tehnicar,
+            prioritetNorm,
+            parseFloat(procenjena_cena) || 0,
+            napomene || null
+        ]);
+        
+        res.json({ 
+            success: true, 
+            message: 'Novi servisni zahtev je uspešno kreiran.',
+            serviceId: result.rows[0].id,
+            serviceNumber: nextNumber
+        });
+        
+    } catch (error) {
+        console.error('Error adding service:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Greška pri kreiranju servisa: ' + error.message 
+        });
+    }
+});
+
+// PUT - Update service
+app.put("/servis/update/:id", async (req, res) => {
+    try {
+        const serviceId = req.params.id;
+        const {
+            ime_kupca,
+            telefon,
+            email,
+            proizvod_model,
+            serijski_broj,
+            status_garancije,
+            opis_kvara,
+            tehnicar,
+            prioritet,
+            procenjena_cena,
+            napomene
+        } = req.body;
+
+        // Normalizacija
+        const prioritetNorm = normalizePrioritet(prioritet);
+        const statusGarancijeNorm = normalizeGarancija(status_garancije);
+        
+        await db.query(`
+            UPDATE servisi SET
+                ime_kupca = $1,
+                telefon = $2,
+                email = $3,
+                proizvod_model = $4,
+                serijski_broj = $5,
+                status_garancije = $6,
+                opis_kvara = $7,
+                tehnicar = $8,
+                prioritet = $9,
+                procenjena_cena = $10,
+                napomene = $11
+            WHERE id = $12
+        `, [
+            ime_kupca,
+            telefon,
+            email || null,
+            proizvod_model,
+            serijski_broj,
+            statusGarancijeNorm,
+            opis_kvara,
+            tehnicar,
+            prioritetNorm,
+            parseFloat(procenjena_cena) || 0,
+            napomene || null,
+            serviceId
+        ]);
+        
+        res.json({ 
+            success: true, 
+            message: 'Servisni zahtev je uspešno ažuriran.' 
+        });
+        
+    } catch (error) {
+        console.error('Error updating service:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Greška pri ažuriranju servisa: ' + error.message 
+        });
+    }
+});
+
+// PUT - Update service status
+app.put("/servis/status/:id", async (req, res) => {
+    try {
+        const serviceId = req.params.id;
+        const { status, napomena, finalna_cena } = req.body;
+        
+        let updateQuery = 'UPDATE servisi SET status = $1';
+        let params = [status];
+        let paramIndex = 2;
+        
+        if (napomena) {
+            updateQuery += `, napomene = CONCAT(COALESCE(napomene, ''), $${paramIndex})`;
+            params.push(`\n---\nStatus promena (${new Date().toLocaleDateString('sr-RS')}): ${napomena}`);
+            paramIndex++;
+        }
+        
+        if (finalna_cena && (status === 'gotov' || status === 'isporucen')) {
+            updateQuery += `, procenjena_cena = $${paramIndex}`;
+            params.push(parseFloat(finalna_cena));
+            paramIndex++;
+        }
+        
+        updateQuery += ` WHERE id = $${paramIndex}`;
+        params.push(serviceId);
+        
+        await db.query(updateQuery, params);
+        
+        const statusNames = {
+            'primljen': 'Primljen',
+            'u-radu': 'U radu',
+            'ceka-deo': 'Čeka deo',
+            'gotov': 'Gotov',
+            'isporucen': 'Isporučen'
+        };
+        
+        res.json({ 
+            success: true, 
+            message: `Status servisa je promenjen na "${statusNames[status]}".`,
+            newStatus: status
+        });
+        
+    } catch (error) {
+        console.error('Error updating service status:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Greška pri promeni statusa: ' + error.message 
+        });
+    }
+});
+
+// DELETE - Delete service
+app.delete("/servis/delete/:id", async (req, res) => {
+    try {
+        const serviceId = req.params.id;
+        
+        // Check if service exists
+        const serviceCheck = await db.query(
+            'SELECT id FROM servisi WHERE id = $1',
+            [serviceId]
+        );
+        
+        if (serviceCheck.rows.length === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Servis nije pronađen.' 
+            });
+        }
+        
+        // Delete the service
+        await db.query('DELETE FROM servisi WHERE id = $1', [serviceId]);
+        
+        res.json({ 
+            success: true, 
+            message: 'Servisni zahtev je uspešno obrisan.' 
+        });
+        
+    } catch (error) {
+        console.error('Error deleting service:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Greška pri brisanju servisa: ' + error.message 
+        });
+    }
+});
+
+// GET - Get service data for editing
+app.get("/servis/get/:id", async (req, res) => {
+    try {
+        const serviceId = req.params.id;
+        
+        const result = await db.query(
+            'SELECT * FROM servisi WHERE id = $1',
+            [serviceId]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Servis nije pronađen.' 
+            });
+        }
+        
+        res.json({ 
+            success: true, 
+            service: result.rows[0] 
+        });
+        
+    } catch (error) {
+        console.error('Error fetching service:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Greška pri učitavanju servisa: ' + error.message 
+        });
+    }
+});
+
+// GET - Get next service number
+app.get("/servis/next-number", async (req, res) => {
+    try {
+        const maxResult = await db.query(
+            'SELECT COALESCE(MAX(CAST(broj_servisa AS INTEGER)), 0) as max_broj FROM servisi'
+        );
+        const nextNumber = String(maxResult.rows[0].max_broj + 1).padStart(3, '0');
+        
+        res.json({ 
+            success: true, 
+            nextNumber: nextNumber 
+        });
+        
+    } catch (error) {
+        console.error('Error getting next service number:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Greška pri dobijanju broja servisa: ' + error.message,
+            nextNumber: '001'
+        });
+    }
+});
+
+// GET - Search and filter services
+app.get("/servis/search", async (req, res) => {
+    try {
+        const { search = '', status = '', tehnicar = '' } = req.query;
+        
+        let query = `
+            SELECT 
+                id, broj_servisa, ime_kupca, telefon, email, proizvod_model,
+                serijski_broj, status_garancije, opis_kvara, tehnicar,
+                prioritet, procenjena_cena, napomene, datum_kreiranja, status
+            FROM servisi 
+            WHERE 1=1
+        `;
+        const params = [];
+        let paramIndex = 1;
+        
+        if (search) {
+            query += ` AND (ime_kupca ILIKE $${paramIndex} OR proizvod_model ILIKE $${paramIndex} OR opis_kvara ILIKE $${paramIndex})`;
+            params.push(`%${search}%`);
+            paramIndex++;
+        }
+        
+        if (status) {
+            query += ` AND status = $${paramIndex}`;
+            params.push(status);
+            paramIndex++;
+        }
+        
+        if (tehnicar) {
+            query += ` AND tehnicar = $${paramIndex}`;
+            params.push(tehnicar);
+            paramIndex++;
+        }
+        
+        query += ` ORDER BY datum_kreiranja DESC`;
+        
+        const result = await db.query(query, params);
+        
+        res.json({ 
+            success: true, 
+            services: result.rows 
+        });
+        
+    } catch (error) {
+        console.error('Error searching services:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Greška pri pretraživanju: ' + error.message 
+        });
+    }
+});
+
 
 app.listen(port, () =>{
     console.log("Server spreman na portu " + port);

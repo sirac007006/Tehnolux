@@ -665,10 +665,6 @@
         }
 
         @media (max-width: 768px) {
-            /* Skrivanje "Unos Dokumentacije" sekcije na svim uređajima manjim od 768px */
-            .menu-section:first-child {
-                display: none !important;
-            }
 
             .card {
                 padding: 1rem;
@@ -704,10 +700,6 @@
                 display: block;
             }
 
-            /* "Unos Dokumentacije" sekcija ostaje skrivena i na mobile sidebar-u */
-            .sidebar.mobile-open .menu-section:first-child {
-                display: none !important;
-            }
 
             .logo-container {
                 margin-bottom: 2rem;
@@ -1054,7 +1046,7 @@
             <div class="menu-section">
                 <div class="menu-title">Servis</div>
                 <div class="nav-item">
-                    <a href="/servis" class="nav-link">
+                    <a href="/servis" class="nav-link active">
                         <i class="fas fa-tools nav-icon"></i>
                         <span class="nav-text">Servis</span>
                     </a>
@@ -1069,7 +1061,7 @@
 
     <!-- Header -->
     <header class="header" id="header">
-        <h1 class="page-title">Servis</h1>
+        <h1 class="page-title"><%= title %></h1>
         
         <div class="header-actions">
             <button class="btn btn-success" id="add-service-btn">
@@ -1129,127 +1121,38 @@
                         </tr>
                     </thead>
                     <tbody id="services-tbody">
-                        <!-- Demo podaci -->
-                        <tr data-id="1">
-                            <td class="numeric-column">001</td>
-                            <td>Petar Marković</td>
-                            <td>Samsung Galaxy S23</td>
-                            <td title="Telefon se ne uključuje, baterija se ne puni">Telefon se ne uključuje, baterija se ne puni</td>
-                            <td><span class="status-badge status-u-radu">U radu</span></td>
-                            <td class="price-column">€47.00</td>
+                        <% servisi.forEach(servis => { %>
+                        <tr data-id="<%= servis.id %>">
+                            <td class="numeric-column"><%= servis.broj_servisa %></td>
+                            <td><%= servis.ime_kupca %></td>
+                            <td><%= servis.proizvod_model %></td>
+                            <td title="<%= servis.opis_kvara %>"><%= servis.opis_kvara %></td>
+                            <td><span class="status-badge status-<%= servis.status %>">
+                                <% if (servis.status === 'primljen') { %>Primljen<% } %>
+                                <% if (servis.status === 'u-radu') { %>U radu<% } %>
+                                <% if (servis.status === 'ceka-deo') { %>Čeka deo<% } %>
+                                <% if (servis.status === 'gotov') { %>Gotov<% } %>
+                                <% if (servis.status === 'isporucen') { %>Isporučen<% } %>
+                            </span></td>
+                            <td class="price-column">€<%= parseFloat(servis.procenjena_cena || 0).toFixed(2) %></td>
                             <td>
                                 <div class="action-buttons">
-                                    <button class="btn btn-sm btn-primary edit-service-btn" data-id="1" title="Izmeni">
+                                    <button class="btn btn-sm btn-primary edit-service-btn" data-id="<%= servis.id %>" title="Izmeni">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <button class="btn btn-sm btn-warning status-service-btn" data-id="1" title="Promeni status">
+                                    <button class="btn btn-sm btn-warning status-service-btn" data-id="<%= servis.id %>" title="Promeni status">
                                         <i class="fas fa-exchange-alt"></i>
                                     </button>
-                                    <button class="btn btn-sm btn-secondary print-service-btn" data-id="1" title="Štampaj">
+                                    <button class="btn btn-sm btn-secondary print-service-btn" data-id="<%= servis.id %>" title="Štampaj">
                                         <i class="fas fa-print"></i>
                                     </button>
-                                    <button class="btn btn-sm btn-danger delete-service-btn" data-id="1" title="Obriši">
+                                    <button class="btn btn-sm btn-danger delete-service-btn" data-id="<%= servis.id %>" title="Obriši">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
                             </td>
                         </tr>
-                        <tr data-id="2">
-                            <td class="numeric-column">002</td>
-                            <td>Milica Jovović</td>
-                            <td>iPhone 14 Pro</td>
-                            <td title="Pukao ekran, touchscreen ne radi">Pukao ekran, touchscreen ne radi</td>
-                            <td><span class="status-badge status-ceka-deo">Čeka deo</span></td>
-                            <td class="price-column">€105.00</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-sm btn-primary edit-service-btn" data-id="2" title="Izmeni">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-warning status-service-btn" data-id="2" title="Promeni status">
-                                        <i class="fas fa-exchange-alt"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-secondary print-service-btn" data-id="2" title="Štampaj">
-                                        <i class="fas fa-print"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger delete-service-btn" data-id="2" title="Obriši">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr data-id="3">
-                            <td class="numeric-column">003</td>
-                            <td>Nikola Stanković</td>
-                            <td>Dell Inspiron 15</td>
-                            <td title="Laptop se pregreva, ventilator pravi buku">Laptop se pregreva, ventilator pravi buku</td>
-                            <td><span class="status-badge status-gotov">Gotov</span></td>
-                            <td class="price-column">€32.50</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-sm btn-primary edit-service-btn" data-id="3" title="Izmeni">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-warning status-service-btn" data-id="3" title="Promeni status">
-                                        <i class="fas fa-exchange-alt"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-secondary print-service-btn" data-id="3" title="Štampaj">
-                                        <i class="fas fa-print"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger delete-service-btn" data-id="3" title="Obriši">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr data-id="4">
-                            <td class="numeric-column">004</td>
-                            <td>Jovana Mitrović</td>
-                            <td>HP LaserJet P1102</td>
-                            <td title="Štampač ne vuče papir, greška 'Paper Jam'">Štampač ne vuče papir, greška 'Paper Jam'</td>
-                            <td><span class="status-badge status-primljen">Primljen</span></td>
-                            <td class="price-column">€18.80</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-sm btn-primary edit-service-btn" data-id="4" title="Izmeni">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-warning status-service-btn" data-id="4" title="Promeni status">
-                                        <i class="fas fa-exchange-alt"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-secondary print-service-btn" data-id="4" title="Štampaj">
-                                        <i class="fas fa-print"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger delete-service-btn" data-id="4" title="Obriši">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr data-id="5">
-                            <td class="numeric-column">005</td>
-                            <td>Aleksandar Đorđević</td>
-                            <td>Xiaomi Redmi Note 12</td>
-                            <td title="Mikrofon ne radi tokom poziva">Mikrofon ne radi tokom poziva</td>
-                            <td><span class="status-badge status-isporucen">Isporučen</span></td>
-                            <td class="price-column">€35.00</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-sm btn-primary edit-service-btn" data-id="5" title="Izmeni">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-warning status-service-btn" data-id="5" title="Promeni status">
-                                        <i class="fas fa-exchange-alt"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-secondary print-service-btn" data-id="5" title="Štampaj">
-                                        <i class="fas fa-print"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger delete-service-btn" data-id="5" title="Obriši">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                        <% }); %>
                     </tbody>
                 </table>
             </div>
@@ -1494,7 +1397,7 @@
             }
         });
 
-        // Submenu functionality - bez zatvaranja sidebara za glavne kategorije
+        // Submenu functionality
         document.querySelectorAll('.nav-item.has-submenu > .nav-link').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -1514,32 +1417,28 @@
             });
         });
 
-        // Enhanced navigation - zatvori sidebar pri kliku na submenu linkove
+        // Enhanced navigation
         document.querySelectorAll('.submenu .nav-link').forEach(link => {
             link.addEventListener('click', function(e) {
-                // Dodaj vizuelnu povratnu informaciju
                 this.style.transform = 'scale(0.95)';
                 setTimeout(() => {
                     this.style.transform = 'scale(1)';
                 }, 100);
                 
-                // Zatvori mobile sidebar odmah
                 closeMobileSidebar();
             });
         });
 
-        // Get next service number
-        function getNextServiceNumber() {
-            let maxId = 0;
-            document.querySelectorAll('#services-tbody tr').forEach(row => {
-                if (row.cells.length > 1) {
-                    const id = parseInt(row.cells[0].textContent);
-                    if (!isNaN(id) && id > maxId) {
-                        maxId = id;
-                    }
-                }
-            });
-            return String(maxId + 1).padStart(3, '0');
+        // Get next service number from server
+        async function getNextServiceNumber() {
+            try {
+                const response = await fetch('/servis/next-number');
+                const data = await response.json();
+                return data.nextNumber || '001';
+            } catch (error) {
+                console.error('Error getting next service number:', error);
+                return '001';
+            }
         }
 
         // Status change handler
@@ -1564,14 +1463,22 @@
         function attachActionListeners() {
             // Edit buttons
             document.querySelectorAll('.edit-service-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', async function() {
                     const id = this.dataset.id;
-                    const row = document.querySelector(`tr[data-id="${id}"]`);
                     
-                    if (row) {
-                        fillServiceForm(row);
-                        modalTitle.textContent = 'Izmeni servisni zahtev';
-                        serviceModal.classList.add('show');
+                    try {
+                        const response = await fetch(`/servis/get/${id}`);
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            fillServiceForm(data.service);
+                            modalTitle.textContent = 'Izmeni servisni zahtev';
+                            serviceModal.classList.add('show');
+                        } else {
+                            showNotification(data.message, 'error');
+                        }
+                    } catch (error) {
+                        showNotification('Greška pri učitavanju servisa.', 'error');
                     }
                 });
             });
@@ -1602,13 +1509,27 @@
 
             // Delete buttons
             document.querySelectorAll('.delete-service-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', async function() {
                     if (confirm('Da li ste sigurni da želite da obrišete ovaj servisni zahtev?')) {
                         const id = this.dataset.id;
-                        const row = document.querySelector(`tr[data-id="${id}"]`);
-                        if (row) {
-                            row.remove();
-                            showNotification('Servisni zahtev je uspešno obrisan.', 'success');
+                        
+                        try {
+                            const response = await fetch(`/servis/delete/${id}`, {
+                                method: 'DELETE'
+                            });
+                            const data = await response.json();
+                            
+                            if (data.success) {
+                                const row = document.querySelector(`tr[data-id="${id}"]`);
+                                if (row) {
+                                    row.remove();
+                                }
+                                showNotification(data.message, 'success');
+                            } else {
+                                showNotification(data.message, 'error');
+                            }
+                        } catch (error) {
+                            showNotification('Greška pri brisanju servisa.', 'error');
                         }
                     }
                 });
@@ -1616,20 +1537,28 @@
         }
 
         // Fill form with service data
-        function fillServiceForm(row) {
-            serviceIdInput.value = row.dataset.id;
-            document.getElementById('service-number').value = row.cells[0].textContent.trim();
-            document.getElementById('customer-name').value = row.cells[1].textContent.trim();
-            document.getElementById('product-model').value = row.cells[2].textContent.trim();
-            document.getElementById('problem-description').value = row.cells[3].title || row.cells[3].textContent.trim();
-            document.getElementById('estimated-cost').value = parseFloat(row.cells[5].textContent.replace('€', '').replace(',', ''));
+        function fillServiceForm(service) {
+            serviceIdInput.value = service.id;
+            document.getElementById('service-number').value = service.broj_servisa;
+            document.getElementById('customer-name').value = service.ime_kupca || '';
+            document.getElementById('customer-phone').value = service.telefon || '';
+            document.getElementById('customer-email').value = service.email || '';
+            document.getElementById('product-model').value = service.proizvod_model || '';
+            document.getElementById('serial-number').value = service.serijski_broj || '';
+            document.getElementById('warranty-status').value = service.status_garancije || 'proverava-se';
+            document.getElementById('problem-description').value = service.opis_kvara || '';
+            document.getElementById('assigned-technician').value = service.tehnicar || '';
+            document.getElementById('priority-level').value = service.prioritet || 'srednji';
+            document.getElementById('estimated-cost').value = service.procenjena_cena || '';
+            document.getElementById('service-notes').value = service.napomene || '';
         }
 
         // Clear form
-        function clearServiceForm() {
+        async function clearServiceForm() {
             serviceForm.reset();
             serviceIdInput.value = '';
-            document.getElementById('service-number').value = getNextServiceNumber();
+            const nextNumber = await getNextServiceNumber();
+            document.getElementById('service-number').value = nextNumber;
             document.getElementById('priority-level').value = 'srednji';
             document.getElementById('warranty-status').value = 'proverava-se';
         }
@@ -1712,7 +1641,6 @@
 
         // Show notification
         function showNotification(message, type = 'info') {
-            // Create notification element
             const notification = document.createElement('div');
             notification.style.cssText = `
                 position: fixed;
@@ -1744,7 +1672,6 @@
             notification.textContent = message;
             document.body.appendChild(notification);
             
-            // Auto remove after 3 seconds
             setTimeout(() => {
                 notification.style.animation = 'slideOut 0.3s ease';
                 setTimeout(() => notification.remove(), 300);
@@ -1766,8 +1693,8 @@
         document.head.appendChild(style);
 
         // Add new service
-        addServiceBtn.addEventListener('click', () => {
-            clearServiceForm();
+        addServiceBtn.addEventListener('click', async () => {
+            await clearServiceForm();
             modalTitle.textContent = 'Unos novog servisnog zahteva';
             serviceModal.classList.add('show');
         });
@@ -1802,66 +1729,99 @@
         });
 
         // Service form submission
-        serviceForm.addEventListener('submit', (e) => {
+        serviceForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const formData = {
-                id: serviceIdInput.value,
-                serviceNumber: document.getElementById('service-number').value,
-                customerName: document.getElementById('customer-name').value,
-                customerPhone: document.getElementById('customer-phone').value,
-                customerEmail: document.getElementById('customer-email').value,
-                productModel: document.getElementById('product-model').value,
-                serialNumber: document.getElementById('serial-number').value,
-                warrantyStatus: document.getElementById('warranty-status').value,
-                problemDescription: document.getElementById('problem-description').value,
-                assignedTechnician: document.getElementById('assigned-technician').value,
-                priorityLevel: document.getElementById('priority-level').value,
-                estimatedCost: parseFloat(document.getElementById('estimated-cost').value) || 0
+                ime_kupca: document.getElementById('customer-name').value,
+                telefon: document.getElementById('customer-phone').value,
+                email: document.getElementById('customer-email').value,
+                proizvod_model: document.getElementById('product-model').value,
+                serijski_broj: document.getElementById('serial-number').value,
+                status_garancije: document.getElementById('warranty-status').value,
+                opis_kvara: document.getElementById('problem-description').value,
+                tehnicar: document.getElementById('assigned-technician').value,
+                prioritet: document.getElementById('priority-level').value,
+                procenjena_cena: document.getElementById('estimated-cost').value,
+                napomene: document.getElementById('service-notes').value
             };
 
-            if (formData.id) {
-                // Update existing service
-                updateServiceRow(formData);
-                showNotification('Servisni zahtev je uspešno ažuriran.', 'success');
-            } else {
-                // Add new service
-                addNewServiceRow(formData);
-                showNotification('Novi servisni zahtev je uspešno kreiran.', 'success');
-            }
+            const serviceId = serviceIdInput.value;
+            const url = serviceId ? `/servis/update/${serviceId}` : '/servis/add';
+            const method = serviceId ? 'PUT' : 'POST';
 
-            serviceModal.classList.remove('show');
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    serviceModal.classList.remove('show');
+                    // Reload page to show updated data
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            } catch (error) {
+                showNotification('Greška pri čuvanju servisa.', 'error');
+            }
         });
 
         // Status form submission
-        statusForm.addEventListener('submit', (e) => {
+        statusForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const serviceId = statusServiceIdInput.value;
-            const newStatus = document.getElementById('new-status').value;
-            const statusNote = document.getElementById('status-note').value;
-            const completionDate = document.getElementById('completion-date').value;
-            const finalCost = document.getElementById('final-cost').value;
+            const statusData = {
+                status: document.getElementById('new-status').value,
+                napomena: document.getElementById('status-note').value,
+                finalna_cena: document.getElementById('final-cost').value
+            };
             
-            const row = document.querySelector(`tr[data-id="${serviceId}"]`);
-            if (row) {
-                // Update status badge
-                const statusBadge = row.cells[4].querySelector('.status-badge');
-                statusBadge.className = `status-badge status-${newStatus}`;
-                statusBadge.textContent = getStatusText(newStatus);
+            try {
+                const response = await fetch(`/servis/status/${serviceId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(statusData)
+                });
+
+                const data = await response.json();
                 
-                // Update final cost if provided
-                if (finalCost) {
-                    row.cells[5].textContent = '€' + parseFloat(finalCost).toFixed(2);
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    statusModal.classList.remove('show');
+                    
+                    // Update the row in the table
+                    const row = document.querySelector(`tr[data-id="${serviceId}"]`);
+                    if (row) {
+                        const statusBadge = row.cells[4].querySelector('.status-badge');
+                        statusBadge.className = `status-badge status-${data.newStatus}`;
+                        statusBadge.textContent = getStatusText(data.newStatus);
+                        
+                        if (statusData.finalna_cena) {
+                            row.cells[5].textContent = '€' + parseFloat(statusData.finalna_cena).toFixed(2);
+                        }
+                    }
+                } else {
+                    showNotification(data.message, 'error');
                 }
-                
-                showNotification(`Status servisa je promenjen na "${getStatusText(newStatus)}".`, 'success');
+            } catch (error) {
+                showNotification('Greška pri promeni statusa.', 'error');
             }
-            
-            statusModal.classList.remove('show');
         });
 
-        // Helper functions
+        // Helper function
         function getStatusText(status) {
             const statusMap = {
                 'primljen': 'Primljen',
@@ -1871,57 +1831,6 @@
                 'isporucen': 'Isporučen'
             };
             return statusMap[status] || status;
-        }
-
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('sr-RS');
-        }
-
-        function updateServiceRow(data) {
-            const row = document.querySelector(`tr[data-id="${data.id}"]`);
-            if (row) {
-                row.cells[1].textContent = data.customerName;
-                row.cells[2].textContent = data.productModel;
-                row.cells[3].textContent = data.problemDescription;
-                row.cells[3].title = data.problemDescription;
-                row.cells[5].textContent = '€' + data.estimatedCost.toFixed(2);
-            }
-        }
-
-        function addNewServiceRow(data) {
-            const tbody = document.getElementById('services-tbody');
-            const newRow = document.createElement('tr');
-            const newId = Date.now();
-            newRow.dataset.id = newId;
-            
-            newRow.innerHTML = `
-                <td class="numeric-column">${data.serviceNumber}</td>
-                <td>${data.customerName}</td>
-                <td>${data.productModel}</td>
-                <td title="${data.problemDescription}">${data.problemDescription}</td>
-                <td><span class="status-badge status-primljen">Primljen</span></td>
-                <td class="price-column">€${data.estimatedCost.toFixed(2)}</td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn btn-sm btn-primary edit-service-btn" data-id="${newId}" title="Izmeni">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-warning status-service-btn" data-id="${newId}" title="Promeni status">
-                            <i class="fas fa-exchange-alt"></i>
-                        </button>
-                        <button class="btn btn-sm btn-secondary print-service-btn" data-id="${newId}" title="Štampaj">
-                            <i class="fas fa-print"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger delete-service-btn" data-id="${newId}" title="Obriši">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            `;
-            
-            tbody.appendChild(newRow);
-            attachActionListeners();
         }
 
         // Search and filter functionality
@@ -1943,9 +1852,8 @@
                                         problem.includes(searchTerm);
                     
                     const matchesStatus = !statusFilter || status.includes(`status-${statusFilter}`);
-                    const matchesTechnician = true; // Removed technician filter from simplified table
                     
-                    if (matchesSearch && matchesStatus && matchesTechnician) {
+                    if (matchesSearch && matchesStatus) {
                         row.style.display = '';
                     } else {
                         row.style.display = 'none';
@@ -2023,8 +1931,7 @@
 
         // Refresh button
         refreshBtn.addEventListener('click', function() {
-            showNotification('Podaci su osveženi.', 'info');
-            // In real app, this would reload data from server
+            window.location.reload();
         });
 
         // Handle window resize
@@ -2033,7 +1940,6 @@
                 closeMobileSidebar();
             }
             
-            // Auto collapse sidebar on medium screens
             if (window.innerWidth <= 992 && window.innerWidth > 576) {
                 if (!sidebar.classList.contains('collapsed')) {
                     sidebar.classList.add('collapsed');
@@ -2049,7 +1955,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             attachActionListeners();
             
-            // Auto collapse sidebar on medium screens on load
             if (window.innerWidth <= 992 && window.innerWidth > 576) {
                 sidebar.classList.add('collapsed');
                 mainContent.classList.add('expanded');
@@ -2057,13 +1962,10 @@
                 sidebarIcon.classList.remove('fa-chevron-left');
                 sidebarIcon.classList.add('fa-chevron-right');
             }
-            
-            console.log('Tehnolux Servis panel initialized with improved responsive design');
         });
 
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
-            // ESC to close modals or mobile menu
             if (e.key === 'Escape') {
                 if (serviceModal.classList.contains('show')) {
                     serviceModal.classList.remove('show');
@@ -2074,48 +1976,19 @@
                 }
             }
             
-            // Ctrl+N for new service
             if (e.ctrlKey && e.key === 'n') {
                 e.preventDefault();
                 addServiceBtn.click();
             }
             
-            // Ctrl+F to focus search
             if (e.ctrlKey && e.key === 'f') {
                 e.preventDefault();
                 searchInput.focus();
             }
             
-            // Ctrl+P for print report
             if (e.ctrlKey && e.key === 'p') {
                 e.preventDefault();
                 printReportBtn.click();
-            }
-        });
-
-        // Auto-save drafts (demo feature)
-        let draftTimeout;
-        function saveDraft() {
-            clearTimeout(draftTimeout);
-            draftTimeout = setTimeout(() => {
-                if (serviceModal.classList.contains('show')) {
-                    const draftData = {
-                        customerName: document.getElementById('customer-name').value,
-                        productModel: document.getElementById('product-model').value,
-                        problemDescription: document.getElementById('problem-description').value,
-                        timestamp: new Date().toISOString()
-                    };
-                    // In real app, save to localStorage or server
-                    console.log('Draft saved:', draftData);
-                }
-            }, 2000);
-        }
-
-        // Add auto-save listeners to form inputs
-        ['customer-name', 'product-model', 'problem-description'].forEach(id => {
-            const element = document.getElementById(id);
-            if (element) {
-                element.addEventListener('input', saveDraft);
             }
         });
     </script>

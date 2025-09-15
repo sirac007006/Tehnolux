@@ -722,10 +722,6 @@
         }
 
         @media (max-width: 768px) {
-            .menu-section:first-child {
-                display: none !important;
-            }
-
             .card {
                 padding: 1rem;
                 margin: 0.5rem;
@@ -756,9 +752,6 @@
                 display: block;
             }
 
-            .sidebar.mobile-open .menu-section:first-child {
-                display: none !important;
-            }
 
             .logo-container {
                 margin-bottom: 2rem;
@@ -1004,6 +997,7 @@
                             <th>ID</th>
                             <th>Datum</th>
                             <th>Tip dokumenta</th>
+                            <th>Magacin</th> <!-- NOVO -->
                             <th>Partner</th>
                             <th>Komercijalist</th>
                             <th>Artikli</th>
@@ -1012,29 +1006,25 @@
                             <th>PDV</th>
                             <th>Iznos sa PDV</th>
                         </tr>
-                    </thead>
-                    <tbody id="documents-tbody">
-                        <% if (dokumenti && dokumenti.length > 0) { %>
-                            <% dokumenti.forEach(function(dokument) { %>
-                                <tr>
-                                    <td><%= dokument.id %></td>
-                                    <td><%= new Date(dokument.datum).toLocaleDateString('sr-RS') %></td>
-                                    <td><%= dokument.tip_dokumenta %></td>
-                                    <td><%= dokument.partner %></td>
-                                    <td><%= dokument.komercijalist_id || 'N/A' %></td>
-                                    <td title="<%= dokument.naziv_artikla %>"><%= dokument.naziv_artikla.length > 50 ? dokument.naziv_artikla.substring(0, 50) + '...' : dokument.naziv_artikla %></td>
-                                    <td class="numeric-column"><%= dokument.kolicina %></td>
-                                    <td class="price-column"><%= parseFloat(dokument.iznos_bez_pdv || 0).toFixed(2) %></td>
-                                    <td class="price-column"><%= parseFloat(dokument.pdv_iznos || 0).toFixed(2) %></td>
-                                    <td class="price-column"><strong><%= parseFloat(dokument.iznos_sa_pdv || 0).toFixed(2) %></strong></td>
-                                </tr>
-                            <% }); %>
-                        <% } else { %>
+                        </thead>
+                        <tbody id="documents-tbody">
+                        <% dokumenti.forEach(function(dokument) { %>
                             <tr>
-                                <td colspan="11" style="text-align:center;">Nema dokumenata.</td>
+                            <td><%= dokument.id %></td>
+                            <td><%= new Date(dokument.datum).toLocaleDateString('sr-RS') %></td>
+                            <td><%= dokument.tip_dokumenta %></td>
+                            <td><%= dokument.magacin %></td> <!-- NOVO -->
+                            <td><%= dokument.partner %></td>
+                            <td><%= dokument.komercijalist_id || 'N/A' %></td>
+                            <td title="<%= dokument.naziv_artikla %>"><%= dokument.naziv_artikla %></td>
+                            <td class="numeric-column"><%= dokument.kolicina %></td>
+                            <td class="price-column"><%= parseFloat(dokument.iznos_bez_pdv || 0).toFixed(2) %></td>
+                            <td class="price-column"><%= parseFloat(dokument.pdv_iznos || 0).toFixed(2) %></td>
+                            <td class="price-column"><strong><%= parseFloat(dokument.iznos_sa_pdv || 0).toFixed(2) %></strong></td>
                             </tr>
-                        <% } %>
-                    </tbody>
+                        <% }); %>
+                        </tbody>
+
                 </table>
             </div>
         </div>
@@ -1050,7 +1040,6 @@
                 </button>
             </div>
             
-            <!-- Step Indicator -->
             <div class="step-indicator">
                 <div class="step active" id="step-1">
                     <div class="step-number">1</div>
@@ -1058,7 +1047,7 @@
                 </div>
                 <div class="step" id="step-2">
                     <div class="step-number">2</div>
-                    <div class="step-title">Komercijalist</div>
+                    <div class="step-title">Magacin</div>
                 </div>
                 <div class="step" id="step-3">
                     <div class="step-number">3</div>
@@ -1066,13 +1055,18 @@
                 </div>
                 <div class="step" id="step-4">
                     <div class="step-number">4</div>
-                    <div class="step-title">Artikli</div>
+                    <div class="step-title">Komercijalist</div>
                 </div>
                 <div class="step" id="step-5">
                     <div class="step-number">5</div>
+                    <div class="step-title">Artikli</div>
+                </div>
+                <div class="step" id="step-6">
+                    <div class="step-number">6</div>
                     <div class="step-title">Pregled i potvrda</div>
                 </div>
             </div>
+
 
             <!-- Step 1: Document Type Selection -->
             <div class="modal-step active" id="modal-step-1">
@@ -1105,25 +1099,26 @@
                 </div>
             </div>
 
-            <!-- Step 2: Komercijalist Selection -->
+            <!-- Step 2: Warehouse Selection -->
             <div class="modal-step" id="modal-step-2">
-                <h4>Izaberite komercijalista:</h4>
-                <div class="form-group">
-                    <input type="text" class="form-control" id="search-komercijalisti" placeholder="Pretraži komercijalistu...">
-                </div>
-                <div class="items-grid" id="komercijalisti-grid">
-                    <% if (komercijalisti && komercijalisti.length > 0) { %>
-                        <% komercijalisti.forEach(function(komercijalist) { %>
-                            <div class="komercijalist-item" data-id="<%= komercijalist.id %>" data-komercijalist='<%= JSON.stringify(komercijalist) %>'>
-                                <div class="komercijalist-name"><%= komercijalist.ime_prezime %></div>
-                                <div class="komercijalist-details">
-                                    Performanse: <%= komercijalist.performanse %>% | 
-                                    Broj kupaca: <%= komercijalist.broj_kupaca %> | 
-                                    Mesečna prodaja: <%= parseFloat(komercijalist.mjesecna_prodaja || 0).toFixed(2) %> €
-                                </div>
-                            </div>
-                        <% }); %>
-                    <% } %>
+                <h4>Izaberite magacin:</h4>
+                <div class="document-types">
+                    <div class="document-type" data-magacin="VEL001">
+                        <div class="icon"><i class="fas fa-warehouse"></i></div>
+                        <h4>VELEPRODAJA MAGACIN</h4>
+                    </div>
+                    <div class="document-type" data-magacin="VEL002">
+                        <div class="icon"><i class="fas fa-warehouse"></i></div>
+                        <h4>VELEPRODAJA DOPUNA</h4>
+                    </div>
+                    <div class="document-type" data-magacin="MAL001">
+                        <div class="icon"><i class="fas fa-warehouse"></i></div>
+                        <h4>MALOPRODAJA KEŠ</h4>
+                    </div>
+                    <div class="document-type" data-magacin="MAL002">
+                        <div class="icon"><i class="fas fa-warehouse"></i></div>
+                        <h4>MALOPRODAJA RATE</h4>
+                    </div>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
                     <button type="button" class="btn btn-secondary" id="prev-step-2">Nazad</button>
@@ -1182,8 +1177,33 @@
                 </div>
             </div>
 
-            <!-- Step 4: Articles Selection -->
+            <!-- Step 4: Komercijalist Selection -->
             <div class="modal-step" id="modal-step-4">
+                <h4>Izaberite komercijalista:</h4>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="search-komercijalisti" placeholder="Pretraži komercijalistu...">
+                </div>
+                <div class="items-grid" id="komercijalisti-grid">
+                    <% if (komercijalisti && komercijalisti.length > 0) { %>
+                        <% komercijalisti.forEach(function(komercijalist) { %>
+                            <div class="komercijalist-item" data-id="<%= komercijalist.id %>" data-komercijalist='<%= JSON.stringify(komercijalist) %>'>
+                                <div class="komercijalist-name"><%= komercijalist.ime_prezime %></div>
+                            </div>
+                        <% }); %>
+                    <% } %>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
+                    <button type="button" class="btn btn-secondary" id="prev-step-4">Nazad</button>
+                    <div>
+                        <button type="button" class="btn btn-secondary" id="cancel-step-4">Otkaži</button>
+                        <button type="button" class="btn btn-primary" id="next-step-4" disabled>Dalje</button>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Step 5: Articles Selection -->
+            <div class="modal-step" id="modal-step-5">
                 <h4>Izaberite artikle:</h4>
                 <div class="search-filter-container" style="margin-bottom: 1rem;">
                     <div class="search-box">
@@ -1211,6 +1231,7 @@
                                 <th>JM</th>
                                 <th>Dostupno</th>
                                 <th>Količina</th>
+                                <th>Rabat (%)</th>
                                 <th>Cena bez PDV</th>
                                 <th>Cena sa PDV</th>
                                 <th>Ukupno bez PDV</th>
@@ -1259,16 +1280,16 @@
                 </div>
                 
                 <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
-                    <button type="button" class="btn btn-secondary" id="prev-step-4">Nazad</button>
+                    <button type="button" class="btn btn-secondary" id="prev-step-5">Nazad</button>
                     <div>
-                        <button type="button" class="btn btn-secondary" id="cancel-step-4">Otkaži</button>
-                        <button type="button" class="btn btn-primary" id="next-step-4" disabled>Dalje</button>
+                        <button type="button" class="btn btn-secondary" id="cancel-step-5">Otkaži</button>
+                        <button type="button" class="btn btn-primary" id="next-step-5" disabled>Dalje</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Step 5: Review and Confirm -->
-            <div class="modal-step" id="modal-step-5">
+            <!-- Step 6: Review and Confirm -->
+            <div class="modal-step" id="modal-step-6">
                 <h4>Pregled i potvrda dokumenta:</h4>
                 
                 <div class="summary-section">
@@ -1318,9 +1339,9 @@
                 </div>
                 
                 <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
-                    <button type="button" class="btn btn-secondary" id="prev-step-5">Nazad</button>
+                    <button type="button" class="btn btn-secondary" id="prev-step-6">Nazad</button>
                     <div>
-                        <button type="button" class="btn btn-secondary" id="cancel-step-5">Otkaži</button>
+                        <button type="button" class="btn btn-secondary" id="cancel-step-6">Otkaži</button>
                         <button type="button" class="btn btn-success" id="create-document-final">
                             <i class="fas fa-save"></i> Kreiraj Dokument
                         </button>
@@ -1463,7 +1484,7 @@
 
         // Step navigation functions
         function goToStep(stepNumber) {
-            if (stepNumber < 1 || stepNumber > 5) return;
+            if (stepNumber < 1 || stepNumber > 6) return;
 
             // Update step indicator
             document.querySelectorAll('.step').forEach((step, index) => {
@@ -1491,164 +1512,201 @@
         }
 
         // Attach event listeners
-        function attachEventListeners() {
-            // Step 1: Document type selection
-            document.querySelectorAll('.document-type').forEach(type => {
-                type.addEventListener('click', function() {
-                    document.querySelectorAll('.document-type').forEach(t => t.classList.remove('selected'));
-                    this.classList.add('selected');
-                    selectedDocumentType = this.dataset.type;
-                    document.getElementById('next-step-1').disabled = false;
-                });
-            });
+function attachEventListeners() {
+    // ===============================
+    // Step 1: Document type selection
+    // ===============================
+    document.querySelectorAll('.document-type[data-type]').forEach(type => {
+        type.addEventListener('click', function() {
+            document.querySelectorAll('.document-type[data-type]').forEach(t => t.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedDocumentType = this.dataset.type;
+            document.getElementById('next-step-1').disabled = false;
+        });
+    });
 
-            document.getElementById('next-step-1').addEventListener('click', () => goToStep(2));
-            document.getElementById('cancel-step-1').addEventListener('click', closeModal);
+    document.getElementById('next-step-1').addEventListener('click', () => goToStep(2));
+    document.getElementById('cancel-step-1').addEventListener('click', closeModal);
 
-            // Step 2: Komercijalist selection
-            document.querySelectorAll('.komercijalist-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    document.querySelectorAll('.komercijalist-item').forEach(i => i.classList.remove('selected'));
-                    this.classList.add('selected');
-                    selectedKomercijalist = JSON.parse(this.dataset.komercijalist);
-                    document.getElementById('next-step-2').disabled = false;
-                });
-            });
 
-            document.getElementById('prev-step-2').addEventListener('click', () => goToStep(1));
-            document.getElementById('next-step-2').addEventListener('click', () => goToStep(3));
-            document.getElementById('cancel-step-2').addEventListener('click', closeModal);
+    // ===============================
+    // Step 2: Magacin selection (NOVO)
+    // ===============================
+    document.querySelectorAll('.document-type[data-magacin]').forEach(mag => {
+        mag.addEventListener('click', function() {
+            document.querySelectorAll('.document-type[data-magacin]').forEach(m => m.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedMagacin = this.dataset.magacin;
+            document.getElementById('next-step-2').disabled = false;
+        });
+    });
 
-            // Step 3: Partner selection
-            document.querySelectorAll('.partner-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    document.querySelectorAll('.partner-item').forEach(i => i.classList.remove('selected'));
-                    this.classList.add('selected');
-                    selectedPartner = JSON.parse(this.dataset.partner);
-                    
-                    // Show rabat section
-                    document.getElementById('rabat-section').style.display = 'block';
-                    const partnerRabat = parseFloat(selectedPartner.rabat || 0);
-                    document.getElementById('partner-rabat').value = partnerRabat.toFixed(1);
-                    globalniRabat = partnerRabat;
-                    updateRabatInfo();
-                    
-                    document.getElementById('next-step-3').disabled = false;
-                });
-            });
+    document.getElementById('prev-step-2').addEventListener('click', () => goToStep(1));
+    document.getElementById('next-step-2').addEventListener('click', () => goToStep(3));
+    document.getElementById('cancel-step-2').addEventListener('click', closeModal);
 
-            document.getElementById('partner-rabat').addEventListener('input', function() {
-                globalniRabat = parseFloat(this.value) || 0;
-                if (globalniRabat < 0) globalniRabat = 0;
-                if (globalniRabat > 100) globalniRabat = 100;
-                this.value = globalniRabat.toFixed(1);
-                updateRabatInfo();
-            });
 
-            document.getElementById('prev-step-3').addEventListener('click', () => goToStep(2));
-            document.getElementById('next-step-3').addEventListener('click', () => goToStep(4));
-            document.getElementById('cancel-step-3').addEventListener('click', closeModal);
+    // ===============================
+    // Step 3: Partner selection
+    // ===============================
+    document.querySelectorAll('.partner-item').forEach(item => {
+        item.addEventListener('click', function() {
+            document.querySelectorAll('.partner-item').forEach(i => i.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedPartner = JSON.parse(this.dataset.partner);
+            
+            // Show rabat section
+            document.getElementById('rabat-section').style.display = 'block';
+            const partnerRabat = parseFloat(selectedPartner.rabat || 0);
+            document.getElementById('partner-rabat').value = partnerRabat.toFixed(1);
+            globalniRabat = partnerRabat;
+            updateRabatInfo();
+            
+            document.getElementById('next-step-3').disabled = false;
+        });
+    });
 
-            // Step 4: Articles selection
-            document.querySelectorAll('.artikal-checkbox').forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    const row = this.closest('tr');
-                    const quantityInput = row.querySelector('.kolicina-input');
-                    const rabatInput = row.querySelector('.rabat-input');
-                    
-                    if (this.checked) {
-                        row.classList.add('selected');
-                        quantityInput.disabled = false;
-                        rabatInput.disabled = false;
-                        quantityInput.focus();
-                        
-                        // Set initial rabat to global rabat
-                        rabatInput.value = globalniRabat.toFixed(1);
-                    } else {
-                        row.classList.remove('selected');
-                        quantityInput.disabled = true;
-                        rabatInput.disabled = true;
-                        quantityInput.value = 1;
-                        rabatInput.value = 0;
-                        
-                        // Reset totals
-                        row.querySelector('.total-bez-pdv').textContent = '0.00';
-                        row.querySelector('.total-sa-pdv').textContent = '0.00';
-                    }
-                    
-                    updateSelectedArtikli();
-                    updateArticleTotals(row);
-                });
-            });
+    document.getElementById('partner-rabat').addEventListener('input', function() {
+        globalniRabat = parseFloat(this.value) || 0;
+        if (globalniRabat < 0) globalniRabat = 0;
+        if (globalniRabat > 100) globalniRabat = 100;
+        this.value = globalniRabat.toFixed(1);
+        updateRabatInfo();
+    });
 
-            // Add event listeners for quantity and rabat inputs
-            document.querySelectorAll('.kolicina-input, .rabat-input').forEach(input => {
-                input.addEventListener('input', function() {
-                    const row = this.closest('tr');
-                    updateArticleTotals(row);
-                    updateSelectedArtikli();
-                });
-            });
+    document.getElementById('prev-step-3').addEventListener('click', () => goToStep(2));
+    document.getElementById('next-step-3').addEventListener('click', () => goToStep(4));
+    document.getElementById('cancel-step-3').addEventListener('click', closeModal);
 
-            document.getElementById('select-all-artikli').addEventListener('click', function() {
-                document.querySelectorAll('.artikal-checkbox').forEach(checkbox => {
-                    checkbox.checked = true;
-                    const row = checkbox.closest('tr');
-                    const quantityInput = row.querySelector('.kolicina-input');
-                    const rabatInput = row.querySelector('.rabat-input');
-                    row.classList.add('selected');
-                    quantityInput.disabled = false;
-                    rabatInput.disabled = false;
-                    rabatInput.value = globalniRabat.toFixed(1);
-                    updateArticleTotals(row);
-                });
-                updateSelectedArtikli();
-            });
 
-            document.getElementById('deselect-all-artikli').addEventListener('click', function() {
-                document.querySelectorAll('.artikal-checkbox').forEach(checkbox => {
-                    checkbox.checked = false;
-                    const row = checkbox.closest('tr');
-                    const quantityInput = row.querySelector('.kolicina-input');
-                    const rabatInput = row.querySelector('.rabat-input');
-                    row.classList.remove('selected');
-                    quantityInput.disabled = true;
-                    rabatInput.disabled = true;
-                    quantityInput.value = 1;
-                    rabatInput.value = 0;
-                    
-                    // Reset totals
-                    row.querySelector('.total-bez-pdv').textContent = '0.00';
-                    row.querySelector('.total-sa-pdv').textContent = '0.00';
-                });
-                updateSelectedArtikli();
-            });
+    // ===============================
+    // Step 4: Komercijalist selection
+    // ===============================
+    document.querySelectorAll('.komercijalist-item').forEach(item => {
+        item.addEventListener('click', function() {
+            document.querySelectorAll('.komercijalist-item').forEach(i => i.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedKomercijalist = JSON.parse(this.dataset.komercijalist);
+            document.getElementById('next-step-4').disabled = false;
+        });
+    });
 
-            document.getElementById('prev-step-4').addEventListener('click', () => goToStep(3));
-            document.getElementById('next-step-4').addEventListener('click', () => goToStep(5));
-            document.getElementById('cancel-step-4').addEventListener('click', closeModal);
+    document.getElementById('prev-step-4').addEventListener('click', () => goToStep(3));
+    document.getElementById('next-step-4').addEventListener('click', () => goToStep(5));
+    document.getElementById('cancel-step-4').addEventListener('click', closeModal);
 
-            // Step 5: Final confirmation
-            document.getElementById('prev-step-5').addEventListener('click', () => goToStep(4));
-            document.getElementById('cancel-step-5').addEventListener('click', closeModal);
-            document.getElementById('create-document-final').addEventListener('click', createDocument);
 
-            // Search functionality
-            document.getElementById('search-komercijalisti').addEventListener('input', searchKomercijalisti);
-            document.getElementById('search-partners').addEventListener('input', searchPartners);
-            document.getElementById('search-artikli').addEventListener('input', searchArtikli);
+    // ===============================
+    // Step 5: Articles selection
+    // ===============================
+    document.querySelectorAll('.artikal-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const row = this.closest('tr');
+            const quantityInput = row.querySelector('.kolicina-input');
+            const rabatInput = row.querySelector('.rabat-input');
+            
+            if (this.checked) {
+                row.classList.add('selected');
+                quantityInput.disabled = false;
+                rabatInput.disabled = false;
+                quantityInput.focus();
+                
+                // Set initial rabat to global rabat
+                rabatInput.value = globalniRabat.toFixed(1);
+            } else {
+                row.classList.remove('selected');
+                quantityInput.disabled = true;
+                rabatInput.disabled = true;
+                quantityInput.value = 1;
+                rabatInput.value = 0;
+                
+                // Reset totals
+                row.querySelector('.total-bez-pdv').textContent = '0.00';
+                row.querySelector('.total-sa-pdv').textContent = '0.00';
+            }
+            
+            updateSelectedArtikli();
+            updateArticleTotals(row);
+        });
+    });
 
-            // Document filtering
-            document.getElementById('search-documents').addEventListener('input', filterDocuments);
-            document.getElementById('filter-document-type').addEventListener('change', filterDocuments);
-            document.getElementById('filter-date-from').addEventListener('change', filterDocuments);
-            document.getElementById('filter-date-to').addEventListener('change', filterDocuments);
+    // Add event listeners for quantity and rabat inputs
+    document.querySelectorAll('.kolicina-input, .rabat-input').forEach(input => {
+        input.addEventListener('input', function() {
+            const row = this.closest('tr');
+            updateArticleTotals(row);
+            updateSelectedArtikli();
+        });
+    });
 
-            // Refresh
-            refreshBtn.addEventListener('click', function() {
-                location.reload();
-            });
-        }
+    document.getElementById('select-all-artikli').addEventListener('click', function() {
+        document.querySelectorAll('.artikal-checkbox').forEach(checkbox => {
+            checkbox.checked = true;
+            const row = checkbox.closest('tr');
+            const quantityInput = row.querySelector('.kolicina-input');
+            const rabatInput = row.querySelector('.rabat-input');
+            row.classList.add('selected');
+            quantityInput.disabled = false;
+            rabatInput.disabled = false;
+            rabatInput.value = globalniRabat.toFixed(1);
+            updateArticleTotals(row);
+        });
+        updateSelectedArtikli();
+    });
+
+    document.getElementById('deselect-all-artikli').addEventListener('click', function() {
+        document.querySelectorAll('.artikal-checkbox').forEach(checkbox => {
+            checkbox.checked = false;
+            const row = checkbox.closest('tr');
+            const quantityInput = row.querySelector('.kolicina-input');
+            const rabatInput = row.querySelector('.rabat-input');
+            row.classList.remove('selected');
+            quantityInput.disabled = true;
+            rabatInput.disabled = true;
+            quantityInput.value = 1;
+            rabatInput.value = 0;
+            
+            // Reset totals
+            row.querySelector('.total-bez-pdv').textContent = '0.00';
+            row.querySelector('.total-sa-pdv').textContent = '0.00';
+        });
+        updateSelectedArtikli();
+    });
+
+    document.getElementById('prev-step-5').addEventListener('click', () => goToStep(4));
+    document.getElementById('next-step-5').addEventListener('click', () => goToStep(6));
+    document.getElementById('cancel-step-5').addEventListener('click', closeModal);
+
+
+    // ===============================
+    // Step 6: Final confirmation
+    // ===============================
+    document.getElementById('prev-step-6').addEventListener('click', () => goToStep(5));
+    document.getElementById('cancel-step-6').addEventListener('click', closeModal);
+    document.getElementById('create-document-final').addEventListener('click', createDocument);
+
+
+    // ===============================
+    // Search functionality
+    // ===============================
+    document.getElementById('search-komercijalisti').addEventListener('input', searchKomercijalisti);
+    document.getElementById('search-partners').addEventListener('input', searchPartners);
+    document.getElementById('search-artikli').addEventListener('input', searchArtikli);
+
+    // ===============================
+    // Document filtering
+    // ===============================
+    document.getElementById('search-documents').addEventListener('input', filterDocuments);
+    document.getElementById('filter-document-type').addEventListener('change', filterDocuments);
+    document.getElementById('filter-date-from').addEventListener('change', filterDocuments);
+    document.getElementById('filter-date-to').addEventListener('change', filterDocuments);
+
+    // Refresh
+    refreshBtn.addEventListener('click', function() {
+        location.reload();
+    });
+}
+
 
         // Update article totals
         function updateArticleTotals(row) {
@@ -1699,14 +1757,15 @@
             });
 
             // Update UI
-            if (selectedCount > 0) {
-                document.getElementById('selected-count').style.display = 'block';
-                document.getElementById('selected-items-count').textContent = selectedCount;
-                document.getElementById('next-step-4').disabled = false;
-            } else {
-                document.getElementById('selected-count').style.display = 'none';
-                document.getElementById('next-step-4').disabled = true;
-            }
+                if (selectedCount > 0) {
+                    document.getElementById('selected-count').style.display = 'block';
+                    document.getElementById('selected-items-count').textContent = selectedCount;
+                    document.getElementById('next-step-5').disabled = false;   // ✅ ISPRAVNO
+                } else {
+                    document.getElementById('selected-count').style.display = 'none';
+                    document.getElementById('next-step-5').disabled = true;    // ✅ ISPRAVNO
+                }
+
         }
 
         // Update rabat info
@@ -1767,56 +1826,96 @@
             document.getElementById('review-iznos-sa-pdv').textContent = totalIznosSaPdv.toFixed(2) + ' €';
         }
 
-        // Create document
-        async function createDocument() {
-            const createBtn = document.getElementById('create-document-final');
-            createBtn.disabled = true;
-            createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kreira se...';
+        // NOVA verzija createDocument()
+async function createDocument() {
+    const createBtn = document.getElementById('create-document-final');
+    createBtn.disabled = true;
+    createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kreira se...';
 
-            try {
-                const documentData = {
-                    tipDokumenta: selectedDocumentType,
-                    partner: selectedPartner.Naziv_partnera || selectedPartner.naziv_partnera,
-                    komercijalist_id: selectedKomercijalist.id,
-                    artikli: selectedArtikli,
-                    globalniRabat: globalniRabat,
-                    napomene: document.getElementById('document-napomene').value,
-                    ukupanIznos: calculateTotals()
-                };
+    try {
+        // --- Izračunaj ukupne iznose sa klijenta ---
+        const totals = typeof calculateTotals === 'function'
+            ? calculateTotals()
+            : { iznosBezPdv: 0, iznosSaPdv: 0, pdvIznos: 0 };
 
-                const response = await fetch('/api/pravljenjedokumenta', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(documentData)
-                });
+        // --- Odredi identifikatore ---
+        const partnerIdent =
+            selectedPartner?.Sifra ??
+            selectedPartner?.sifra ??
+            selectedPartner?.id ??
+            selectedPartner?.partner_id ??
+            null;
 
-                if (response.ok) {
-                    const result = await response.json();
-                    alert(`Dokument je uspešno kreiran!\nBroj dokumenta: ${result.documentNumber}`);
-                    closeModal();
-                    location.reload();
-                } else {
-                    const contentType = response.headers.get('content-type') || '';
-                    let errText;
-                    if (contentType.includes('application/json')) {
-                        const errJson = await response.json();
-                        errText = errJson.error || JSON.stringify(errJson);
-                    } else {
-                        errText = await response.text();
-                    }
-                    throw new Error(errText || 'Greška pri kreiranju dokumenta');
-                }
+        const komercijalistIdent =
+            selectedKomercijalist?.id ??
+            selectedKomercijalist?.ID ??
+            selectedKomercijalist?.komercijalist_id ??
+            null;
 
-            } catch (error) {
-                console.error('Error creating document:', error);
-                alert('Greška pri kreiranju dokumenta: ' + error.message);
-            } finally {
-                createBtn.disabled = false;
-                createBtn.innerHTML = '<i class="fas fa-save"></i> Kreiraj Dokument';
-            }
+        // --- Sastavi payload za server ---
+        const documentData = {
+            datum: new Date().toISOString(),
+            tipDokumenta: selectedDocumentType,            // 👈 naziv koji backend traži
+            magacin: selectedMagacin,
+            partner: partnerIdent,
+            komercijalist_id: komercijalistIdent,          // 👈 backend traži baš ovako
+            artikli: Array.isArray(selectedArtikli) ? selectedArtikli : [],
+            rabat: typeof currentRabat !== 'undefined' ? currentRabat : 0,
+            ukupanIznos: totals.iznosSaPdv,
+            ukupnoBezPdv: totals.iznosBezPdv,
+            ukupnoSaPdv: totals.iznosSaPdv,
+            ukupanPdv: totals.pdvIznos
+        };
+
+        console.log('Document payload ->', documentData);
+
+        // --- Validacija pre slanja ---
+        const missing = [];
+        if (!documentData.tipDokumenta) missing.push('tip dokumenta');
+        if (!documentData.partner) missing.push('partner');
+        if (!documentData.komercijalist_id) missing.push('komercijalist');
+        if (!documentData.artikli || documentData.artikli.length === 0) missing.push('artikli');
+
+        if (missing.length > 0) {
+            alert('Nedostaju sledeća polja: ' + missing.join(', '));
+            createBtn.disabled = false;
+            createBtn.innerHTML = '<i class="fas fa-save"></i> Kreiraj dokument';
+            return;
         }
+
+        // --- Pošalji zahtev ---
+        const response = await fetch('/api/pravljenjedokumenta', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(documentData)
+        });
+
+        if (!response.ok) {
+            // Pročitaj tekst greške sa servera
+            const contentType = response.headers.get('content-type') || '';
+            let errText;
+            if (contentType.includes('application/json')) {
+                const j = await response.json();
+                errText = j.error || JSON.stringify(j);
+            } else {
+                errText = await response.text();
+            }
+            throw new Error(errText);
+        }
+
+        const result = await response.json();
+        alert(`Dokument uspešno kreiran!\nBroj dokumenta: ${result.documentNumber}`);
+        closeModal();
+        location.reload();
+
+    } catch (error) {
+        console.error('Error creating document:', error);
+        alert('Greška pri kreiranju dokumenta: ' + error.message);
+    } finally {
+        createBtn.disabled = false;
+        createBtn.innerHTML = '<i class="fas fa-save"></i> Kreiraj dokument';
+    }
+}
 
         // Calculate totals
         function calculateTotals() {

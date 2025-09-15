@@ -486,6 +486,18 @@
             transform: translateY(-50%);
             color: #666;
         }
+
+        .date-filter-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .date-filter-group label {
+            font-size: 12px;
+            color: #666;
+            white-space: nowrap;
+        }
         .action-buttons {
             display: flex;
             gap: 0.3rem;
@@ -1106,6 +1118,18 @@
                         <option value="neaktivan">Neaktivni</option>
                         <option value="pauza">Na pauzi</option>
                     </select>
+                    <div class="date-filter-group">
+                        <label>Od:</label>
+                        <input type="date" class="form-control" id="date-from" style="width: auto; min-width: 140px;">
+                    </div>
+                    <div class="date-filter-group">
+                        <label>Do:</label>
+                        <input type="date" class="form-control" id="date-to" style="width: auto; min-width: 140px;">
+                    </div>
+                    <button class="btn btn-primary" id="apply-filters">
+                        <i class="fas fa-filter"></i>
+                        <span>Filtriraj</span>
+                    </button>
                 </div>
             </div>
 
@@ -1115,8 +1139,8 @@
                         <tr>
                             <th>ID</th>
                             <th>Ime i prezime</th>
-                            <th>Broj kupaca</th>
-                            <th>Mjesečna prodaja</th>
+                            <th>Broj dokumenata</th>
+                            <th>Ukupan promet (€)</th>
                             <th>Performanse</th>
                             <th>Status</th>
                             <th>Akcije</th>
@@ -1148,21 +1172,6 @@
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label" for="broj-kupaca">Broj kupaca</label>
-                    <input type="number" class="form-control" id="broj-kupaca" min="0" value="0">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="mjesecna-prodaja">Mjesečna prodaja (€)</label>
-                    <input type="number" class="form-control" id="mjesecna-prodaja" step="0.01" min="0" value="0">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="performanse">Performanse (%)</label>
-                    <input type="number" class="form-control" id="performanse" min="0" max="100" value="0">
-                </div>
-                
-                <div class="form-group">
                     <label class="form-label" for="status">Status</label>
                     <select class="form-control" id="status">
                         <option value="aktivan">Aktivan</option>
@@ -1185,7 +1194,12 @@
     <script>
         // Global variables
         let komercijalisti = [];
+        let dokumentiData = [];
         let currentEditId = null;
+        let currentFilters = {
+            dateFrom: null,
+            dateTo: null
+        };
 
         // DOM elements
         const sidebar = document.getElementById('sidebar');
@@ -1197,16 +1211,91 @@
         const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
         const searchInput = document.getElementById('search-salespeople');
         const statusFilter = document.getElementById('status-filter');
+        const dateFromInput = document.getElementById('date-from');
+        const dateToInput = document.getElementById('date-to');
+        const applyFiltersBtn = document.getElementById('apply-filters');
         const salespersonModal = document.getElementById('salesperson-modal');
         const salespersonForm = document.getElementById('salesperson-form');
 
         // Load data from server-side rendered EJS
         function loadKomercijalistiData() {
             // This will be populated by EJS template
-            komercijalisti = <%- JSON.stringify(komercijalisti) %>;
+            komercijalisti = <%- JSON.stringify(komercijalisti || []) %>;
             console.log('Loaded komercijalisti:', komercijalisti.length);
-            renderTable();
-            updateStats();
+            
+            // Load documents data and calculate performance
+            loadDocumentiData();
+        }
+
+        // Load documents data from API
+        async function loadDocumentiData() {
+            try {
+                const response = await fetch('/api/pravljenjedokumenta/dokumenti?limit=1000');
+                if (!response.ok) throw new Error('Failed to fetch documents');
+                
+                dokumentiData = await response.json();
+                console.log('Loaded dokumenti:', dokumentiData.length);
+                
+                calculatePerformanceData();
+                renderTable();
+                updateStats();
+            } catch (error) {
+                console.error('Error loading documents data:', error);
+                // Fallback to basic rendering without performance data
+                renderTable();
+                updateStats();
+            }
+        }
+
+        // Calculate performance data from documents
+        function calculatePerformanceData() {
+            const filteredDocuments = filterDocumentsByDate(dokumentiData);
+            
+            // Calculate performance metrics for each komercijalist
+            komercijalisti.forEach(komercijalist => {
+                const komercijalistDocs = filteredDocuments.filter(doc => 
+                    doc.komercijalist_id === komercijalist.id
+                );
+                
+                komercijalist.broj_dokumenata = komercijalistDocs.length;
+                komercijalist.ukupan_promet = komercijalistDocs.reduce((sum, doc) => 
+                    sum + (parseFloat(doc.iznos_sa_pdv) || 0), 0
+                );
+                komercijalist.broj_kupaca = new Set(komercijalistDocs.map(doc => doc.partner)).size;
+            });
+            
+            // Calculate performance percentages (0-100% based on relative performance)
+            const maxPromet = Math.max(...komercijalisti.map(k => k.ukupan_promet || 0));
+            const maxDokumenti = Math.max(...komercijalisti.map(k => k.broj_dokumenata || 0));
+            
+            komercijalisti.forEach(komercijalist => {
+                let performanceScore = 0;
+                
+                if (maxPromet > 0 && maxDokumenti > 0) {
+                    const prometScore = ((komercijalist.ukupan_promet || 0) / maxPromet) * 60; // 60% weight for revenue
+                    const dokumentiScore = ((komercijalist.broj_dokumenata || 0) / maxDokumenti) * 40; // 40% weight for document count
+                    performanceScore = prometScore + dokumentiScore;
+                }
+                
+                komercijalist.calculated_performanse = Math.round(performanceScore);
+            });
+        }
+
+        // Filter documents by date range
+        function filterDocumentsByDate(documents) {
+            if (!currentFilters.dateFrom && !currentFilters.dateTo) {
+                return documents;
+            }
+            
+            return documents.filter(doc => {
+                const docDate = new Date(doc.datum);
+                const fromDate = currentFilters.dateFrom ? new Date(currentFilters.dateFrom) : null;
+                const toDate = currentFilters.dateTo ? new Date(currentFilters.dateTo) : null;
+                
+                if (fromDate && docDate < fromDate) return false;
+                if (toDate && docDate > toDate) return false;
+                return true;
+            });
         }
 
         // Calculate stats from komercijalisti data
@@ -1215,16 +1304,21 @@
             
             const totalKomercijalisti = komercijalisti.length;
             const aktivniKomercijalisti = komercijalisti.filter(k => k.status === 'aktivan').length;
-            const totalMjesecnaProdaja = komercijalisti.reduce((sum, k) => sum + (k.mjesecna_prodaja || 0), 0);
+            const totalPromet = komercijalisti.reduce((sum, k) => sum + (k.ukupan_promet || 0), 0);
+            const totalDokumenti = komercijalisti.reduce((sum, k) => sum + (k.broj_dokumenata || 0), 0);
             
             // Find best performer by performance percentage
             const najboljiKomercijalist = komercijalisti.reduce((best, current) => {
-                return (current.performanse || 0) > (best.performanse || 0) ? current : best;
-            }, { ime_prezime: 'N/A', performanse: 0 });
+                return (current.calculated_performanse || 0) > (best.calculated_performanse || 0) ? current : best;
+            }, { ime_prezime: 'N/A', calculated_performanse: 0 });
 
             const najboljiNaziv = najboljiKomercijalist.ime_prezime !== 'N/A' 
                 ? najboljiKomercijalist.ime_prezime.split(' ').slice(0, 2).join(' ')
                 : 'N/A';
+
+            const dateRangeText = currentFilters.dateFrom || currentFilters.dateTo 
+                ? ` (${currentFilters.dateFrom || 'početak'} - ${currentFilters.dateTo || 'danas'})`
+                : '';
 
             statsGrid.innerHTML = `
                 <div class="stat-card">
@@ -1239,13 +1333,13 @@
                 </div>
                 <div class="stat-card info">
                     <i class="fas fa-euro-sign stat-icon"></i>
-                    <div class="stat-number">€${Math.round(totalMjesecnaProdaja / 1000)}K</div>
-                    <div class="stat-label">Ukupna prodaja (mjesečno)</div>
+                    <div class="stat-number">€${Math.round(totalPromet / 1000)}K</div>
+                    <div class="stat-label">Ukupan promet${dateRangeText}</div>
                 </div>
                 <div class="stat-card warning">
-                    <i class="fas fa-trophy stat-icon"></i>
-                    <div class="stat-number">${najboljiNaziv}</div>
-                    <div class="stat-label">Najbolji komercijalist</div>
+                    <i class="fas fa-file-alt stat-icon"></i>
+                    <div class="stat-number">${totalDokumenti}</div>
+                    <div class="stat-label">Ukupno dokumenata${dateRangeText}</div>
                 </div>
             `;
         }
@@ -1269,26 +1363,31 @@
             komercijalisti.forEach(komercijalist => {
                 const row = document.createElement('tr');
                 
+                const performanse = komercijalist.calculated_performanse || 0;
                 const performanseClass = 
-                    komercijalist.performanse >= 90 ? 'performance-excellent' :
-                    komercijalist.performanse >= 75 ? 'performance-good' :
-                    komercijalist.performanse >= 60 ? 'performance-average' : 'performance-poor';
+                    performanse >= 80 ? 'performance-excellent' :
+                    performanse >= 60 ? 'performance-good' :
+                    performanse >= 40 ? 'performance-average' : 'performance-poor';
 
                 const statusClass = 
                     komercijalist.status === 'aktivan' ? 'status-active' :
                     komercijalist.status === 'pauza' ? 'status-vacation' : 'status-inactive';
 
+                const dateRangeText = currentFilters.dateFrom || currentFilters.dateTo 
+                    ? ` (${currentFilters.dateFrom || ''} - ${currentFilters.dateTo || ''})`
+                    : '';
+
                 row.innerHTML = `
                     <td>${komercijalist.id}</td>
                     <td>${komercijalist.ime_prezime}</td>
-                    <td>${komercijalist.broj_kupaca || 0}</td>
-                    <td class="currency">€${(komercijalist.mjesecna_prodaja || 0).toLocaleString('de-DE')}</td>
+                    <td>${komercijalist.broj_dokumenata || 0}</td>
+                    <td class="currency">€${(komercijalist.ukupan_promet || 0).toLocaleString('de-DE', {minimumFractionDigits: 2})}</td>
                     <td>
                         <div class="performance-indicator">
                             <div class="performance-bar">
-                                <div class="performance-fill ${performanseClass}" style="width: ${Math.min(komercijalist.performanse || 0, 100)}%"></div>
+                                <div class="performance-fill ${performanseClass}" style="width: ${Math.min(performanse, 100)}%"></div>
                             </div>
-                            <span style="font-size: 12px; font-weight: 500; min-width: 35px;">${komercijalist.performanse || 0}%</span>
+                            <span style="font-size: 12px; font-weight: 500; min-width: 35px;">${performanse}%</span>
                         </div>
                     </td>
                     <td>
@@ -1332,6 +1431,21 @@
             });
         }
 
+        // Apply date filters
+        function applyDateFilters() {
+            currentFilters.dateFrom = dateFromInput.value || null;
+            currentFilters.dateTo = dateToInput.value || null;
+            
+            console.log('Applying filters:', currentFilters);
+            
+            // Recalculate performance with new date filters
+            calculatePerformanceData();
+            renderTable();
+            updateStats();
+            
+            showNotification('Filtri primenjeni', 'success');
+        }
+
         // Modal functions
         function openModal(title = 'Novi komercijalist', komercijalist = null) {
             document.getElementById('modal-title').textContent = title;
@@ -1339,9 +1453,6 @@
             if (komercijalist) {
                 document.getElementById('salesperson-id').value = komercijalist.id;
                 document.getElementById('ime-prezime').value = komercijalist.ime_prezime || '';
-                document.getElementById('broj-kupaca').value = komercijalist.broj_kupaca || 0;
-                document.getElementById('mjesecna-prodaja').value = komercijalist.mjesecna_prodaja || 0;
-                document.getElementById('performanse').value = komercijalist.performanse || 0;
                 document.getElementById('status').value = komercijalist.status || 'aktivan';
                 currentEditId = komercijalist.id;
             } else {
@@ -1497,6 +1608,17 @@
 
         // Event listeners
         document.addEventListener('DOMContentLoaded', function() {
+            // Set default date range to current month
+            const now = new Date();
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            
+            dateFromInput.value = firstDay.toISOString().split('T')[0];
+            dateToInput.value = lastDay.toISOString().split('T')[0];
+            
+            currentFilters.dateFrom = dateFromInput.value;
+            currentFilters.dateTo = dateToInput.value;
+            
             loadKomercijalistiData();
             
             // Responsive setup
@@ -1575,6 +1697,7 @@
         // Search and filter
         searchInput.addEventListener('input', filterTable);
         statusFilter.addEventListener('change', filterTable);
+        applyFiltersBtn.addEventListener('click', applyDateFilters);
 
         // Header actions
         document.getElementById('add-salesperson-btn').addEventListener('click', () => openModal());
@@ -1590,19 +1713,11 @@
             
             const formData = {
                 ime_prezime: document.getElementById('ime-prezime').value.trim(),
-                broj_kupaca: parseInt(document.getElementById('broj-kupaca').value) || 0,
-                mjesecna_prodaja: parseFloat(document.getElementById('mjesecna-prodaja').value) || 0,
-                performanse: parseFloat(document.getElementById('performanse').value) || 0,
                 status: document.getElementById('status').value
             };
 
             if (!formData.ime_prezime) {
                 showNotification('Ime i prezime je obavezno', 'error');
-                return;
-            }
-
-            if (formData.performanse < 0 || formData.performanse > 100) {
-                showNotification('Performanse moraju biti između 0 i 100%', 'error');
                 return;
             }
 

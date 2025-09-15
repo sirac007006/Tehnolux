@@ -34,7 +34,7 @@
             overflow-x: hidden;
         }
 
-        /* Sidebar styles - stejn kao u artikli */
+        /* Sidebar styles */
         .sidebar {
             position: fixed;
             width: var(--sidebar-width);
@@ -87,7 +87,6 @@
             margin-right: 0;
         }
 
-        /* Menu sections - stejn kao u artikli */
         .sidebar-nav {
             flex: 1;
             overflow-y: auto;
@@ -155,7 +154,6 @@
             padding: 10px;
         }
 
-        /* Submenu styles - stejn kao u artikli */
         .submenu {
             max-height: 0;
             overflow: hidden;
@@ -181,7 +179,6 @@
             display: none;
         }
 
-        /* Toggle button - stejn kao u artikli */
         .toggle-sidebar {
             position: sticky;
             bottom: 0;
@@ -206,7 +203,6 @@
             background-color: rgba(255, 255, 255, 0.2);
         }
 
-        /* Main content area - stejn kao u artikli */
         .main-content {
             margin-left: var(--sidebar-width);
             transition: all var(--transition-speed);
@@ -219,7 +215,6 @@
             margin-left: var(--sidebar-collapsed);
         }
 
-        /* Header - stejn kao u artikli */
         .header {
             position: fixed;
             top: 0;
@@ -311,16 +306,14 @@
             background-color: #f39c12;
         }
 
-        /* Card styles */
         .card {
             background-color: white;
             border-radius: var(--border-radius);
             padding: clamp(1rem, 2vw, 1.5rem);
-            box-shadow: var(--box-shadow);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             margin-bottom: 1.5rem;
         }
 
-        /* Filter controls - optimizovano */
         .filter-controls {
             background: white;
             padding: 1.5rem;
@@ -368,7 +361,6 @@
             box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
         }
 
-        /* Checkbox filters - optimizovano */
         .checkbox-filters {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -387,7 +379,6 @@
             margin: 0;
         }
 
-        /* Table styles - smanjena za manje laptopove */
         .table-container {
             overflow-x: auto;
             margin: 1rem -1rem -1rem -1rem;
@@ -396,7 +387,7 @@
 
         .data-table {
             width: 100%;
-            min-width: 1100px; /* Smanjeno sa 1500px */
+            min-width: 1100px;
             border-collapse: collapse;
             margin-top: 1rem;
         }
@@ -425,7 +416,6 @@
             background-color: #d4edda;
         }
 
-        /* Optimizovane širine kolona */
         .data-table th:nth-child(1),
         .data-table td:nth-child(1) { width: 90px; }
         .data-table th:nth-child(2),
@@ -447,7 +437,6 @@
         .data-table th:nth-child(10),
         .data-table td:nth-child(10) { width: 80px; text-align: center; }
 
-        /* Modal styles */
         .modal {
             display: none;
             position: fixed;
@@ -552,7 +541,6 @@
             margin: 0;
         }
 
-        /* Special styling */
         .price-column {
             text-align: right;
             font-family: monospace;
@@ -563,7 +551,6 @@
             font-weight: 600;
         }
 
-        /* Mobile menu toggle - stejn kao u artikli */
         .mobile-menu-toggle {
             display: none;
             background: none;
@@ -578,6 +565,29 @@
             background-color: white;
             padding: 8px;
             border-radius: 4px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
         }
 
         /* Print styles */
@@ -631,7 +641,7 @@
             display: none;
         }
 
-        /* Responsive design - stejn kao u artikli */
+        /* Responsive design */
         @media (max-width: 1200px) {
             .data-table {
                 min-width: 950px;
@@ -688,6 +698,8 @@
             .toggle-sidebar {
                 display: flex;
             }
+
+            
         }
 
         @media (max-width: 576px) {
@@ -710,75 +722,6 @@
                 display: block;
             }
 
-            .logo-container {
-                margin-bottom: 2rem;
-                justify-content: flex-start;
-                padding: 0 1rem 1rem 1rem;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                margin-top: 60px;
-            }
-
-            .logo {
-                font-size: 22px;
-                margin-left: 0;
-                text-align: center;
-                width: 100%;
-            }
-
-            .menu-section {
-                margin-bottom: 1.5rem;
-            }
-
-            .menu-title {
-                font-size: 12px;
-                margin-bottom: 0.8rem;
-                color: rgba(255, 255, 255, 0.7);
-                font-weight: 600;
-                text-transform: uppercase;
-                padding: 0 1rem;
-            }
-
-            .nav-link {
-                padding: 12px 1rem;
-                font-size: 14px;
-                margin-bottom: 0.3rem;
-                border-radius: 8px;
-                transition: all 0.3s ease;
-            }
-
-            .nav-link:hover {
-                background-color: rgba(255, 255, 255, 0.1);
-            }
-
-            .nav-link.active {
-                background-color: var(--secondary-color);
-            }
-
-            .nav-icon {
-                margin-right: 12px;
-                font-size: 16px;
-                min-width: 16px;
-            }
-
-            .submenu {
-                margin-left: 1rem;
-                margin-right: 0.5rem;
-                background-color: rgba(0, 0, 0, 0.2);
-                border-radius: 8px;
-                padding: 0;
-                margin-top: 0.3rem;
-            }
-
-            .submenu .nav-link {
-                padding: 10px 1rem;
-                font-size: 13px;
-                margin-bottom: 0.2rem;
-            }
-
-            .toggle-sidebar {
-                display: none;
-            }
-
             .main-content,
             .header {
                 margin-left: 0;
@@ -786,27 +729,6 @@
 
             .mobile-menu-toggle {
                 display: block;
-                position: fixed;
-                top: 8px;
-                left: 12px;
-                z-index: 2600;
-                background-color: white;
-                border: none;
-                padding: 12px;
-                border-radius: 8px;
-                font-size: 18px;
-                color: var(--primary-color);
-                transition: all 0.2s ease;
-                width: 44px;
-                height: 44px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .mobile-menu-toggle:hover {
-                background-color: #f8f9fa;
-                transform: scale(1.05);
             }
 
             .data-table {
@@ -825,158 +747,24 @@
                 padding: 1rem;
             }
 
-            .header {
-                padding: 0 1rem 0 60px;
-                height: 60px;
-                background: white;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                margin-left: 0;
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                z-index: 900;
+            .form-grid {
+                grid-template-columns: 1fr;
             }
-
-            .page-title {
-                font-size: 18px;
-                line-height: 0.7;
-                font-weight: 600;
-                color: var(--text-color);
-                margin: 0;
-                flex: 1;
-                text-align: left;
-                padding-left: 0;
-                margin-left: 5px;
-                align-items: center;
-            }
-
-            .header-actions {
-                gap: 0.5rem;
-                flex-direction: row;
-                flex-wrap: nowrap;
-                align-items: center;
-                justify-content: flex-end;
-            }
-
-            .header-actions .btn {
-                padding: 8px 12px;
-                font-size: 12px;
-                border-radius: 6px;
-                font-weight: 500;
-                min-height: 36px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                white-space: nowrap;
-            }
-
-            .header-actions .btn i {
-                font-size: 14px;
-            }
-
-            .main-content {
-                padding: 1rem;
-                padding-top: 75px;
-                background-color: #f5f7fa;
-            }
-
-            .card {
-                padding: 1rem;
-                margin: 0;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-                border: none;
-                border-radius: 12px;
-                background: white;
-            }
-
-            /* Sidebar overlay for mobile */
-            .sidebar-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100vw;
-                height: 100vh;
-                background-color: rgba(0, 0, 0, 0.4);
-                z-index: 2000;
-                display: none;
-            }
-
-            .sidebar-overlay.show {
-                display: block;
-            }
-
-            /* Mobile optimized table columns */
-            .data-table th:nth-child(1),
-            .data-table td:nth-child(1) { width: 12%; }
-            .data-table th:nth-child(2),
-            .data-table td:nth-child(2) { width: 6%; }
-            .data-table th:nth-child(3),
-            .data-table td:nth-child(3) { width: 8%; }
-            .data-table th:nth-child(4),
-            .data-table td:nth-child(4) { width: 10%; }
-            .data-table th:nth-child(5),
-            .data-table td:nth-child(5) { 
-                width: 30%; 
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-            .data-table th:nth-child(6),
-            .data-table td:nth-child(6) { width: 12%; }
-            .data-table th:nth-child(7),
-            .data-table td:nth-child(7) { width: 10%; }
-            .data-table th:nth-child(8),
-            .data-table td:nth-child(8) { width: 5%; }
-            .data-table th:nth-child(9),
-            .data-table td:nth-child(9) { width: 8%; }
-            .data-table th:nth-child(10),
-            .data-table td:nth-child(10) { width: 8%; }
         }
 
-        /* Scrollbar styling */
-        .sidebar-nav {
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,0.3) transparent;
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.4);
+            z-index: 2000;
+            display: none;
         }
 
-        .sidebar-nav::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .sidebar-nav::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .sidebar-nav::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.3);
-            border-radius: 3px;
-        }
-
-        .sidebar-nav::-webkit-scrollbar-thumb:hover {
-            background: rgba(255,255,255,0.5);
-        }
-        @media (max-width: 768px) {
-            /* Skrivanje "Unos Dokumentacije" sekcije na svim uređajima manjim od 768px */
-            .menu-section:first-child {
-                display: none !important;
-            }
-
-            .card {
-                padding: 1rem;
-                margin: 0.5rem;
-            }
-
-            .data-table {
-                min-width: 900px;
-            }
-
-            .toggle-sidebar {
-                display: flex;
-            }
+        .sidebar-overlay.show {
+            display: block;
         }
     </style>
 </head>
@@ -990,7 +778,7 @@
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
+    <aside class="sidebar" id="sidebar">
         <div class="logo-container">
             <div class="logo">
                 <span class="logo-text">Tehnolux</span>
@@ -998,7 +786,7 @@
         </div>
         
         <nav class="sidebar-nav">
-            <!-- Unos Dokumentacije - skriva se na uređajima manjim od 768px osim na mobile sidebar -->
+            <!-- Unos Dokumentacije -->
             <div class="menu-section">
                 <div class="menu-title">Unos dokumentacije</div>
                 <div class="nav-item">
@@ -1113,6 +901,10 @@
         <h1 class="page-title">Promet robe</h1>
         
         <div class="header-actions">
+            <button class="btn btn-success" id="add-btn">
+                <i class="fas fa-plus"></i>
+                <span>Dodaj</span>
+            </button>
             <button class="btn btn-primary" id="print-btn">
                 <i class="fas fa-print"></i>
                 <span>Print</span>
@@ -1121,7 +913,7 @@
                 <i class="fas fa-sort"></i>
                 <span>Sort</span>
             </button>
-            <button class="btn btn-success" id="kartica-btn">
+            <button class="btn btn-secondary" id="kartica-btn">
                 <i class="fas fa-id-card"></i>
                 <span>Kartica</span>
             </button>
@@ -1158,25 +950,28 @@
                 <div class="filter-group">
                     <label class="filter-label">Magacin:</label>
                     <select class="form-control" id="magacin-filter">
-                        <option value="VELEPRODAJA MAGACIN">VELEPRODAJA MAGACIN</option>
-                        <option value="PRODAVNICA">PRODAVNICA</option>
-                        <option value="SERVIS">SERVIS</option>
+                        <option value="">Svi magacini</option>
+                        <% magacini.forEach(function(magacin) { %>
+                            <option value="<%= magacin.magacin %>"><%= magacin.magacin %></option>
+                        <% }); %>
                     </select>
                 </div>
                 <div class="filter-group">
                     <label class="filter-label">Partner:</label>
                     <select class="form-control" id="partner-filter">
                         <option value="">Svi partneri</option>
-                        <option value="Partner 1">Partner 1</option>
-                        <option value="Partner 2">Partner 2</option>
+                        <% partneri.forEach(function(partner) { %>
+                            <option value="<%= partner.partner %>"><%= partner.partner %></option>
+                        <% }); %>
                     </select>
                 </div>
                 <div class="filter-group">
                     <label class="filter-label">Grupa robe:</label>
                     <select class="form-control" id="grupa-filter">
                         <option value="">Sve grupe</option>
-                        <option value="USLUGE">USLUGE</option>
-                        <option value="MATERIJAL">MATERIJAL</option>
+                        <% grupe.forEach(function(grupa) { %>
+                            <option value="<%= grupa.gr %>"><%= grupa.gr %></option>
+                        <% }); %>
                     </select>
                 </div>
                 <div class="filter-group">
@@ -1258,12 +1053,97 @@
                         </tr>
                     </thead>
                     <tbody id="promet-tbody">
-                        <!-- Data will be populated by JavaScript -->
+                        <% prometData.forEach(function(item, index) { %>
+                            <tr <%= index === 0 ? 'class="selected"' : '' %> data-id="<%= item.id %>">
+                                <td><%= item.datum %></td>
+                                <td><%= item.gr || '' %></td>
+                                <td><%= item.sifra || '' %></td>
+                                <td><%= item.ean || '' %></td>
+                                <td title="<%= item.naziv %>"><%= item.naziv %></td>
+                                <td><%= item.magacin %></td>
+                                <td><%= item.partner %></td>
+                                <td><%= item.jm || '' %></td>
+                                <td class="quantity-column"><%= item.kol_ulaz || '' %></td>
+                                <td class="quantity-column"><%= item.kol_izlaz || '' %></td>
+                            </tr>
+                        <% }); %>
                     </tbody>
                 </table>
             </div>
         </div>
     </main>
+
+    <!-- Add New Promet Modal -->
+    <div class="modal" id="add-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Dodaj novi promet robe</h3>
+                <button class="close-modal" id="close-add-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form action="/prometrobe/add" method="POST" id="add-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="datum">Datum *</label>
+                        <input type="date" class="form-control" id="datum" name="datum" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="gr">Grupa robe</label>
+                        <input type="text" class="form-control" id="gr" name="gr" maxlength="5">
+                    </div>
+                    <div class="form-group">
+                        <label for="sifra">Šifra *</label>
+                        <input type="text" class="form-control" id="sifra" name="sifra" required maxlength="20">
+                    </div>
+                    <div class="form-group">
+                        <label for="ean">EAN kod</label>
+                        <input type="text" class="form-control" id="ean" name="ean" maxlength="50">
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="naziv">Naziv artikla *</label>
+                        <input type="text" class="form-control" id="naziv" name="naziv" required maxlength="255">
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="magacin">Magacin *</label>
+                        <select class="form-control" id="magacin" name="magacin" required>
+                            <option value="">Izaberite magacin</option>
+                            <option value="Maloprodaja Rate">Maloprodaja Rate</option>
+                            <option value="Maloprodaja Kes">Maloprodaja Kes</option>
+                            <option value="Veleprodaja dopuna">Veleprodaja Dopuna</option>
+                            <option value="Veleprodaja Magacin">Veleprodaja Magacin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="partner">Partner *</label>
+                        <input type="text" class="form-control" id="partner" name="partner" required maxlength="100" placeholder="Unesite ime partnera">
+                    </div>
+                    <div class="form-group">
+                        <label for="jm">Jedinica mere</label>
+                        <input type="text" class="form-control" id="jm" name="jm" maxlength="10">
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="kol_ulaz">Količina ulaz</label>
+                        <input type="number" class="form-control" id="kol_ulaz" name="kol_ulaz" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="kol_izlaz">Količina izlaz</label>
+                        <input type="number" class="form-control" id="kol_izlaz" name="kol_izlaz" step="0.01">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" class="btn btn-secondary" id="cancel-add">Otkaži</button>
+                    <button type="submit" class="btn btn-success">Dodaj promet</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Kartica Modal -->
     <div class="modal" id="kartica-modal">
@@ -1343,39 +1223,28 @@
         const tarifFilter = document.getElementById('tarif-filter');
 
         // Header buttons
+        const addBtn = document.getElementById('add-btn');
         const printBtn = document.getElementById('print-btn');
         const sortBtn = document.getElementById('sort-btn');
         const karticaBtn = document.getElementById('kartica-btn');
 
         // Modal elements
+        const addModal = document.getElementById('add-modal');
         const karticaModal = document.getElementById('kartica-modal');
         const sortModal = document.getElementById('sort-modal');
+        const closeAddModal = document.getElementById('close-add-modal');
         const closeKarticaModal = document.getElementById('close-kartica-modal');
         const closeSortModal = document.getElementById('close-sort-modal');
+        const cancelAdd = document.getElementById('cancel-add');
         const cancelSort = document.getElementById('cancel-sort');
         const applySort = document.getElementById('apply-sort');
 
-        let prometData = [
-            { datum: '2025-01-15', gr: '00', sifra: '0002', ean: '', naziv: 'USLUGA MONTAŽE I DEMONTAŽE KLIME', magacin: 'VELEPRODAJA MAGACIN', partner: 'Partner 1', jm: 'KOM', kolUlaz: '', kolIzlaz: '2' },
-            { datum: '2025-01-20', gr: '00', sifra: '0004', ean: '', naziv: 'USLUGA MONTAŽE INSTALACIJA', magacin: 'SERVIS', partner: 'Partner 2', jm: 'M', kolUlaz: '', kolIzlaz: '171,5' },
-            { datum: '2025-02-10', gr: '00', sifra: '0005', ean: '', naziv: 'USLUGA MONTAŽE KLIME', magacin: 'VELEPRODAJA MAGACIN', partner: 'Partner 1', jm: '', kolUlaz: '', kolIzlaz: '67' },
-            { datum: '2025-02-15', gr: '00', sifra: '0006', ean: '', naziv: 'USLUGA DEMONTAŽE KLIME', magacin: 'PRODAVNICA', partner: 'Partner 3', jm: 'KOM', kolUlaz: '', kolIzlaz: '2' },
-            { datum: '2025-03-01', gr: '00', sifra: '0010', ean: '', naziv: 'USLUGA MONTAŽE UNUTRAŠNJE JEDINICE', magacin: 'VELEPRODAJA MAGACIN', partner: 'Partner 2', jm: 'KOM', kolUlaz: '', kolIzlaz: '26' },
-            { datum: '2025-03-05', gr: '00', sifra: '0011', ean: '', naziv: 'USLUGA MONTAŽE KONDEZATA', magacin: 'SERVIS', partner: 'Partner 1', jm: 'M', kolUlaz: '', kolIzlaz: '127,3' },
-            { datum: '2025-03-10', gr: '00', sifra: '0012', ean: '', naziv: 'USLUGA ZAŠTITE INSTALACIJA', magacin: 'VELEPRODAJA MAGACIN', partner: 'Partner 3', jm: 'M', kolUlaz: '', kolIzlaz: '8,5' },
-            { datum: '2025-04-01', gr: '00', sifra: '0013', ean: '', naziv: 'USLUGE STEMANJA BETONSKOG PLATNA', magacin: 'PRODAVNICA', partner: 'Partner 2', jm: 'M', kolUlaz: '', kolIzlaz: '2,3' },
-            { datum: '2025-04-15', gr: '00', sifra: '0369', ean: '', naziv: 'UG. RESO HP2-BI', magacin: 'VELEPRODAJA MAGACIN', partner: 'Partner 1', jm: 'KOM', kolUlaz: '', kolIzlaz: '50' },
-            { datum: '2025-05-01', gr: '00', sifra: '0947', ean: '', naziv: 'NOSAČ RAI 43', magacin: 'SERVIS', partner: 'Partner 3', jm: 'KOM', kolUlaz: '', kolIzlaz: '10' },
-            { datum: '2025-05-10', gr: '00', sifra: '0953', ean: '', naziv: 'NOSAČ RAI-L 15E', magacin: 'VELEPRODAJA MAGACIN', partner: 'Partner 2', jm: 'KOM', kolUlaz: '', kolIzlaz: '47' },
-            { datum: '2025-06-01', gr: '00', sifra: '1000', ean: '', naziv: 'NOSAČ ZA KLIMU 9/12 1,5MM CINK SKLOPIVI', magacin: 'PRODAVNICA', partner: 'Partner 1', jm: 'KOM', kolUlaz: '', kolIzlaz: '1.334' },
-            { datum: '2025-06-15', gr: '00', sifra: '1180', ean: '', naziv: 'FRITEZA ARIELLI ADF-9215', magacin: 'VELEPRODAJA MAGACIN', partner: 'Partner 3', jm: 'KOM', kolUlaz: '', kolIzlaz: '1' },
-            { datum: '2025-07-01', gr: '00', sifra: '1219', ean: '', naziv: 'MULTI COOKER ARIELLI AMC-5030', magacin: 'SERVIS', partner: 'Partner 2', jm: 'KOM', kolUlaz: '', kolIzlaz: '1' },
-            { datum: '2025-07-10', gr: '00', sifra: '1640', ean: '', naziv: 'FREON R600A (0,4KG)', magacin: 'VELEPRODAJA MAGACIN', partner: 'Partner 1', jm: 'KOM', kolUlaz: '6.350', kolIzlaz: '6' }
-        ];
+        let currentData = [];
 
-        let filteredData = [...prometData];
+        // Get current date for form
+        document.getElementById('datum').value = new Date().toISOString().split('T')[0];
 
-        // Function to close mobile sidebar - stejn kao u artikli
+        // Function to close mobile sidebar
         function closeMobileSidebar() {
             if (window.innerWidth <= 576) {
                 sidebar.classList.remove('mobile-open');
@@ -1384,7 +1253,7 @@
             }
         }
 
-        // Mobile menu functionality - stejn kao u artikli
+        // Mobile menu functionality
         mobileMenuToggle.addEventListener('click', function() {
             sidebar.classList.toggle('mobile-open');
             sidebarOverlay.classList.toggle('show');
@@ -1401,16 +1270,7 @@
             closeMobileSidebar();
         });
 
-        // Close mobile menu when clicking outside - stejn kao u artikli
-        document.addEventListener('click', function(e) {
-            if (window.innerWidth <= 576) {
-                if (!sidebar.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
-                    closeMobileSidebar();
-                }
-            }
-        });
-
-        // Toggle sidebar - stejn kao u artikli
+        // Toggle sidebar
         toggleSidebar.addEventListener('click', function() {
             sidebar.classList.toggle('collapsed');
             mainContent.classList.toggle('expanded');
@@ -1425,7 +1285,7 @@
             }
         });
 
-        // Submenu functionality - stejn kao u artikli
+        // Submenu functionality
         document.querySelectorAll('.nav-item.has-submenu > .nav-link').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -1444,51 +1304,71 @@
             });
         });
 
-        // Navigation links - stejn kao u artikli
-        document.querySelectorAll('.submenu .nav-link').forEach(link => {
+        // Navigation links
+        document.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', function(e) {
                 this.style.transform = 'scale(0.95)';
                 setTimeout(() => {
                     this.style.transform = 'scale(1)';
-                }, 100);
+                }, 150);
                 
                 closeMobileSidebar();
             });
         });
 
-        document.querySelectorAll('.nav-link:not(.has-submenu > .nav-link)').forEach(link => {
-            link.addEventListener('click', function(e) {
-                this.style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    this.style.transform = 'scale(1)';
-                }, 100);
-                
-                closeMobileSidebar();
+        // Table row selection
+        document.querySelectorAll('.data-table tbody tr').forEach(row => {
+            row.addEventListener('click', function() {
+                document.querySelectorAll('.data-table tbody tr').forEach(r => r.classList.remove('selected'));
+                this.classList.add('selected');
             });
         });
 
-        // Render table
-        function renderPrometTable(data = filteredData) {
+        // Apply filters
+        async function applyFilters() {
+            try {
+                const params = new URLSearchParams({
+                    dateFrom: dateFrom.value,
+                    dateTo: dateTo.value,
+                    magacin: magacinFilter.value,
+                    partner: partnerFilter.value,
+                    grupa: grupaFilter.value
+                });
+
+                const response = await fetch(`/api/prometrobe/filter?${params}`);
+                const data = await response.json();
+                
+                updateTable(data);
+            } catch (error) {
+                console.error('Error filtering data:', error);
+            }
+        }
+
+        // Update table with new data
+        function updateTable(data) {
             const tbody = document.getElementById('promet-tbody');
             tbody.innerHTML = '';
+            
+            currentData = data;
             
             data.forEach((item, index) => {
                 const row = document.createElement('tr');
                 if (index === 0) {
                     row.classList.add('selected');
                 }
+                row.dataset.id = item.id;
                 
                 row.innerHTML = `
                     <td>${item.datum}</td>
-                    <td>${item.gr}</td>
-                    <td>${item.sifra}</td>
-                    <td>${item.ean}</td>
+                    <td>${item.gr || ''}</td>
+                    <td>${item.sifra || ''}</td>
+                    <td>${item.ean || ''}</td>
                     <td title="${item.naziv}">${item.naziv}</td>
                     <td>${item.magacin}</td>
                     <td>${item.partner}</td>
-                    <td>${item.jm}</td>
-                    <td class="quantity-column">${item.kolUlaz}</td>
-                    <td class="quantity-column">${item.kolIzlaz}</td>
+                    <td>${item.jm || ''}</td>
+                    <td class="quantity-column">${item.kol_ulaz || ''}</td>
+                    <td class="quantity-column">${item.kol_izlaz || ''}</td>
                 `;
                 
                 row.addEventListener('click', function() {
@@ -1498,37 +1378,6 @@
                 
                 tbody.appendChild(row);
             });
-        }
-
-        // Apply filters
-        function applyFilters() {
-            filteredData = prometData.filter(item => {
-                const magacin = magacinFilter.value;
-                const partner = partnerFilter.value;
-                const grupa = grupaFilter.value;
-                const rj = rjFilter.value;
-                const tarif = tarifFilter.value;
-                
-                const kalkulacija = document.getElementById('kalkulacija').checked;
-                const racun = document.getElementById('racun').checked;
-                const popisRobe = document.getElementById('popis-robe').checked;
-                const otprMP = document.getElementById('otpr-mp').checked;
-                const internaPrij = document.getElementById('interna-prij').checked;
-                const otpr2MG = document.getElementById('otpr-2mg').checked;
-                const stornoUlaz = document.getElementById('storno-ulaz').checked;
-                const direktanIzlaz = document.getElementById('direktan-izlaz').checked;
-                const stornoIzlaz = document.getElementById('storno-izlaz').checked;
-                
-                let passes = true;
-                
-                if (grupa && !item.naziv.toLowerCase().includes(grupa.toLowerCase())) {
-                    passes = false;
-                }
-                
-                return passes;
-            });
-            
-            renderPrometTable();
         }
 
         // Event listeners for filters
@@ -1543,20 +1392,16 @@
         });
 
         // Date filter
-        applyDateFilter.addEventListener('click', function() {
-            const fromDate = dateFrom.value;
-            const toDate = dateTo.value;
-            
-            if (fromDate && toDate) {
-                console.log(`Filtering data from ${fromDate} to ${toDate}`);
-                applyFilters();
-            }
-        });
+        applyDateFilter.addEventListener('click', applyFilters);
 
         // Header button functions
+        addBtn.addEventListener('click', function() {
+            addModal.classList.add('show');
+        });
+
         printBtn.addEventListener('click', function() {
             const period = `${dateFrom.value} - ${dateTo.value}`;
-            const magacin = magacinFilter.value;
+            const magacin = magacinFilter.value || 'Svi magacini';
             document.getElementById('print-period').textContent = period;
             document.getElementById('print-magacin').textContent = magacin;
             
@@ -1623,6 +1468,10 @@
         });
 
         // Modal close events
+        closeAddModal.addEventListener('click', () => {
+            addModal.classList.remove('show');
+        });
+
         closeKarticaModal.addEventListener('click', () => {
             karticaModal.classList.remove('show');
         });
@@ -1631,55 +1480,58 @@
             sortModal.classList.remove('show');
         });
 
+        cancelAdd.addEventListener('click', () => {
+            addModal.classList.remove('show');
+        });
+
         cancelSort.addEventListener('click', () => {
             sortModal.classList.remove('show');
         });
 
-        karticaModal.addEventListener('click', (e) => {
-            if (e.target === karticaModal) {
-                karticaModal.classList.remove('show');
-            }
-        });
-
-        sortModal.addEventListener('click', (e) => {
-            if (e.target === sortModal) {
-                sortModal.classList.remove('show');
-            }
+        // Close modals on outside click
+        [addModal, karticaModal, sortModal].forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('show');
+                }
+            });
         });
 
         // Sort functionality
         applySort.addEventListener('click', function() {
             const selectedSort = document.querySelector('input[name="sort-by"]:checked').value;
             
-            filteredData.sort((a, b) => {
+            currentData.sort((a, b) => {
                 switch(selectedSort) {
                     case 'datum':
                         return new Date(a.datum) - new Date(b.datum);
                     case 'sifra':
-                        return a.sifra.localeCompare(b.sifra);
+                        return (a.sifra || '').localeCompare(b.sifra || '');
                     case 'naziv':
-                        return a.naziv.localeCompare(b.naziv);
+                        return (a.naziv || '').localeCompare(b.naziv || '');
                     case 'magacin':
-                        return a.magacin.localeCompare(b.magacin);
+                        return (a.magacin || '').localeCompare(b.magacin || '');
                     case 'partner':
-                        return a.partner.localeCompare(b.partner);
+                        return (a.partner || '').localeCompare(b.partner || '');
                     case 'kolizlaz':
-                        const aVal = parseFloat(a.kolIzlaz.replace(',', '.')) || 0;
-                        const bVal = parseFloat(b.kolIzlaz.replace(',', '.')) || 0;
+                        const aVal = parseFloat(a.kol_izlaz) || 0;
+                        const bVal = parseFloat(b.kol_izlaz) || 0;
                         return bVal - aVal; // Descending order for quantities
                     default:
                         return 0;
                 }
             });
             
-            renderPrometTable();
+            updateTable(currentData);
             sortModal.classList.remove('show');
         });
 
-        // Keyboard shortcuts - stejn kao u artikli
+        // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                if (karticaModal.classList.contains('show')) {
+                if (addModal.classList.contains('show')) {
+                    addModal.classList.remove('show');
+                } else if (karticaModal.classList.contains('show')) {
                     karticaModal.classList.remove('show');
                 } else if (sortModal.classList.contains('show')) {
                     sortModal.classList.remove('show');
@@ -1694,15 +1546,8 @@
             }
         });
 
-        // Smooth scrolling for sidebar navigation - stejn kao u artikli
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', function(e) {
-                this.style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    this.style.transform = 'scale(1)';
-                }, 150);
-            });
-        });
+        // Initialize current data from server
+        currentData = <%- JSON.stringify(prometData) %>;
 
         // Handle window resize
         window.addEventListener('resize', function() {
@@ -1715,9 +1560,7 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            renderPrometTable();
-            
-            // Auto collapse sidebar on medium screens on load - stejn kao u artikli
+            // Auto collapse sidebar on medium screens on load
             if (window.innerWidth <= 992 && window.innerWidth > 576) {
                 sidebar.classList.add('collapsed');
                 mainContent.classList.add('expanded');
@@ -1726,7 +1569,7 @@
                 sidebarIcon.classList.add('fa-chevron-right');
             }
             
-            console.log('Tehnolux Promet robe panel initialized - updated responsive design');
+            console.log('Tehnolux Promet robe panel initialized - connected to database');
         });
     </script>
 </body>

@@ -415,7 +415,7 @@
 
         .data-table {
             width: 100%;
-            min-width: 1000px; /* Smanjeno sa 1300px */
+            min-width: 1000px;
             border-collapse: collapse;
             margin-top: 1rem;
         }
@@ -680,24 +680,19 @@
             text-transform: uppercase;
         }
 
-        .status-completed {
+        .status-primljena {
             background-color: rgba(46, 204, 113, 0.1);
             color: var(--success-color);
         }
 
-        .status-pending {
+        .status-cekanje {
             background-color: rgba(241, 196, 15, 0.1);
             color: var(--warning-color);
         }
 
-        .status-failed {
+        .status-odbijena {
             background-color: rgba(231, 76, 60, 0.1);
             color: var(--accent-color);
-        }
-
-        .status-refunded {
-            background-color: rgba(52, 152, 219, 0.1);
-            color: var(--secondary-color);
         }
 
         /* Payment method badges */
@@ -709,24 +704,19 @@
             text-transform: uppercase;
         }
 
-        .method-cash {
+        .method-gotovina {
             background-color: rgba(46, 204, 113, 0.1);
             color: var(--success-color);
         }
 
-        .method-card {
+        .method-kartica {
             background-color: rgba(52, 152, 219, 0.1);
             color: var(--secondary-color);
         }
 
-        .method-transfer {
+        .method-virman {
             background-color: rgba(155, 89, 182, 0.1);
             color: #9b59b6;
-        }
-
-        .method-crypto {
-            background-color: rgba(241, 196, 15, 0.1);
-            color: var(--warning-color);
         }
 
         /* Currency formatting */
@@ -775,7 +765,7 @@
             padding-top: 0.5rem;
         }
 
-        /* Responsive design - poboljšano kao u artikli fajlu */
+        /* Responsive design */
         @media (max-width: 1200px) {
             .data-table {
                 min-width: 900px;
@@ -805,49 +795,6 @@
             .data-table {
                 min-width: 850px;
             }
-
-            .header-actions {
-                gap: 0.5rem;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            }
-        }
-
-        @media (max-width: 768px) {
-            .form-row,
-            .form-row-3 {
-                grid-template-columns: 1fr;
-            }
-            
-            .search-filter-container,
-            .date-filter-container {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .data-table {
-                min-width: 800px;
-            }
-
-            .card {
-                padding: 1rem;
-                margin: 0.5rem;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .date-filter-group {
-                justify-content: space-between;
-                width: 100%;
-            }
-
-            .toggle-sidebar {
-                display: flex;
-            }
         }
 
         @media (max-width: 576px) {
@@ -870,75 +817,6 @@
                 display: block;
             }
 
-            .logo-container {
-                margin-bottom: 2rem;
-                justify-content: flex-start;
-                padding: 0 1rem 1rem 1rem;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                margin-top: 60px;
-            }
-
-            .logo {
-                font-size: 22px;
-                margin-left: 0;
-                text-align: center;
-                width: 100%;
-            }
-
-            .menu-section {
-                margin-bottom: 1.5rem;
-            }
-
-            .menu-title {
-                font-size: 12px;
-                margin-bottom: 0.8rem;
-                color: rgba(255, 255, 255, 0.7);
-                font-weight: 600;
-                text-transform: uppercase;
-                padding: 0 1rem;
-            }
-
-            .nav-link {
-                padding: 12px 1rem;
-                font-size: 14px;
-                margin-bottom: 0.3rem;
-                border-radius: 8px;
-                transition: all 0.3s ease;
-            }
-
-            .nav-link:hover {
-                background-color: rgba(255, 255, 255, 0.1);
-            }
-
-            .nav-link.active {
-                background-color: var(--secondary-color);
-            }
-
-            .nav-icon {
-                margin-right: 12px;
-                font-size: 16px;
-                min-width: 16px;
-            }
-
-            .submenu {
-                margin-left: 1rem;
-                margin-right: 0.5rem;
-                background-color: rgba(0, 0, 0, 0.2);
-                border-radius: 8px;
-                padding: 0;
-                margin-top: 0.3rem;
-            }
-
-            .submenu .nav-link {
-                padding: 10px 1rem;
-                font-size: 13px;
-                margin-bottom: 0.2rem;
-            }
-
-            .toggle-sidebar {
-                display: none;
-            }
-
             .main-content,
             .header {
                 margin-left: 0;
@@ -946,287 +824,13 @@
 
             .mobile-menu-toggle {
                 display: block;
-                position: fixed;
-                top: 8px;
-                left: 12px;
-                z-index: 2600;
-                background-color: white;
-                border: none;
-                padding: 12px;
-                border-radius: 8px;
-                font-size: 18px;
-                color: var(--primary-color);
-                transition: all 0.2s ease;
-                width: 44px;
-                height: 44px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .mobile-menu-toggle:hover {
-                background-color: #f8f9fa;
-                transform: scale(1.05);
             }
 
             .data-table {
                 min-width: 100%;
             }
-
-            .btn span {
-                display: none;
-            }
-
-            .btn-sm span {
-                display: none;
-            }
-
-            .header {
-                padding: 0 1rem 0 60px;
-                height: 60px;
-                background: white;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                margin-left: 0;
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                z-index: 900;
-            }
-
-            .page-title {
-                font-size: 18px;
-                line-height: 0.7;
-                font-weight: 600;
-                color: var(--text-color);
-                margin: 0;
-                flex: 1;
-                text-align: left;
-                padding-left: 0;
-                margin-left: 5px;
-                align-items: center;
-            }
-
-            .header-actions {
-                gap: 0.5rem;
-                flex-direction: row;
-                flex-wrap: nowrap;
-                align-items: center;
-                justify-content: flex-end;
-            }
-
-            .header-actions .btn {
-                padding: 8px 12px;
-                font-size: 12px;
-                border-radius: 6px;
-                font-weight: 500;
-                min-height: 36px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                white-space: nowrap;
-            }
-
-            .header-actions .btn i {
-                font-size: 14px;
-            }
-
-            .main-content {
-                padding: 1rem;
-                padding-top: 75px;
-                background-color: #f5f7fa;
-            }
-
-            .card {
-                padding: 1rem;
-                margin: 0;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-                border: none;
-                border-radius: 12px;
-                background: white;
-            }
-
-            .card-header {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 1rem;
-                margin-bottom: 1rem;
-                padding-bottom: 1rem;
-            }
-
-            .card-title {
-                font-size: 18px;
-                font-weight: 600;
-                color: var(--text-color);
-            }
-
-            .search-filter-container {
-                gap: 0.8rem;
-                margin-bottom: 0;
-            }
-
-            .search-box {
-                min-width: 180px;
-                flex: 1;
-            }
-
-            .search-box input {
-                padding: 10px 12px 10px 35px;
-                border-radius: 8px;
-                border: 1px solid #ddd;
-                font-size: 14px;
-                transition: all 0.2s ease;
-            }
-
-            .search-box input:focus {
-                border-color: var(--secondary-color);
-                box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-            }
-
-            .search-icon {
-                left: 12px;
-                font-size: 14px;
-            }
-
-            .form-control {
-                font-size: 14px;
-                padding: 10px 12px;
-                border-radius: 8px;
-                border: 1px solid #ddd;
-            }
-
-            .table-container {
-                margin: 0;
-                padding: 0;
-                border-radius: 0;
-                overflow-x: auto;
-            }
-
-            .data-table {
-                width: 100%;
-                min-width: 100%;
-                margin: 0;
-            }
-
-            .data-table th {
-                padding: 8px 6px;
-                font-size: 11px;
-                font-weight: 600;
-                background-color: #f8f9fa;
-            }
-
-            .data-table td {
-                padding: 10px 6px;
-                font-size: 12px;
-            }
-
-            /* Optimizovane kolone za mobile */
-            .data-table th:nth-child(1),
-            .data-table td:nth-child(1) { width: 8%; }
-            .data-table th:nth-child(2),
-            .data-table td:nth-child(2) { width: 10%; }
-            .data-table th:nth-child(3),
-            .data-table td:nth-child(3) { 
-                width: 20%;
-                max-width: none;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-            .data-table th:nth-child(4),
-            .data-table td:nth-child(4) { width: 10%; }
-            .data-table th:nth-child(5),
-            .data-table td:nth-child(5) { width: 10%; font-size: 10px; }
-            .data-table th:nth-child(6),
-            .data-table td:nth-child(6) { width: 8%; }
-            .data-table th:nth-child(7),
-            .data-table td:nth-child(7) { width: 10%; }
-            .data-table th:nth-child(8),
-            .data-table td:nth-child(8) { width: 10%; }
-            .data-table th:nth-child(9),
-            .data-table td:nth-child(9) { width: 8%; }
-            .data-table th:nth-child(10),
-            .data-table td:nth-child(10) { width: 14%; }
-
-            .action-buttons {
-                gap: 4px;
-            }
-
-            .btn-sm {
-                padding: 6px 8px;
-                border-radius: 6px;
-                font-size: 10px;
-            }
-
-            /* Mobile overlay for sidebar */
-            .sidebar-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100vw;
-                height: 100vh;
-                background-color: rgba(0, 0, 0, 0.4);
-                z-index: 2000;
-                display: none;
-            }
-
-            .sidebar-overlay.show {
-                display: block;
-            }
-
-            /* Modal improvements for mobile */
-            .modal {
-                padding: 1rem;
-            }
-
-            .modal-content {
-                max-height: 90vh;
-                border-radius: 12px;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            }
-
-            .modal-header {
-                padding-bottom: 1rem;
-            }
-
-            .modal-title {
-                font-size: 18px;
-                font-weight: 600;
-            }
-
-            .close-modal {
-                font-size: 20px;
-                padding: 6px;
-                border-radius: 6px;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-
-            .stat-card {
-                padding: 1rem;
-            }
-
-            .stat-number {
-                font-size: 1.5rem;
-            }
-
-            .export-container {
-                width: 100%;
-            }
         }
-
-        /* Animacije za smooth scroll */
-        .sidebar-nav {
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,0.3) transparent;
-        }
-
+        
         .sidebar-nav::-webkit-scrollbar {
             width: 6px;
         }
@@ -1242,25 +846,6 @@
 
         .sidebar-nav::-webkit-scrollbar-thumb:hover {
             background: rgba(255,255,255,0.5);
-        }
-        @media (max-width: 768px) {
-            /* Skrivanje "Unos Dokumentacije" sekcije na svim uređajima manjim od 768px */
-            .menu-section:first-child {
-                display: none !important;
-            }
-
-            .card {
-                padding: 1rem;
-                margin: 0.5rem;
-            }
-
-            .data-table {
-                min-width: 900px;
-            }
-
-            .toggle-sidebar {
-                display: flex;
-            }
         }
     </style>
 </head>
@@ -1424,16 +1009,6 @@
                 <i class="fas fa-plus"></i>
                 <span>Nova uplata</span>
             </button>
-            <div class="export-container">
-                <button class="btn btn-info" id="export-excel-btn">
-                    <i class="fas fa-file-excel"></i>
-                    <span>Excel</span>
-                </button>
-                <button class="btn btn-warning" id="export-pdf-btn">
-                    <i class="fas fa-file-pdf"></i>
-                    <span>PDF</span>
-                </button>
-            </div>
             <button class="btn btn-secondary" id="refresh-btn">
                 <i class="fas fa-sync-alt"></i>
                 <span>Osvježi</span>
@@ -1447,22 +1022,22 @@
         <div class="stats-grid">
             <div class="stat-card success">
                 <i class="fas fa-euro-sign stat-icon"></i>
-                <div class="stat-number" id="total-payments">€34,250</div>
+                <div class="stat-number" id="total-payments">€0</div>
                 <div class="stat-label">Ukupne uplate (mjesečno)</div>
             </div>
             <div class="stat-card">
                 <i class="fas fa-receipt stat-icon"></i>
-                <div class="stat-number" id="payment-count">125</div>
+                <div class="stat-number" id="payment-count">0</div>
                 <div class="stat-label">Broj uplata</div>
             </div>
             <div class="stat-card info">
                 <i class="fas fa-chart-line stat-icon"></i>
-                <div class="stat-number" id="avg-payment">€274</div>
+                <div class="stat-number" id="avg-payment">€0</div>
                 <div class="stat-label">Prosječna uplata</div>
             </div>
             <div class="stat-card warning">
                 <i class="fas fa-clock stat-icon"></i>
-                <div class="stat-number" id="pending-payments">8</div>
+                <div class="stat-number" id="pending-payments">0</div>
                 <div class="stat-label">Na čekanju</div>
             </div>
         </div>
@@ -1510,8 +1085,8 @@
                 <span class="currency amount-positive" id="period-successful">€0.00</span>
             </div>
             <div class="summary-row">
-                <span>Refundirane uplate:</span>
-                <span class="currency amount-negative" id="period-refunded">€0.00</span>
+                <span>Neuspješne uplate:</span>
+                <span class="currency amount-negative" id="period-failed">€0.00</span>
             </div>
         </div>
 
@@ -1526,17 +1101,15 @@
                     </div>
                     <select class="form-control" id="status-filter" style="width: auto; min-width: 150px;">
                         <option value="">Svi statusi</option>
-                        <option value="Završeno">Završeno</option>
-                        <option value="Na čekanju">Na čekanju</option>
-                        <option value="Neuspješno">Neuspješno</option>
-                        <option value="Refundirano">Refundirano</option>
+                        <option value="primljena">Primljena</option>
+                        <option value="cekanje">Na čekanju</option>
+                        <option value="odbijena">Odbijena</option>
                     </select>
                     <select class="form-control" id="method-filter" style="width: auto; min-width: 150px;">
                         <option value="">Svi načini</option>
-                        <option value="Gotovina">Gotovina</option>
-                        <option value="Kartica">Kartica</option>
-                        <option value="Bankovni transfer">Bankovni transfer</option>
-                        <option value="Kriptovaluta">Kriptovaluta</option>
+                        <option value="gotovina">Gotovina</option>
+                        <option value="kartica">Kartica</option>
+                        <option value="virman">Virman</option>
                     </select>
                 </div>
             </div>
@@ -1545,7 +1118,7 @@
                 <table class="data-table" id="payments-table">
                     <thead>
                         <tr>
-                            <th>ID Uplate</th>
+                            <th>ID</th>
                             <th>Datum</th>
                             <th>Kupac</th>
                             <th>Iznos</th>
@@ -1558,7 +1131,54 @@
                         </tr>
                     </thead>
                     <tbody id="payments-tbody">
-                        <!-- Data will be populated by JavaScript -->
+                        <% if (uplate && uplate.length > 0) { %>
+                            <% uplate.forEach(uplata => { %>
+                                <tr>
+                                    <td><strong><%= uplata.id %></strong></td>
+                                    <td><%= new Date(uplata.datum).toLocaleDateString('sr-RS') + ' ' + new Date(uplata.datum).toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' }) %></td>
+                                    <td title="<%= uplata.kupac %>"><%= uplata.kupac %></td>
+                                    <td class="currency amount-positive">€<%= parseFloat(uplata.iznos).toFixed(2) %></td>
+                                    <td>
+                                        <span class="payment-method method-<%= uplata.nacin.toLowerCase() %>">
+                                            <%= uplata.nacin %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge status-<%= uplata.status %>">
+                                            <%= uplata.status %>
+                                        </span>
+                                    </td>
+                                    <td><%= uplata.dokument || '-' %></td>
+                                    <td><%= uplata.komercijalist || '-' %></td>
+                                    <td title="<%= uplata.napomene || '' %>">
+                                        <%= uplata.napomene ? (uplata.napomene.length > 20 ? uplata.napomene.substring(0, 20) + '...' : uplata.napomene) : '-' %>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn btn-sm btn-primary edit-payment-btn" data-id="<%= uplata.id %>" title="Uredi">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-info view-payment-btn" data-id="<%= uplata.id %>" title="Detalji">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-success print-receipt-btn" data-id="<%= uplata.id %>" title="Štampaj">
+                                                <i class="fas fa-print"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger delete-payment-btn" data-id="<%= uplata.id %>" title="Obriši">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="10" style="text-align: center; padding: 2rem; color: #666;">
+                                    <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+                                    Nema uplata za prikaz
+                                </td>
+                            </tr>
+                        <% } %>
                     </tbody>
                 </table>
             </div>
@@ -1593,15 +1213,9 @@
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label" for="customer-name">Kupac:</label>
-                        <input type="text" class="form-control" id="customer-name" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="customer-id">ID Kupca:</label>
-                        <input type="text" class="form-control" id="customer-id">
-                    </div>
+                <div class="form-group">
+                    <label class="form-label" for="customer-name">Kupac:</label>
+                    <input type="text" class="form-control" id="customer-name" required>
                 </div>
 
                 <!-- Način plaćanja -->
@@ -1614,19 +1228,17 @@
                         <label class="form-label" for="payment-method">Način plaćanja:</label>
                         <select class="form-control" id="payment-method" required>
                             <option value="">Izaberite način</option>
-                            <option value="Gotovina">Gotovina</option>
-                            <option value="Kartica">Kartica</option>
-                            <option value="Bankovni transfer">Bankovni transfer</option>
-                            <option value="Kriptovaluta">Kriptovaluta</option>
+                            <option value="gotovina">Gotovina</option>
+                            <option value="kartica">Kartica</option>
+                            <option value="virman">Virman</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="payment-status">Status:</label>
                         <select class="form-control" id="payment-status" required>
-                            <option value="Završeno">Završeno</option>
-                            <option value="Na čekanju">Na čekanju</option>
-                            <option value="Neuspješno">Neuspješno</option>
-                            <option value="Refundirano">Refundirano</option>
+                            <option value="primljena">Primljena</option>
+                            <option value="cekanje">Na čekanju</option>
+                            <option value="odbijena">Odbijena</option>
                         </select>
                     </div>
                 </div>
@@ -1643,13 +1255,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="salesperson">Komercijalist:</label>
-                        <select class="form-control" id="salesperson">
-                            <option value="">Izaberite komercijalista</option>
-                            <option value="Marko Petrović">Marko Petrović</option>
-                            <option value="Ana Vuković">Ana Vuković</option>
-                            <option value="Stefan Jovanović">Stefan Jovanović</option>
-                            <option value="Milica Radović">Milica Radović</option>
-                        </select>
+                        <input type="text" class="form-control" id="salesperson" placeholder="Ime komercijalista">
                     </div>
                 </div>
 
@@ -1669,6 +1275,10 @@
     </div>
 
     <script>
+        // Initialize with server data
+        let paymentsData = <%- JSON.stringify(uplate || []) %>;
+        let filteredData = [...paymentsData];
+
         // DOM Elements
         const sidebar = document.getElementById('sidebar');
         const sidebarOverlay = document.getElementById('sidebar-overlay');
@@ -1693,8 +1303,6 @@
         const statusFilter = document.getElementById('status-filter');
         const methodFilter = document.getElementById('method-filter');
         const refreshBtn = document.getElementById('refresh-btn');
-        const exportExcelBtn = document.getElementById('export-excel-btn');
-        const exportPdfBtn = document.getElementById('export-pdf-btn');
 
         // Date filter elements
         const dateFromInput = document.getElementById('date-from');
@@ -1702,219 +1310,6 @@
         const applyDateFilterBtn = document.getElementById('apply-date-filter');
         const clearDateFilterBtn = document.getElementById('clear-date-filter');
         const quickDateBtns = document.querySelectorAll('.quick-date-btn');
-
-        // Sample data for demonstration
-        let paymentsData = [
-            {
-                id: 'PAY001',
-                date: '2025-01-15 14:30:00',
-                customerName: 'Elektroremont d.o.o.',
-                customerId: 'KUP001',
-                amount: 2450.00,
-                paymentMethod: 'Bankovni transfer',
-                status: 'Završeno',
-                documentNumber: 'RAC-2025-001',
-                salesperson: 'Marko Petrović',
-                notes: 'Plaćanje računa za klimatizaciju'
-            },
-            {
-                id: 'PAY002',
-                date: '2025-01-15 11:15:00',
-                customerName: 'Hotel Montenegro',
-                customerId: 'KUP002',
-                amount: 5200.00,
-                paymentMethod: 'Kartica',
-                status: 'Završeno',
-                documentNumber: 'RAC-2025-002',
-                salesperson: 'Ana Vuković',
-                notes: 'Avansno plaćanje za ventilacijski sistem'
-            },
-            {
-                id: 'PAY003',
-                date: '2025-01-14 16:45:00',
-                customerName: 'Miloš Nikolic',
-                customerId: 'KUP003',
-                amount: 850.00,
-                paymentMethod: 'Gotovina',
-                status: 'Završeno',
-                documentNumber: 'RAC-2025-003',
-                salesperson: 'Stefan Jovanović',
-                notes: 'Kupovina klime za stan'
-            },
-            {
-                id: 'PAY004',
-                date: '2025-01-14 09:20:00',
-                customerName: 'Gradska bolnica',
-                customerId: 'KUP004',
-                amount: 12500.00,
-                paymentMethod: 'Bankovni transfer',
-                status: 'Na čekanju',
-                documentNumber: 'RAC-2025-004',
-                salesperson: 'Milica Radović',
-                notes: 'Medicinski sistem ventilacije - čeka odobrenje'
-            },
-            {
-                id: 'PAY005',
-                date: '2025-01-13 13:10:00',
-                customerName: 'Restoran Panorama',
-                customerId: 'KUP005',
-                amount: 3200.00,
-                paymentMethod: 'Kartica',
-                status: 'Završeno',
-                documentNumber: 'RAC-2025-005',
-                salesperson: 'Marko Petrović',
-                notes: 'Kuhinjski ventilacijski sistem'
-            },
-            {
-                id: 'PAY006',
-                date: '2025-01-13 10:30:00',
-                customerName: 'Ana Jovanović',
-                customerId: 'KUP006',
-                amount: 420.00,
-                paymentMethod: 'Gotovina',
-                status: 'Refundirano',
-                documentNumber: 'RAC-2025-006',
-                salesperson: 'Ana Vuković',
-                notes: 'Vraćen novac zbog greške u proizvodu'
-            },
-            {
-                id: 'PAY007',
-                date: '2025-01-12 15:25:00',
-                customerName: 'TechCorp d.o.o.',
-                customerId: 'KUP007',
-                amount: 7800.00,
-                paymentMethod: 'Kriptovaluta',
-                status: 'Završeno',
-                documentNumber: 'RAC-2025-007',
-                salesperson: 'Stefan Jovanović',
-                notes: 'Server room cooling system'
-            },
-            {
-                id: 'PAY008',
-                date: '2025-01-12 12:40:00',
-                customerName: 'Škola Vuk Karadžić',
-                customerId: 'KUP008',
-                amount: 1850.00,
-                paymentMethod: 'Bankovni transfer',
-                status: 'Neuspješno',
-                documentNumber: 'RAC-2025-008',
-                salesperson: 'Milica Radović',
-                notes: 'Nedovoljno sredstava na računu'
-            }
-        ];
-
-        let filteredData = [...paymentsData];
-
-        // Function to close mobile sidebar
-        function closeMobileSidebar() {
-            if (window.innerWidth <= 576) {
-                sidebar.classList.remove('mobile-open');
-                sidebarOverlay.classList.remove('show');
-                document.body.style.overflow = '';
-            }
-        }
-
-        // Mobile menu functionality - poboljšano
-        mobileMenuToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('mobile-open');
-            sidebarOverlay.classList.toggle('show');
-            
-            // Prevent body scroll when sidebar is open
-            if (sidebar.classList.contains('mobile-open')) {
-                document.body.style.overflow = 'hidden';
-            } else {
-                document.body.style.overflow = '';
-            }
-        });
-
-        // Close mobile menu when clicking overlay
-        sidebarOverlay.addEventListener('click', function() {
-            closeMobileSidebar();
-        });
-
-        // Close mobile menu when clicking outside - poboljšano
-        document.addEventListener('click', function(e) {
-            if (window.innerWidth <= 576) {
-                if (!sidebar.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
-                    closeMobileSidebar();
-                }
-            }
-        });
-
-        // Toggle sidebar - poboljšano
-        toggleSidebar.addEventListener('click', function() {
-            sidebar.classList.toggle('collapsed');
-            mainContent.classList.toggle('expanded');
-            header.classList.toggle('expanded');
-            
-            if (sidebar.classList.contains('collapsed')) {
-                sidebarIcon.classList.remove('fa-chevron-left');
-                sidebarIcon.classList.add('fa-chevron-right');
-            } else {
-                sidebarIcon.classList.remove('fa-chevron-right');
-                sidebarIcon.classList.add('fa-chevron-left');
-            }
-        });
-
-        // Submenu functionality - bez zatvaranja sidebara za glavne kategorije
-        document.querySelectorAll('.nav-item.has-submenu > .nav-link').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                const parent = this.parentElement;
-                const submenu = parent.querySelector('.submenu');
-                
-                // Close other submenus
-                document.querySelectorAll('.nav-item.has-submenu').forEach(item => {
-                    if (item !== parent) {
-                        item.classList.remove('open');
-                        item.querySelector('.submenu').classList.remove('open');
-                    }
-                });
-                
-                parent.classList.toggle('open');
-                submenu.classList.toggle('open');
-                
-                // Ne zatvaramo sidebar za glavne kategorije - korisnik možda želi da vidi submenu
-            });
-        });
-
-        // Enhanced navigation - close sidebar on any submenu link click
-        document.querySelectorAll('.submenu .nav-link').forEach(link => {
-            link.addEventListener('click', function(e) {
-                // Add visual feedback
-                this.style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    this.style.transform = 'scale(1)';
-                }, 100);
-                
-                // Close mobile sidebar immediately
-                closeMobileSidebar();
-            });
-        });
-
-        // Also close sidebar on any main navigation link click (not just submenus)
-        document.querySelectorAll('.nav-link:not(.has-submenu > .nav-link)').forEach(link => {
-            link.addEventListener('click', function(e) {
-                // Add visual feedback
-                this.style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    this.style.transform = 'scale(1)';
-                }, 100);
-                
-                // Close mobile sidebar
-                closeMobileSidebar();
-            });
-        });
-
-        // Get next payment ID
-        function getNextPaymentId() {
-            let max = 0;
-            paymentsData.forEach(payment => {
-                const num = parseInt(payment.id.replace('PAY', ''));
-                if (!isNaN(num) && num > max) max = num;
-            });
-            return 'PAY' + String(max + 1).padStart(3, '0');
-        }
 
         // Format currency
         function formatCurrency(amount) {
@@ -1938,17 +1333,14 @@
         function getStatusBadge(status) {
             let badgeClass = '';
             switch(status) {
-                case 'Završeno':
-                    badgeClass = 'status-completed';
+                case 'primljena':
+                    badgeClass = 'status-primljena';
                     break;
-                case 'Na čekanju':
-                    badgeClass = 'status-pending';
+                case 'cekanje':
+                    badgeClass = 'status-cekanje';
                     break;
-                case 'Neuspješno':
-                    badgeClass = 'status-failed';
-                    break;
-                case 'Refundirano':
-                    badgeClass = 'status-refunded';
+                case 'odbijena':
+                    badgeClass = 'status-odbijena';
                     break;
             }
             return `<span class="status-badge ${badgeClass}">${status}</span>`;
@@ -1957,55 +1349,65 @@
         // Get payment method badge HTML
         function getPaymentMethodBadge(method) {
             let badgeClass = '';
-            let shortMethod = method;
             switch(method) {
-                case 'Gotovina':
-                    badgeClass = 'method-cash';
+                case 'gotovina':
+                    badgeClass = 'method-gotovina';
                     break;
-                case 'Kartica':
-                    badgeClass = 'method-card';
+                case 'kartica':
+                    badgeClass = 'method-kartica';
                     break;
-                case 'Bankovni transfer':
-                    badgeClass = 'method-transfer';
-                    shortMethod = 'Transfer';
-                    break;
-                case 'Kriptovaluta':
-                    badgeClass = 'method-crypto';
-                    shortMethod = 'Crypto';
+                case 'virman':
+                    badgeClass = 'method-virman';
                     break;
             }
-            return `<span class="payment-method ${badgeClass}">${shortMethod}</span>`;
+            return `<span class="payment-method ${badgeClass}">${method}</span>`;
         }
 
         // Update statistics
-        function updateStatistics(data = filteredData) {
-            const totalAmount = data.reduce((sum, payment) => {
-                if (payment.status === 'Završeno') return sum + payment.amount;
-                if (payment.status === 'Refundirano') return sum - payment.amount;
-                return sum;
-            }, 0);
-            
-            const paymentCount = data.length;
-            const avgPayment = paymentCount > 0 ? totalAmount / paymentCount : 0;
-            const pendingCount = data.filter(p => p.status === 'Na čekanju').length;
-
-            document.getElementById('total-payments').textContent = formatCurrency(totalAmount).replace('.', ',');
-            document.getElementById('payment-count').textContent = paymentCount;
-            document.getElementById('avg-payment').textContent = formatCurrency(avgPayment).replace('.', ',');
-            document.getElementById('pending-payments').textContent = pendingCount;
+        async function updateStatistics() {
+            try {
+                const from = dateFromInput.value;
+                const to = dateToInput.value;
+                let url = '/api/uplate/stats/summary';
+                
+                if (from || to) {
+                    const params = new URLSearchParams();
+                    if (from) params.append('from', from);
+                    if (to) params.append('to', to);
+                    url += '?' + params.toString();
+                }
+                
+                const response = await fetch(url);
+                const stats = await response.json();
+                
+                document.getElementById('total-payments').textContent = formatCurrency(stats.totalPayments);
+                document.getElementById('payment-count').textContent = stats.paymentCount;
+                document.getElementById('avg-payment').textContent = formatCurrency(stats.avgPayment);
+                document.getElementById('pending-payments').textContent = stats.pendingPayments;
+                
+                // Update summary
+                document.getElementById('period-total').textContent = formatCurrency(stats.totalPayments);
+                document.getElementById('period-count').textContent = stats.paymentCount;
+                document.getElementById('period-successful').textContent = formatCurrency(stats.successfulAmount);
+                document.getElementById('period-failed').textContent = formatCurrency(stats.failedAmount);
+                
+            } catch (error) {
+                console.error('Error updating statistics:', error);
+            }
         }
 
-        // Update summary box
-        function updateSummary(data = filteredData) {
-            const totalAmount = data.reduce((sum, payment) => sum + payment.amount, 0);
-            const successfulAmount = data.filter(p => p.status === 'Završeno').reduce((sum, p) => sum + p.amount, 0);
-            const refundedAmount = data.filter(p => p.status === 'Refundirano').reduce((sum, p) => sum + p.amount, 0);
-            const paymentCount = data.length;
-
-            document.getElementById('period-total').textContent = formatCurrency(totalAmount);
-            document.getElementById('period-count').textContent = paymentCount;
-            document.getElementById('period-successful').textContent = formatCurrency(successfulAmount);
-            document.getElementById('period-refunded').textContent = formatCurrency(refundedAmount);
+        // Load payments from API
+        async function loadPayments() {
+            try {
+                const response = await fetch('/api/uplate');
+                const data = await response.json();
+                paymentsData = data;
+                applyFilters();
+                updateStatistics();
+            } catch (error) {
+                console.error('Error loading payments:', error);
+                alert('Greška pri učitavanju uplata.');
+            }
         }
 
         // Render payments table
@@ -2013,18 +1415,30 @@
             const tbody = document.getElementById('payments-tbody');
             tbody.innerHTML = '';
             
+            if (data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="10" style="text-align: center; padding: 2rem; color: #666;">
+                            <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+                            Nema uplata za prikaz
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
             data.forEach(payment => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td><strong>${payment.id}</strong></td>
-                    <td>${formatDate(payment.date)}</td>
-                    <td title="${payment.customerName}">${payment.customerName}</td>
-                    <td class="currency ${payment.status === 'Refundirano' ? 'amount-negative' : 'amount-positive'}">${formatCurrency(payment.amount)}</td>
-                    <td>${getPaymentMethodBadge(payment.paymentMethod)}</td>
+                    <td>${formatDate(payment.datum)}</td>
+                    <td title="${payment.kupac}">${payment.kupac}</td>
+                    <td class="currency amount-positive">${formatCurrency(payment.iznos)}</td>
+                    <td>${getPaymentMethodBadge(payment.nacin)}</td>
                     <td>${getStatusBadge(payment.status)}</td>
-                    <td>${payment.documentNumber || '-'}</td>
-                    <td>${payment.salesperson || '-'}</td>
-                    <td title="${payment.notes || ''}">${payment.notes ? payment.notes.substring(0, 20) + '...' : '-'}</td>
+                    <td>${payment.dokument || '-'}</td>
+                    <td>${payment.komercijalist || '-'}</td>
+                    <td title="${payment.napomene || ''}">${payment.napomene ? (payment.napomene.length > 20 ? payment.napomene.substring(0, 20) + '...' : payment.napomene) : '-'}</td>
                     <td>
                         <div class="action-buttons">
                             <button class="btn btn-sm btn-primary edit-payment-btn" data-id="${payment.id}" title="Uredi">
@@ -2047,55 +1461,77 @@
 
             // Attach event listeners to new buttons
             attachActionListeners();
-            updateStatistics(data);
-            updateSummary(data);
         }
 
         // Attach event listeners to action buttons
         function attachActionListeners() {
             // Edit buttons
             document.querySelectorAll('.edit-payment-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', async function() {
                     const id = this.dataset.id;
-                    const payment = paymentsData.find(p => p.id === id);
-                    if (payment) {
+                    try {
+                        const response = await fetch(`/api/uplate/${id}`);
+                        const payment = await response.json();
                         fillForm(payment);
                         modalTitle.textContent = 'Uredi uplatu';
                         paymentModal.classList.add('show');
+                    } catch (error) {
+                        console.error('Error fetching payment:', error);
+                        alert('Greška pri dohvatanju uplate.');
                     }
                 });
             });
 
             // View buttons
             document.querySelectorAll('.view-payment-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', async function() {
                     const id = this.dataset.id;
-                    const payment = paymentsData.find(p => p.id === id);
-                    if (payment) {
+                    try {
+                        const response = await fetch(`/api/uplate/${id}`);
+                        const payment = await response.json();
                         showPaymentDetails(payment);
+                    } catch (error) {
+                        console.error('Error fetching payment:', error);
+                        alert('Greška pri dohvatanju uplate.');
                     }
                 });
             });
 
             // Print receipt buttons
             document.querySelectorAll('.print-receipt-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', async function() {
                     const id = this.dataset.id;
-                    const payment = paymentsData.find(p => p.id === id);
-                    if (payment) {
+                    try {
+                        const response = await fetch(`/api/uplate/${id}`);
+                        const payment = await response.json();
                         printReceipt(payment);
+                    } catch (error) {
+                        console.error('Error fetching payment:', error);
+                        alert('Greška pri dohvatanju uplate.');
                     }
                 });
             });
 
             // Delete buttons
             document.querySelectorAll('.delete-payment-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', async function() {
                     const id = this.dataset.id;
-                    const payment = paymentsData.find(p => p.id === id);
-                    if (payment && confirm(`Da li ste sigurni da želite da obrišete uplatu "${id}"?`)) {
-                        paymentsData = paymentsData.filter(p => p.id !== id);
-                        applyFilters();
+                    if (confirm(`Da li ste sigurni da želite da obrišete uplatu "${id}"?`)) {
+                        try {
+                            const response = await fetch(`/api/uplate/${id}`, {
+                                method: 'DELETE'
+                            });
+                            
+                            if (response.ok) {
+                                await loadPayments();
+                                alert('Uplata je uspješno obrisana.');
+                            } else {
+                                throw new Error('Delete failed');
+                            }
+                        } catch (error) {
+                            console.error('Error deleting payment:', error);
+                            alert('Greška pri brisanju uplate.');
+                        }
                     }
                 });
             });
@@ -2105,14 +1541,14 @@
         function showPaymentDetails(payment) {
             alert(`Detalji uplate:\n\n` +
                   `ID: ${payment.id}\n` +
-                  `Datum: ${formatDate(payment.date)}\n` +
-                  `Kupac: ${payment.customerName} (${payment.customerId})\n` +
-                  `Iznos: ${formatCurrency(payment.amount)}\n` +
-                  `Način plaćanja: ${payment.paymentMethod}\n` +
+                  `Datum: ${formatDate(payment.datum)}\n` +
+                  `Kupac: ${payment.kupac}\n` +
+                  `Iznos: ${formatCurrency(payment.iznos)}\n` +
+                  `Način plaćanja: ${payment.nacin}\n` +
                   `Status: ${payment.status}\n` +
-                  `Dokument: ${payment.documentNumber || 'N/A'}\n` +
-                  `Komercijalist: ${payment.salesperson || 'N/A'}\n` +
-                  `Napomene: ${payment.notes || 'Nema napomena'}`);
+                  `Dokument: ${payment.dokument || 'N/A'}\n` +
+                  `Komercijalist: ${payment.komercijalist || 'N/A'}\n` +
+                  `Napomene: ${payment.napomene || 'Nema napomena'}`);
         }
 
         // Print receipt
@@ -2123,15 +1559,15 @@ Potvrda o uplati
 ==================
 
 ID Uplate: ${payment.id}
-Datum: ${formatDate(payment.date)}
-Kupac: ${payment.customerName}
-Iznos: ${formatCurrency(payment.amount)}
-Način plaćanja: ${payment.paymentMethod}
+Datum: ${formatDate(payment.datum)}
+Kupac: ${payment.kupac}
+Iznos: ${formatCurrency(payment.iznos)}
+Način plaćanja: ${payment.nacin}
 Status: ${payment.status}
-Dokument: ${payment.documentNumber || 'N/A'}
-Komercijalist: ${payment.salesperson || 'N/A'}
+Dokument: ${payment.dokument || 'N/A'}
+Komercijalist: ${payment.komercijalist || 'N/A'}
 
-Napomene: ${payment.notes || 'Nema napomena'}
+Napomene: ${payment.napomene || 'Nema napomena'}
 
 ==================
 Hvala Vam na ukazanom povjerenju!
@@ -2143,15 +1579,23 @@ Hvala Vam na ukazanom povjerenju!
         // Fill form with payment data
         function fillForm(payment) {
             paymentIdInput.value = payment.id;
-            document.getElementById('payment-date').value = payment.date.replace(' ', 'T');
-            document.getElementById('payment-amount').value = payment.amount;
-            document.getElementById('customer-name').value = payment.customerName;
-            document.getElementById('customer-id').value = payment.customerId || '';
-            document.getElementById('payment-method').value = payment.paymentMethod;
+            
+            // Convert database datetime to input format
+            const date = new Date(payment.datum);
+            const formattedDate = date.getFullYear() + '-' + 
+                String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(date.getDate()).padStart(2, '0') + 'T' +
+                String(date.getHours()).padStart(2, '0') + ':' +
+                String(date.getMinutes()).padStart(2, '0');
+            
+            document.getElementById('payment-date').value = formattedDate;
+            document.getElementById('payment-amount').value = payment.iznos;
+            document.getElementById('customer-name').value = payment.kupac;
+            document.getElementById('payment-method').value = payment.nacin;
             document.getElementById('payment-status').value = payment.status;
-            document.getElementById('document-number').value = payment.documentNumber || '';
-            document.getElementById('salesperson').value = payment.salesperson || '';
-            document.getElementById('payment-notes').value = payment.notes || '';
+            document.getElementById('document-number').value = payment.dokument || '';
+            document.getElementById('salesperson').value = payment.komercijalist || '';
+            document.getElementById('payment-notes').value = payment.napomene || '';
         }
 
         // Clear form
@@ -2159,9 +1603,42 @@ Hvala Vam na ukazanom povjerenju!
             paymentForm.reset();
             paymentIdInput.value = '';
             const now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            document.getElementById('payment-date').value = now.toISOString().slice(0, 16);
-            document.getElementById('payment-status').value = 'Završeno';
+            const formattedNow = now.getFullYear() + '-' + 
+                String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(now.getDate()).padStart(2, '0') + 'T' +
+                String(now.getHours()).padStart(2, '0') + ':' +
+                String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('payment-date').value = formattedNow;
+            document.getElementById('payment-status').value = 'primljena';
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const term = searchInput.value.toLowerCase();
+            const status = statusFilter.value;
+            const method = methodFilter.value;
+            const dateFrom = dateFromInput.value ? new Date(dateFromInput.value) : null;
+            const dateTo = dateToInput.value ? new Date(dateToInput.value + 'T23:59:59') : null;
+
+            filteredData = paymentsData.filter(payment => {
+                const paymentDate = new Date(payment.datum);
+                
+                const matchesSearch = payment.id.toString().includes(term) ||
+                                    payment.kupac.toLowerCase().includes(term) ||
+                                    (payment.dokument && payment.dokument.toLowerCase().includes(term)) ||
+                                    (payment.komercijalist && payment.komercijalist.toLowerCase().includes(term));
+                
+                const matchesStatus = !status || payment.status === status;
+                const matchesMethod = !method || payment.nacin === method;
+                
+                const matchesDateFrom = !dateFrom || paymentDate >= dateFrom;
+                const matchesDateTo = !dateTo || paymentDate <= dateTo;
+                
+                return matchesSearch && matchesStatus && matchesMethod && matchesDateFrom && matchesDateTo;
+            });
+
+            renderPaymentsTable(filteredData);
+            updateStatistics();
         }
 
         // Quick date functions
@@ -2189,34 +1666,6 @@ Hvala Vam na ukazanom povjerenju!
             event.target.classList.add('active');
         }
 
-        // Apply filters
-        function applyFilters() {
-            const term = searchInput.value.toLowerCase();
-            const status = statusFilter.value;
-            const method = methodFilter.value;
-            const dateFrom = dateFromInput.value ? new Date(dateFromInput.value) : null;
-            const dateTo = dateToInput.value ? new Date(dateToInput.value + 'T23:59:59') : null;
-
-            filteredData = paymentsData.filter(payment => {
-                const paymentDate = new Date(payment.date);
-                
-                const matchesSearch = payment.id.toLowerCase().includes(term) ||
-                                    payment.customerName.toLowerCase().includes(term) ||
-                                    payment.documentNumber?.toLowerCase().includes(term) ||
-                                    payment.salesperson?.toLowerCase().includes(term);
-                
-                const matchesStatus = !status || payment.status === status;
-                const matchesMethod = !method || payment.paymentMethod === method;
-                
-                const matchesDateFrom = !dateFrom || paymentDate >= dateFrom;
-                const matchesDateTo = !dateTo || paymentDate <= dateTo;
-                
-                return matchesSearch && matchesStatus && matchesMethod && matchesDateFrom && matchesDateTo;
-            });
-
-            renderPaymentsTable(filteredData);
-        }
-
         // Event listeners for quick date buttons
         quickDateBtns.forEach(btn => {
             btn.addEventListener('click', function() {
@@ -2231,14 +1680,13 @@ Hvala Vam na ukazanom povjerenju!
             });
         });
 
-        // Add new payment
+        // Modal functionality
         addPaymentBtn.addEventListener('click', () => {
             clearForm();
             modalTitle.textContent = 'Nova uplata';
             paymentModal.classList.add('show');
         });
 
-        // Close modal
         closeModal.addEventListener('click', () => {
             paymentModal.classList.remove('show');
         });
@@ -2254,37 +1702,58 @@ Hvala Vam na ukazanom povjerenju!
         });
 
         // Form submission
-        paymentForm.addEventListener('submit', (e) => {
+        paymentForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const formData = {
-                id: paymentIdInput.value || getNextPaymentId(),
-                date: document.getElementById('payment-date').value.replace('T', ' ') + ':00',
-                customerName: document.getElementById('customer-name').value,
-                customerId: document.getElementById('customer-id').value,
-                amount: parseFloat(document.getElementById('payment-amount').value),
-                paymentMethod: document.getElementById('payment-method').value,
+                datum: document.getElementById('payment-date').value.replace('T', ' ') + ':00',
+                kupac: document.getElementById('customer-name').value,
+                iznos: parseFloat(document.getElementById('payment-amount').value),
+                nacin: document.getElementById('payment-method').value,
                 status: document.getElementById('payment-status').value,
-                documentNumber: document.getElementById('document-number').value,
-                salesperson: document.getElementById('salesperson').value,
-                notes: document.getElementById('payment-notes').value
+                dokument: document.getElementById('document-number').value,
+                komercijalist: document.getElementById('salesperson').value,
+                napomene: document.getElementById('payment-notes').value
             };
 
-            const existingIndex = paymentsData.findIndex(p => p.id === formData.id);
-            
-            if (existingIndex !== -1) {
-                // Update existing
-                paymentsData[existingIndex] = formData;
-            } else {
-                // Add new
-                paymentsData.push(formData);
-            }
+            try {
+                const paymentId = paymentIdInput.value;
+                let response;
+                
+                if (paymentId) {
+                    // Update existing
+                    response = await fetch(`/api/uplate/${paymentId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                } else {
+                    // Add new
+                    response = await fetch('/api/uplate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                }
 
-            applyFilters();
-            paymentModal.classList.remove('show');
+                if (response.ok) {
+                    paymentModal.classList.remove('show');
+                    await loadPayments();
+                    alert(paymentId ? 'Uplata je uspješno ažurirana.' : 'Uplata je uspješno dodana.');
+                } else {
+                    throw new Error('Save failed');
+                }
+            } catch (error) {
+                console.error('Error saving payment:', error);
+                alert('Greška pri snimanju uplate.');
+            }
         });
 
-        // Search functionality
+        // Search and filter functionality
         searchInput.addEventListener('input', applyFilters);
         statusFilter.addEventListener('change', applyFilters);
         methodFilter.addEventListener('change', applyFilters);
@@ -2300,9 +1769,8 @@ Hvala Vam na ukazanom povjerenju!
         });
 
         // Refresh button
-        refreshBtn.addEventListener('click', function() {
-            filteredData = [...paymentsData];
-            renderPaymentsTable();
+        refreshBtn.addEventListener('click', async function() {
+            await loadPayments();
             searchInput.value = '';
             statusFilter.value = '';
             methodFilter.value = '';
@@ -2311,26 +1779,70 @@ Hvala Vam na ukazanom povjerenju!
             quickDateBtns.forEach(btn => btn.classList.remove('active'));
         });
 
-        // Export functionality
-        exportExcelBtn.addEventListener('click', function() {
-            let csvContent = "ID Uplate,Datum,Kupac,Iznos,Način plaćanja,Status,Račun/Dokument,Komercijalist,Napomene\n";
-            
-            filteredData.forEach(payment => {
-                csvContent += `"${payment.id}","${formatDate(payment.date)}","${payment.customerName}","${payment.amount}","${payment.paymentMethod}","${payment.status}","${payment.documentNumber || ''}","${payment.salesperson || ''}","${payment.notes || ''}"\n`;
-            });
+        // Sidebar functionality
+        function closeMobileSidebar() {
+            if (window.innerWidth <= 576) {
+                sidebar.classList.remove('mobile-open');
+                if (sidebarOverlay) sidebarOverlay.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+        }
 
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `uplate_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        if (mobileMenuToggle) {
+            mobileMenuToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('mobile-open');
+                if (sidebarOverlay) sidebarOverlay.classList.toggle('show');
+                
+                if (sidebar.classList.contains('mobile-open')) {
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.body.style.overflow = '';
+                }
+            });
+        }
+
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', closeMobileSidebar);
+        }
+
+        if (toggleSidebar) {
+            toggleSidebar.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+                header.classList.toggle('expanded');
+                
+                if (sidebar.classList.contains('collapsed')) {
+                    sidebarIcon.classList.remove('fa-chevron-left');
+                    sidebarIcon.classList.add('fa-chevron-right');
+                } else {
+                    sidebarIcon.classList.remove('fa-chevron-right');
+                    sidebarIcon.classList.add('fa-chevron-left');
+                }
+            });
+        }
+
+        // Submenu functionality
+        document.querySelectorAll('.nav-item.has-submenu > .nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const parent = this.parentElement;
+                const submenu = parent.querySelector('.submenu');
+                
+                document.querySelectorAll('.nav-item.has-submenu').forEach(item => {
+                    if (item !== parent) {
+                        item.classList.remove('open');
+                        item.querySelector('.submenu').classList.remove('open');
+                    }
+                });
+                
+                parent.classList.toggle('open');
+                submenu.classList.toggle('open');
+            });
         });
 
-        exportPdfBtn.addEventListener('click', function() {
-            alert('PDF izvoz će biti implementiran u sljedećoj verziji.\n\nTrenutno možete koristiti Excel izvoz ili print funkciju browsera.');
+        // Navigation click handlers
+        document.querySelectorAll('.submenu .nav-link').forEach(link => {
+            link.addEventListener('click', closeMobileSidebar);
         });
 
         // Initialize date inputs with current month
@@ -2342,7 +1854,6 @@ Hvala Vam na ukazanom povjerenju!
             dateFromInput.value = firstDay.toISOString().split('T')[0];
             dateToInput.value = lastDay.toISOString().split('T')[0];
             
-            // Mark "Ovaj mjesec" as active
             quickDateBtns.forEach(btn => {
                 if (btn.dataset.period === 'month') {
                     btn.classList.add('active');
@@ -2351,47 +1862,22 @@ Hvala Vam na ukazanom povjerenju!
         }
 
         // Auto collapse sidebar on medium screens
-        if (window.innerWidth <= 992 && window.innerWidth > 576) {
-            if (!sidebar.classList.contains('collapsed')) {
-                sidebar.classList.add('collapsed');
-                mainContent.classList.add('expanded');
-                header.classList.add('expanded');
-                sidebarIcon.classList.remove('fa-chevron-left');
-                sidebarIcon.classList.add('fa-chevron-right');
+        function handleResponsiveLayout() {
+            if (window.innerWidth <= 992 && window.innerWidth > 576) {
+                if (!sidebar.classList.contains('collapsed')) {
+                    sidebar.classList.add('collapsed');
+                    mainContent.classList.add('expanded');
+                    header.classList.add('expanded');
+                    if (sidebarIcon) {
+                        sidebarIcon.classList.remove('fa-chevron-left');
+                        sidebarIcon.classList.add('fa-chevron-right');
+                    }
+                }
             }
         }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeDateInputs();
-            applyFilters();
-            
-            // Auto collapse sidebar on medium screens on load
-            if (window.innerWidth <= 992 && window.innerWidth > 576) {
-                sidebar.classList.add('collapsed');
-                mainContent.classList.add('expanded');
-                header.classList.add('expanded');
-                sidebarIcon.classList.remove('fa-chevron-left');
-                sidebarIcon.classList.add('fa-chevron-right');
-            }
-            
-            console.log('Tehnolux Uplate panel initialized - improved mobile navigation');
-        });
-
-        // Smooth scrolling for sidebar navigation
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', function(e) {
-                // Add smooth transition effect
-                this.style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    this.style.transform = 'scale(1)';
-                }, 150);
-            });
-        });
-
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
-            // ESC to close modal or mobile menu
             if (e.key === 'Escape') {
                 if (paymentModal.classList.contains('show')) {
                     paymentModal.classList.remove('show');
@@ -2400,18 +1886,29 @@ Hvala Vam na ukazanom povjerenju!
                 }
             }
             
-            // Ctrl+N for new payment
             if (e.ctrlKey && e.key === 'n') {
                 e.preventDefault();
                 addPaymentBtn.click();
             }
             
-            // Ctrl+F to focus search
             if (e.ctrlKey && e.key === 'f') {
                 e.preventDefault();
                 searchInput.focus();
             }
         });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDateInputs();
+            updateStatistics();
+            handleResponsiveLayout();
+            attachActionListeners();
+            
+            console.log('Tehnolux Uplate panel initialized with database connection');
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', handleResponsiveLayout);
     </script>
 </body>
 </html>

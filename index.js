@@ -1496,42 +1496,35 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
         let lagerUpdateErrors = [];
 
         for (const artikal of artikli) {
-            // Validacija artikla iz lager-a
-            const lagerResult = await db.query('SELECT * FROM lager WHERE sifra = $1', [artikal.sifra]);
-            if (lagerResult.rows.length === 0) {
-                lagerUpdateErrors.push(`Artikal ${artikal.sifra} nije pronađen u lageru`);
-                continue;
-            }
-            
-            const lagerArtikal = lagerResult.rows[0];
-            const requestedQuantity = parseFloat(artikal.kolicina) || 0;
-            
-            // Za otpremnicu i kalkulaciju, oduzmi sa lagera
-            if (['otpremnica', 'kalkulacija'].includes(tipDokumenta.toLowerCase())) {
-                if (lagerArtikal.kolicina < requestedQuantity) {
-                    lagerUpdateErrors.push(
-                        `Nedovoljna količina za artikal ${artikal.sifra} - dostupno: ${lagerArtikal.kolicina}, traži se: ${requestedQuantity}`
-                    );
-                    continue;
-                }
-                
-                await db.query(
-                    'UPDATE lager SET kolicina = kolicina - $1 WHERE sifra = $2',
-                    [requestedQuantity, artikal.sifra]
-                );
-            }
-            
-            processedArtikli.push({
-                sifra: artikal.sifra,
-                naziv: lagerArtikal.naziv,
-                jm: lagerArtikal.jm,
-                kolicina: requestedQuantity,
-                cena_bez_pdv: parseFloat(lagerArtikal.cena_bez_pdv) || 0,
-                cena_sa_pdv: parseFloat(lagerArtikal.cena_sa_pdv) || 0
-            });
-            
-            totalKolicina += requestedQuantity;
-        }
+    // Validacija artikla iz lager-a
+    const lagerResult = await db.query('SELECT * FROM lager WHERE sifra = $1', [artikal.sifra]);
+    if (lagerResult.rows.length === 0) {
+        lagerUpdateErrors.push(`Artikal ${artikal.sifra} nije pronađen u lageru`);
+        continue;
+    }
+    
+    const lagerArtikal = lagerResult.rows[0];
+    const requestedQuantity = parseFloat(artikal.kolicina) || 0;
+    
+    // Za otpremnicu i kalkulaciju, uvek oduzmi sa lagera (dozvoli minus stanje)
+    if (['otpremnica', 'kalkulacija'].includes(tipDokumenta.toLowerCase())) {
+        await db.query(
+            'UPDATE lager SET kolicina = kolicina - $1 WHERE sifra = $2',
+            [requestedQuantity, artikal.sifra]
+        );
+    }
+    
+    processedArtikli.push({
+        sifra: artikal.sifra,
+        naziv: lagerArtikal.naziv,
+        jm: lagerArtikal.jm,
+        kolicina: requestedQuantity,
+        cena_bez_pdv: parseFloat(lagerArtikal.cena_bez_pdv) || 0,
+        cena_sa_pdv: parseFloat(lagerArtikal.cena_sa_pdv) || 0
+    });
+    
+    totalKolicina += requestedQuantity;
+}
 
         // Ako ima grešaka sa lagerom, prekini transakciju
         if (lagerUpdateErrors.length > 0) {
@@ -1561,26 +1554,39 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
 };
 
         
-        // Sačuvaj glavni dokument u dokumenti tabelu
-        const documentResult = await db.query(
-            `INSERT INTO dokumenti (
-                datum, partner, tip_dokumenta, naziv_artikla, 
-                kolicina, iznos_bez_pdv, iznos_sa_pdv, pdv_iznos, rabat, komercijalist_id
-            )
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
-            [
-                today,
-                partner,
-                `${tipDokumenta} ${documentNumber}`,
-                artikliString,
-                totalKolicina,
-                parseFloat(calculatedUkupanIznos.iznosBezPdv) || 0,
-                parseFloat(calculatedUkupanIznos.iznosSaPdv) || 0,
-                parseFloat(calculatedUkupanIznos.pdvIznos) || 0,
-                rabatValue,
-                komercijalist_id
-            ]
-        );
+        // Nadji naziv partnera po šifri
+const partnerRes = await db.query(
+  'SELECT "Naziv_partnera" FROM partneri WHERE "Sifra" = $1',
+  [partner]
+);
+
+if (partnerRes.rows.length === 0) {
+  await db.query('ROLLBACK');
+  return res.status(400).json({ error: "Partner nije pronađen." });
+}
+
+const partnerNaziv = partnerRes.rows[0].Naziv_partnera;
+
+// Upisi naziv umesto šifre
+const documentResult = await db.query(
+  `INSERT INTO dokumenti (
+      datum, partner, tip_dokumenta, naziv_artikla, 
+      kolicina, iznos_bez_pdv, iznos_sa_pdv, pdv_iznos, rabat, komercijalist_id
+  )
+   VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
+  [
+      today,
+      partnerNaziv,   // 👈 sada ide ime
+      `${tipDokumenta} ${documentNumber}`,
+      artikliString,
+      totalKolicina,
+      parseFloat(calculatedUkupanIznos.iznosBezPdv) || 0,
+      parseFloat(calculatedUkupanIznos.iznosSaPdv) || 0,
+      parseFloat(calculatedUkupanIznos.pdvIznos) || 0,
+      rabatValue,
+      komercijalist_id
+  ]
+);
 
         const documentId = documentResult.rows[0].id;
         

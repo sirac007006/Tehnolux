@@ -949,25 +949,6 @@
 
     <!-- Main Content Area -->
     <main class="main-content" id="main-content">
-        <!-- Statistics Cards -->
-        <div class="stats-cards">
-            <div class="stat-card">
-                <div class="stat-value" id="total-documents">0</div>
-                <div class="stat-label">Ukupno dokumenata</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="current-month-docs">0</div>
-                <div class="stat-label">Ovaj mesec</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="total-revenue">0.00 €</div>
-                <div class="stat-label">Ukupan promet</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="unique-partners">0</div>
-                <div class="stat-label">Partneri</div>
-            </div>
-        </div>
 
         <!-- Documents List -->
         <div class="card">
@@ -1383,17 +1364,39 @@
 
         // Submenu functionality
         function initializeSubmenuToggle() {
-            document.querySelectorAll('.has-submenu').forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const submenu = this.querySelector('.submenu');
-                    if (submenu) {
-                        submenu.classList.toggle('open');
-                        this.classList.toggle('open');
-                    }
-                });
-            });
-        }
+    document.querySelectorAll('.has-submenu').forEach(item => {
+        item.addEventListener('click', function(e) {
+            // Ako je klik došao iz <a class="nav-link"> sa realnim href-om, dopusti navigaciju
+            const anchor = e.target.closest('a.nav-link');
+            if (anchor) {
+                const href = anchor.getAttribute('href');
+                if (href && href !== '#' && href !== 'javascript:void(0)') {
+                    // dozvoli normalnu navigaciju
+                    return;
+                }
+            }
+
+            // Ako je klik na dedikovani toggle dugme (ako ga ubaciš), tretiraj drugačije
+            const toggleBtn = e.target.closest('.submenu-toggle');
+            if (toggleBtn) {
+                const submenu = item.querySelector('.submenu');
+                if (submenu) submenu.classList.toggle('open');
+                item.classList.toggle('open');
+                e.preventDefault();
+                return;
+            }
+
+            // Inače — toggle submenu (korisno za stavke sa href="#" ili za mobil)
+            const submenu = item.querySelector('.submenu');
+            if (submenu) {
+                submenu.classList.toggle('open');
+                item.classList.toggle('open');
+                e.preventDefault();
+            }
+        });
+    });
+}
+
 
         // Toggle sidebar
         toggleSidebar.addEventListener('click', function() {

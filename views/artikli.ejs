@@ -364,7 +364,7 @@
             font-weight: 600;
         }
 
-        /* Table styles - simplified for 4 columns */
+        /* Table styles - updated for 5 columns */
         .table-container {
             overflow-x: auto;
             margin: 1rem -1rem -1rem -1rem;
@@ -373,7 +373,7 @@
 
         .data-table {
             width: 100%;
-            min-width: 600px;
+            min-width: 700px;
             border-collapse: collapse;
             margin-top: 1rem;
         }
@@ -393,17 +393,19 @@
             top: 0;
         }
 
-        /* Simplified column layout */
+        /* Updated column layout for 5 columns */
         .data-table th:nth-child(1),
-        .data-table td:nth-child(1) { width: 15%; }  /* Šifra */
+        .data-table td:nth-child(1) { width: 12%; }  /* Šifra */
         .data-table th:nth-child(2),
-        .data-table td:nth-child(2) { width: 40%; }  /* Naziv artikla */
+        .data-table td:nth-child(2) { width: 35%; }  /* Naziv artikla */
         .data-table th:nth-child(3),
-        .data-table td:nth-child(3) { width: 15%; text-align: center; }  /* JM */
+        .data-table td:nth-child(3) { width: 12%; text-align: center; }  /* JM */
         .data-table th:nth-child(4),
-        .data-table td:nth-child(4) { width: 20%; }  /* Vrsta artikla */
+        .data-table td:nth-child(4) { width: 15%; text-align: right; }  /* Cena */
         .data-table th:nth-child(5),
-        .data-table td:nth-child(5) { width: 10%; }  /* Akcije */
+        .data-table td:nth-child(5) { width: 16%; }  /* Vrsta artikla */
+        .data-table th:nth-child(6),
+        .data-table td:nth-child(6) { width: 10%; }  /* Akcije */
 
         .data-table tr:last-child td {
             border-bottom: none;
@@ -411,6 +413,11 @@
 
         .data-table tbody tr:hover {
             background-color: #f8f9fa;
+        }
+
+        .price-cell {
+            font-weight: 600;
+            color: #2ecc71;
         }
 
         /* Modal styles */
@@ -501,6 +508,12 @@
             gap: 1rem;
         }
 
+        .form-row-triple {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+        }
+
         /* Search and filter */
         .search-filter-container {
             display: flex;
@@ -562,7 +575,7 @@
                 display: flex;
             }
 
-            .form-row {
+            .form-row, .form-row-triple {
                 grid-template-columns: 1fr;
             }
             
@@ -580,7 +593,7 @@
             }
 
             .data-table {
-                min-width: 500px;
+                min-width: 600px;
             }
 
             .toggle-sidebar {
@@ -732,7 +745,7 @@
         </div>
         
         <nav class="sidebar-nav">
-            <!-- Unos Dokumentacije - skriva se na uređajima manjim od 768px osim na mobile sidebar -->
+            <!-- Unos Dokumentacije -->
             <div class="menu-section">
                 <div class="menu-title">Unos dokumentacije</div>
                 <div class="nav-item">
@@ -781,7 +794,7 @@
                     </a>
                     <div class="submenu">
                         <div class="nav-item">
-                            <a href="/artikli" class="nav-link">
+                            <a href="/artikli" class="nav-link active">
                                 <span class="nav-text">Artikli</span>
                             </a>
                         </div>
@@ -809,11 +822,6 @@
                     </a>
                     <div class="submenu">
                         <div class="nav-item">
-                            <a href="/karticekupca" class="nav-link">
-                                <span class="nav-text">Kartica kupca</span>
-                            </a>
-                        </div>
-                        <div class="nav-item">
                             <a href="/uplate" class="nav-link">
                                 <span class="nav-text">Uplate</span>
                             </a>
@@ -821,6 +829,11 @@
                         <div class="nav-item">
                             <a href="/partneri" class="nav-link">
                                 <span class="nav-text">Partneri</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/karticekupca" class="nav-link">
+                                <span class="nav-text">Kartica kupca</span>
                             </a>
                         </div>
                     </div>
@@ -878,22 +891,24 @@
                             <th>Šifra</th>
                             <th>Naziv artikla</th>
                             <th>JM</th>
+                            <th>Cena (EUR)</th>
                             <th>Akcije</th>
                         </tr>
                     </thead>
                     <tbody id="articles-tbody">
                         <% if (artikli && artikli.length > 0) { %>
                             <% artikli.forEach(function(artikal) { %>
-                                <tr data-id="<%= artikal.id %>">
+                                <tr data-id="<%= artikal.sifra %>">
                                     <td><%= artikal.sifra %></td>
                                     <td><%= artikal.naziv %></td>
                                     <td><%= artikal.jm %></td>
+                                    <td class="price-cell"><%= artikal.cena ? parseFloat(artikal.cena).toFixed(2) : '0.00' %> €</td>
                                     <td>
                                         <div class="action-buttons">
-                                            <button class="btn btn-sm btn-primary edit-article-btn" data-id="<%= artikal.id %>" title="Izmeni">
+                                            <button class="btn btn-sm btn-primary edit-article-btn" data-id="<%= artikal.sifra %>" title="Izmeni">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <button class="btn btn-sm btn-danger delete-article-btn" data-id="<%= artikal.id %>" title="Obriši">
+                                            <button class="btn btn-sm btn-danger delete-article-btn" data-id="<%= artikal.sifra %>" title="Obriši">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </div>
@@ -902,7 +917,7 @@
                             <% }); %>
                         <% } else { %>
                             <tr>
-                                <td colspan="5" style="text-align:center;">Nema artikala u bazi.</td>
+                                <td colspan="6" style="text-align:center;">Nema artikala u bazi.</td>
                             </tr>
                         <% } %>
                     </tbody>
@@ -923,7 +938,7 @@
             <form id="article-form">
                 <input type="hidden" id="article-id">
                 
-                <!-- Prva sekcija - Šifra i Naziv -->
+                <!-- Prva sekcija - Šifra i JM -->
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label" for="sifra">Šifra artikla:</label>
@@ -941,10 +956,16 @@
                     <input type="text" class="form-control" id="naziv-artikla" required>
                 </div>
 
-                <!-- Treća sekcija - Vrsta artikla -->
-                <div class="form-group">
-                    <label class="form-label" for="vrsta-artikla">Vrsta artikla:</label>
-                    <input type="text" class="form-control" id="vrsta-artikla" required>
+                <!-- Treća sekcija - Cena i Vrsta artikla -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="cena">Cena (EUR):</label>
+                        <input type="number" class="form-control" id="cena" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="vrsta-artikla">Vrsta artikla:</label>
+                        <input type="text" class="form-control" id="vrsta-artikla" required>
+                    </div>
                 </div>
 
                 <!-- Dugmad -->
@@ -1118,10 +1139,11 @@
 
         // Fill form with article data
         function fillForm(article) {
-            articleIdInput.value = article.id;
+            articleIdInput.value = article.sifra;
             document.getElementById('sifra').value = article.sifra;
             document.getElementById('naziv-artikla').value = article.naziv;
             document.getElementById('jm').value = article.jm;
+            document.getElementById('cena').value = article.cena || '';
             document.getElementById('vrsta-artikla').value = article.vrsta;
         }
 
@@ -1161,6 +1183,7 @@
                 sifra: document.getElementById('sifra').value,
                 naziv: document.getElementById('naziv-artikla').value,
                 jm: document.getElementById('jm').value,
+                cena: parseFloat(document.getElementById('cena').value) || 0,
                 vrsta: document.getElementById('vrsta-artikla').value
             };
 
@@ -1193,7 +1216,7 @@
             }
         });
 
-        // Search functionality
+        // Search functionality - updated to include price search
         searchInput.addEventListener('input', function() {
             const term = this.value.toLowerCase();
             const rows = document.querySelectorAll('#articles-tbody tr');
@@ -1202,9 +1225,12 @@
                 if (row.cells.length > 1) {
                     const sifra = row.cells[0].textContent.toLowerCase();
                     const naziv = row.cells[1].textContent.toLowerCase();
-                    const vrsta = row.cells[3].textContent.toLowerCase();
+                    const jm = row.cells[2].textContent.toLowerCase();
+                    const cena = row.cells[3].textContent.toLowerCase();
+                    const vrsta = row.cells[4].textContent.toLowerCase();
                     
-                    if (sifra.includes(term) || naziv.includes(term) || vrsta.includes(term)) {
+                    if (sifra.includes(term) || naziv.includes(term) || jm.includes(term) || 
+                        cena.includes(term) || vrsta.includes(term)) {
                         row.style.display = '';
                     } else {
                         row.style.display = 'none';
@@ -1273,7 +1299,7 @@
                 sidebarIcon.classList.add('fa-chevron-right');
             }
             
-            console.log('Tehnolux Artikli panel initialized - Simplified version with 4 fields');
+            console.log('Tehnolux Artikli panel initialized - Updated with price column');
         });
     </script>
 </body>

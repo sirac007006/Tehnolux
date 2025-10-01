@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tehnolux Admin Panel - Promet robe</title>
+    <title>Tehnolux Admin Panel - Promet robe (Otpremnice)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -34,7 +34,6 @@
             overflow-x: hidden;
         }
 
-        /* Sidebar styles */
         .sidebar {
             position: fixed;
             width: var(--sidebar-width);
@@ -81,10 +80,6 @@
 
         .sidebar.collapsed .logo-text {
             display: none;
-        }
-
-        .sidebar.collapsed .logo-icon {
-            margin-right: 0;
         }
 
         .sidebar-nav {
@@ -145,15 +140,6 @@
             display: none;
         }
 
-        .sidebar.collapsed .nav-icon {
-            margin-right: 0;
-        }
-
-        .sidebar.collapsed .nav-link {
-            justify-content: center;
-            padding: 10px;
-        }
-
         .submenu {
             max-height: 0;
             overflow: hidden;
@@ -167,12 +153,6 @@
 
         .submenu.open {
             max-height: 400px;
-        }
-
-        .submenu .nav-link {
-            padding: 8px 1rem;
-            font-size: 13px;
-            margin-left: 0;
         }
 
         .sidebar.collapsed .submenu {
@@ -279,15 +259,6 @@
             background-color: #27ae60;
         }
 
-        .btn-danger {
-            background-color: var(--accent-color);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background-color: #c0392b;
-        }
-
         .btn-secondary {
             background-color: #95a5a6;
             color: white;
@@ -361,24 +332,6 @@
             box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
         }
 
-        .checkbox-filters {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-
-        .checkbox-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 13px;
-        }
-
-        .checkbox-item input[type="checkbox"] {
-            margin: 0;
-        }
-
         .table-container {
             overflow-x: auto;
             margin: 1rem -1rem -1rem -1rem;
@@ -387,7 +340,7 @@
 
         .data-table {
             width: 100%;
-            min-width: 1100px;
+            min-width: 900px;
             border-collapse: collapse;
             margin-top: 1rem;
         }
@@ -415,27 +368,6 @@
         .data-table tbody tr.selected {
             background-color: #d4edda;
         }
-
-        .data-table th:nth-child(1),
-        .data-table td:nth-child(1) { width: 90px; }
-        .data-table th:nth-child(2),
-        .data-table td:nth-child(2) { width: 40px; }
-        .data-table th:nth-child(3),
-        .data-table td:nth-child(3) { width: 60px; }
-        .data-table th:nth-child(4),
-        .data-table td:nth-child(4) { width: 80px; }
-        .data-table th:nth-child(5),
-        .data-table td:nth-child(5) { min-width: 250px; }
-        .data-table th:nth-child(6),
-        .data-table td:nth-child(6) { width: 120px; }
-        .data-table th:nth-child(7),
-        .data-table td:nth-child(7) { width: 100px; }
-        .data-table th:nth-child(8),
-        .data-table td:nth-child(8) { width: 50px; }
-        .data-table th:nth-child(9),
-        .data-table td:nth-child(9) { width: 80px; text-align: center; }
-        .data-table th:nth-child(10),
-        .data-table td:nth-child(10) { width: 80px; text-align: center; }
 
         .modal {
             display: none;
@@ -541,11 +473,6 @@
             margin: 0;
         }
 
-        .price-column {
-            text-align: right;
-            font-family: monospace;
-        }
-
         .quantity-column {
             text-align: center;
             font-weight: 600;
@@ -567,30 +494,6 @@
             border-radius: 4px;
         }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #666;
-        }
-
-        .form-group.full-width {
-            grid-column: 1 / -1;
-        }
-
-        /* Print styles */
         @media print {
             .sidebar, .header, .filter-controls, .btn {
                 display: none !important;
@@ -641,13 +544,6 @@
             display: none;
         }
 
-        /* Responsive design */
-        @media (max-width: 1200px) {
-            .data-table {
-                min-width: 950px;
-            }
-        }
-
         @media (max-width: 992px) {
             .sidebar {
                 width: var(--sidebar-collapsed);
@@ -663,14 +559,6 @@
             .header {
                 margin-left: var(--sidebar-collapsed);
             }
-            
-            .toggle-sidebar {
-                display: flex;
-            }
-
-            .data-table {
-                min-width: 850px;
-            }
 
             .filter-row.dates {
                 grid-template-columns: 1fr;
@@ -682,24 +570,10 @@
                 grid-template-columns: 1fr;
             }
 
-            .checkbox-filters {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .data-table {
-                min-width: 750px;
-            }
-
             .card {
                 padding: 1rem;
                 margin: 0.5rem;
             }
-
-            .toggle-sidebar {
-                display: flex;
-            }
-
-            
         }
 
         @media (max-width: 576px) {
@@ -731,24 +605,12 @@
                 display: block;
             }
 
-            .data-table {
-                min-width: 100%;
-            }
-
             .btn span {
                 display: none;
             }
 
-            .checkbox-filters {
-                grid-template-columns: 1fr;
-            }
-
             .filter-controls {
                 padding: 1rem;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
             }
         }
 
@@ -766,18 +628,32 @@
         .sidebar-overlay.show {
             display: block;
         }
+
+        .sidebar-nav::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.5);
+        }
     </style>
 </head>
 <body>
-    <!-- Mobile Menu Toggle -->
     <button class="mobile-menu-toggle" id="mobile-menu-toggle">
         <i class="fas fa-bars"></i>
     </button>
 
-    <!-- Sidebar overlay za mobile -->
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
-    <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div class="logo-container">
             <div class="logo">
@@ -786,7 +662,6 @@
         </div>
         
         <nav class="sidebar-nav">
-            <!-- Unos Dokumentacije -->
             <div class="menu-section">
                 <div class="menu-title">Unos dokumentacije</div>
                 <div class="nav-item">
@@ -797,7 +672,6 @@
                 </div>
             </div>
 
-            <!-- Pregled -->
             <div class="menu-section">
                 <div class="menu-title">Pregled</div>
                 <div class="nav-item has-submenu">
@@ -825,7 +699,6 @@
                 </div>
             </div>
 
-            <!-- Šifrarnik -->
             <div class="menu-section">
                 <div class="menu-title">Šifrarnik</div>
                 <div class="nav-item has-submenu">
@@ -853,7 +726,6 @@
                 </div>
             </div>
 
-            <!-- Kupci -->
             <div class="menu-section">
                 <div class="menu-title">Kupci</div>
                 <div class="nav-item has-submenu">
@@ -863,11 +735,6 @@
                     </a>
                     <div class="submenu">
                         <div class="nav-item">
-                            <a href="/karticekupca" class="nav-link">
-                                <span class="nav-text">Kartica kupca</span>
-                            </a>
-                        </div>
-                        <div class="nav-item">
                             <a href="/uplate" class="nav-link">
                                 <span class="nav-text">Uplate</span>
                             </a>
@@ -875,6 +742,11 @@
                         <div class="nav-item">
                             <a href="/partneri" class="nav-link">
                                 <span class="nav-text">Partneri</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/karticekupca" class="nav-link">
+                                <span class="nav-text">Kartica kupca</span>
                             </a>
                         </div>
                     </div>
@@ -896,15 +768,10 @@
         </button>
     </aside>
 
-    <!-- Header -->
     <header class="header" id="header">
-        <h1 class="page-title">Promet robe</h1>
+        <h1 class="page-title">Promet robe - Otpremnice</h1>
         
         <div class="header-actions">
-            <button class="btn btn-success" id="add-btn">
-                <i class="fas fa-plus"></i>
-                <span>Dodaj</span>
-            </button>
             <button class="btn btn-primary" id="print-btn">
                 <i class="fas fa-print"></i>
                 <span>Print</span>
@@ -920,117 +787,39 @@
         </div>
     </header>
 
-    <!-- Main Content Area -->
     <main class="main-content" id="main-content">
-        <!-- Print Header (only visible when printing) -->
         <div class="print-header">
-            <h2>TEHNOLUX - PROMET ROBE</h2>
-            <p>Period: <span id="print-period"></span> | Magacin: <span id="print-magacin"></span></p>
+            <h2>TEHNOLUX - PROMET ROBE (OTPREMNICE)</h2>
+            <p>Period: <span id="print-period"></span> | Partner: <span id="print-partner"></span></p>
         </div>
         
-        <!-- Filter Controls -->
         <div class="filter-controls">
-            <!-- Date Period -->
             <div class="filter-row dates">
                 <div class="filter-group">
                     <label class="filter-label">Period od:</label>
-                    <input type="date" class="form-control" id="date-from" value="2025-01-01">
+                    <input type="date" class="form-control" id="date-from" value="">
                 </div>
                 <div class="filter-group">
                     <label class="filter-label">Period do:</label>
-                    <input type="date" class="form-control" id="date-to" value="2025-07-23">
+                    <input type="date" class="form-control" id="date-to" value="">
                 </div>
                 <div class="filter-group">
                     <button class="btn btn-primary" id="apply-date-filter">Primeni</button>
                 </div>
             </div>
 
-            <!-- Main Filters -->
             <div class="filter-row">
-                <div class="filter-group">
-                    <label class="filter-label">Magacin:</label>
-                    <select class="form-control" id="magacin-filter">
-                        <option value="">Svi magacini</option>
-                        <% magacini.forEach(function(magacin) { %>
-                            <option value="<%= magacin.magacin %>"><%= magacin.magacin %></option>
-                        <% }); %>
-                    </select>
-                </div>
                 <div class="filter-group">
                     <label class="filter-label">Partner:</label>
                     <select class="form-control" id="partner-filter">
                         <option value="">Svi partneri</option>
-                        <% partneri.forEach(function(partner) { %>
-                            <option value="<%= partner.partner %>"><%= partner.partner %></option>
-                        <% }); %>
                     </select>
                 </div>
                 <div class="filter-group">
-                    <label class="filter-label">Grupa robe:</label>
-                    <select class="form-control" id="grupa-filter">
-                        <option value="">Sve grupe</option>
-                        <% grupe.forEach(function(grupa) { %>
-                            <option value="<%= grupa.gr %>"><%= grupa.gr %></option>
-                        <% }); %>
+                    <label class="filter-label">Komercijalist:</label>
+                    <select class="form-control" id="komercijalist-filter">
+                        <option value="">Svi komercijalisti</option>
                     </select>
-                </div>
-                <div class="filter-group">
-                    <label class="filter-label">RJ/MP/MG:</label>
-                    <select class="form-control" id="rj-filter">
-                        <option value="">Sve</option>
-                        <option value="RJ">RJ</option>
-                        <option value="MP">MP</option>
-                        <option value="MG">MG</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label class="filter-label">Tarif.broj:</label>
-                    <select class="form-control" id="tarif-filter">
-                        <option value="">Svi</option>
-                        <option value="T1">T1</option>
-                        <option value="T2">T2</option>
-                        <option value="T3">T3</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Checkbox Options -->
-            <div class="checkbox-filters">
-                <div class="checkbox-item">
-                    <input type="checkbox" id="kalkulacija" checked>
-                    <label for="kalkulacija">Kalkulacija</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="racun" checked>
-                    <label for="racun">Račun</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="popis-robe" checked>
-                    <label for="popis-robe">Popis robe</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="otpr-mp" checked>
-                    <label for="otpr-mp">Otpr.u MP</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="interna-prij" checked>
-                    <label for="interna-prij">Interna prij.</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="otpr-2mg" checked>
-                    <label for="otpr-2mg">Otpr.u 2.MG</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="storno-ulaz" checked>
-                    <label for="storno-ulaz">Storno ulaz</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="direktan-izlaz" checked>
-                    <label for="direktan-izlaz">Direktan izlaz</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="storno-izlaz" checked>
-                    <label for="storno-izlaz">Storno izlaz</label>
                 </div>
             </div>
         </div>
@@ -1041,126 +830,34 @@
                     <thead>
                         <tr>
                             <th>Datum</th>
-                            <th>GR</th>
-                            <th>ŠIFRA</th>
-                            <th>EAN</th>
-                            <th>NAZIV</th>
-                            <th>Magacin</th>
+                            <th>Šifra</th>
+                            <th>Naziv artikla</th>
                             <th>Partner</th>
-                            <th>JM</th>
-                            <th>KOL-ulaz</th>
-                            <th>KOL-izlaz</th>
+                            <th>Komercijalist</th>
+                            <th>Količina</th>
+                            <th>Iznos sa PDV</th>
                         </tr>
                     </thead>
                     <tbody id="promet-tbody">
-                        <% prometData.forEach(function(item, index) { %>
-                            <tr <%= index === 0 ? 'class="selected"' : '' %> data-id="<%= item.id %>">
-                                <td><%= item.datum %></td>
-                                <td><%= item.gr || '' %></td>
-                                <td><%= item.sifra || '' %></td>
-                                <td><%= item.ean || '' %></td>
-                                <td title="<%= item.naziv %>"><%= item.naziv %></td>
-                                <td><%= item.magacin %></td>
-                                <td><%= item.partner %></td>
-                                <td><%= item.jm || '' %></td>
-                                <td class="quantity-column"><%= item.kol_ulaz || '' %></td>
-                                <td class="quantity-column"><%= item.kol_izlaz || '' %></td>
-                            </tr>
-                        <% }); %>
                     </tbody>
                 </table>
             </div>
         </div>
     </main>
 
-    <!-- Add New Promet Modal -->
-    <div class="modal" id="add-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Dodaj novi promet robe</h3>
-                <button class="close-modal" id="close-add-modal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <form action="/prometrobe/add" method="POST" id="add-form">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="datum">Datum *</label>
-                        <input type="date" class="form-control" id="datum" name="datum" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="gr">Grupa robe</label>
-                        <input type="text" class="form-control" id="gr" name="gr" maxlength="5">
-                    </div>
-                    <div class="form-group">
-                        <label for="sifra">Šifra *</label>
-                        <input type="text" class="form-control" id="sifra" name="sifra" required maxlength="20">
-                    </div>
-                    <div class="form-group">
-                        <label for="ean">EAN kod</label>
-                        <input type="text" class="form-control" id="ean" name="ean" maxlength="50">
-                    </div>
-                </div>
-                <div class="form-grid">
-                    <div class="form-group full-width">
-                        <label for="naziv">Naziv artikla *</label>
-                        <input type="text" class="form-control" id="naziv" name="naziv" required maxlength="255">
-                    </div>
-                </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="magacin">Magacin *</label>
-                        <select class="form-control" id="magacin" name="magacin" required>
-                            <option value="">Izaberite magacin</option>
-                            <option value="Maloprodaja Rate">Maloprodaja Rate</option>
-                            <option value="Maloprodaja Kes">Maloprodaja Kes</option>
-                            <option value="Veleprodaja dopuna">Veleprodaja Dopuna</option>
-                            <option value="Veleprodaja Magacin">Veleprodaja Magacin</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="partner">Partner *</label>
-                        <input type="text" class="form-control" id="partner" name="partner" required maxlength="100" placeholder="Unesite ime partnera">
-                    </div>
-                    <div class="form-group">
-                        <label for="jm">Jedinica mere</label>
-                        <input type="text" class="form-control" id="jm" name="jm" maxlength="10">
-                    </div>
-                </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="kol_ulaz">Količina ulaz</label>
-                        <input type="number" class="form-control" id="kol_ulaz" name="kol_ulaz" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label for="kol_izlaz">Količina izlaz</label>
-                        <input type="number" class="form-control" id="kol_izlaz" name="kol_izlaz" step="0.01">
-                    </div>
-                </div>
-                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
-                    <button type="button" class="btn btn-secondary" id="cancel-add">Otkaži</button>
-                    <button type="submit" class="btn btn-success">Dodaj promet</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Kartica Modal -->
     <div class="modal" id="kartica-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Kartica artikla</h3>
+                <h3 class="modal-title">Kartica stavke</h3>
                 <button class="close-modal" id="close-kartica-modal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="kartica-content" id="kartica-content">
-                <!-- Content will be populated by JavaScript -->
             </div>
         </div>
     </div>
 
-    <!-- Sort Modal -->
     <div class="modal" id="sort-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1171,28 +868,24 @@
             </div>
             <div class="sort-options">
                 <div class="sort-option">
-                    <input type="radio" id="sort-datum" name="sort-by" value="datum">
+                    <input type="radio" id="sort-datum" name="sort-by" value="datum" checked>
                     <label for="sort-datum">Sortuj po datumu</label>
-                </div>
-                <div class="sort-option">
-                    <input type="radio" id="sort-sifra" name="sort-by" value="sifra" checked>
-                    <label for="sort-sifra">Sortuj po šifri artikla</label>
                 </div>
                 <div class="sort-option">
                     <input type="radio" id="sort-naziv" name="sort-by" value="naziv">
                     <label for="sort-naziv">Sortuj po nazivu artikla</label>
                 </div>
                 <div class="sort-option">
-                    <input type="radio" id="sort-magacin" name="sort-by" value="magacin">
-                    <label for="sort-magacin">Sortuj po magacinu</label>
-                </div>
-                <div class="sort-option">
                     <input type="radio" id="sort-partner" name="sort-by" value="partner">
                     <label for="sort-partner">Sortuj po partneru</label>
                 </div>
                 <div class="sort-option">
-                    <input type="radio" id="sort-kolizlaz" name="sort-by" value="kolizlaz">
-                    <label for="sort-kolizlaz">Sortuj po količini izlaza</label>
+                    <input type="radio" id="sort-kolicina" name="sort-by" value="kolicina">
+                    <label for="sort-kolicina">Sortuj po količini</label>
+                </div>
+                <div class="sort-option">
+                    <input type="radio" id="sort-iznos" name="sort-by" value="iznos">
+                    <label for="sort-iznos">Sortuj po iznosu</label>
                 </div>
             </div>
             <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
@@ -1203,7 +896,6 @@
     </div>
 
     <script>
-        // DOM Elements
         const sidebar = document.getElementById('sidebar');
         const sidebarOverlay = document.getElementById('sidebar-overlay');
         const mainContent = document.getElementById('main-content');
@@ -1212,39 +904,32 @@
         const sidebarIcon = document.getElementById('sidebar-icon');
         const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
 
-        // Filter elements
         const dateFrom = document.getElementById('date-from');
         const dateTo = document.getElementById('date-to');
         const applyDateFilter = document.getElementById('apply-date-filter');
-        const magacinFilter = document.getElementById('magacin-filter');
         const partnerFilter = document.getElementById('partner-filter');
-        const grupaFilter = document.getElementById('grupa-filter');
-        const rjFilter = document.getElementById('rj-filter');
-        const tarifFilter = document.getElementById('tarif-filter');
+        const komercijalistFilter = document.getElementById('komercijalist-filter');
 
-        // Header buttons
-        const addBtn = document.getElementById('add-btn');
         const printBtn = document.getElementById('print-btn');
         const sortBtn = document.getElementById('sort-btn');
         const karticaBtn = document.getElementById('kartica-btn');
 
-        // Modal elements
-        const addModal = document.getElementById('add-modal');
         const karticaModal = document.getElementById('kartica-modal');
         const sortModal = document.getElementById('sort-modal');
-        const closeAddModal = document.getElementById('close-add-modal');
         const closeKarticaModal = document.getElementById('close-kartica-modal');
         const closeSortModal = document.getElementById('close-sort-modal');
-        const cancelAdd = document.getElementById('cancel-add');
         const cancelSort = document.getElementById('cancel-sort');
         const applySort = document.getElementById('apply-sort');
 
         let currentData = [];
 
-        // Get current date for form
-        document.getElementById('datum').value = new Date().toISOString().split('T')[0];
+        const today = new Date();
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        dateFrom.value = thirtyDaysAgo.toISOString().split('T')[0];
+        dateTo.value = today.toISOString().split('T')[0];
 
-        // Function to close mobile sidebar
         function closeMobileSidebar() {
             if (window.innerWidth <= 576) {
                 sidebar.classList.remove('mobile-open');
@@ -1253,7 +938,6 @@
             }
         }
 
-        // Mobile menu functionality
         mobileMenuToggle.addEventListener('click', function() {
             sidebar.classList.toggle('mobile-open');
             sidebarOverlay.classList.toggle('show');
@@ -1265,12 +949,10 @@
             }
         });
 
-        // Close mobile menu when clicking overlay
         sidebarOverlay.addEventListener('click', function() {
             closeMobileSidebar();
         });
 
-        // Toggle sidebar
         toggleSidebar.addEventListener('click', function() {
             sidebar.classList.toggle('collapsed');
             mainContent.classList.toggle('expanded');
@@ -1285,7 +967,6 @@
             }
         });
 
-        // Submenu functionality
         document.querySelectorAll('.nav-item.has-submenu > .nav-link').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -1304,52 +985,71 @@
             });
         });
 
-        // Navigation links
         document.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', function(e) {
-                this.style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    this.style.transform = 'scale(1)';
-                }, 150);
-                
-                closeMobileSidebar();
+                if (!this.parentElement.classList.contains('has-submenu')) {
+                    closeMobileSidebar();
+                }
             });
         });
 
-        // Table row selection
-        document.querySelectorAll('.data-table tbody tr').forEach(row => {
-            row.addEventListener('click', function() {
-                document.querySelectorAll('.data-table tbody tr').forEach(r => r.classList.remove('selected'));
-                this.classList.add('selected');
-            });
-        });
-
-        // Apply filters
-        async function applyFilters() {
+        async function loadFilters() {
             try {
-                const params = new URLSearchParams({
-                    dateFrom: dateFrom.value,
-                    dateTo: dateTo.value,
-                    magacin: magacinFilter.value,
-                    partner: partnerFilter.value,
-                    grupa: grupaFilter.value
+                const partnersResponse = await fetch('/api/partneri');
+                const partners = await partnersResponse.json();
+                
+                partnerFilter.innerHTML = '<option value="">Svi partneri</option>';
+                partners.forEach(partner => {
+                    const option = document.createElement('option');
+                    option.value = partner.Naziv_partnera;
+                    option.textContent = partner.Naziv_partnera;
+                    partnerFilter.appendChild(option);
                 });
 
-                const response = await fetch(`/api/prometrobe/filter?${params}`);
-                const data = await response.json();
+                const komercijalistiResponse = await fetch('/api/komercijalisti');
+                const komercijalisti = await komercijalistiResponse.json();
                 
-                updateTable(data);
+                komercijalistFilter.innerHTML = '<option value="">Svi komercijalisti</option>';
+                komercijalisti.forEach(k => {
+                    const option = document.createElement('option');
+                    option.value = k.ime_prezime;
+                    option.textContent = k.ime_prezime;
+                    komercijalistFilter.appendChild(option);
+                });
+
             } catch (error) {
-                console.error('Error filtering data:', error);
+                console.error('Error loading filters:', error);
             }
         }
 
-        // Update table with new data
+        async function loadPrometData() {
+            try {
+                const params = new URLSearchParams({
+                    datum_od: dateFrom.value,
+                    datum_do: dateTo.value,
+                    partner: partnerFilter.value,
+                    komercijalist: komercijalistFilter.value
+                });
+
+                const response = await fetch(`/api/prometrobe?${params}`);
+                const data = await response.json();
+                
+                currentData = data;
+                updateTable(data);
+            } catch (error) {
+                console.error('Error loading promet data:', error);
+                alert('Greška pri učitavanju podataka.');
+            }
+        }
+
         function updateTable(data) {
             const tbody = document.getElementById('promet-tbody');
             tbody.innerHTML = '';
             
-            currentData = data;
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">Nema podataka za prikaz</td></tr>';
+                return;
+            }
             
             data.forEach((item, index) => {
                 const row = document.createElement('tr');
@@ -1358,17 +1058,22 @@
                 }
                 row.dataset.id = item.id;
                 
+                let sifra = '';
+                let naziv = item.naziv_artikla || '';
+                if (naziv.includes(' - ')) {
+                    const parts = naziv.split(' - ');
+                    sifra = parts[0];
+                    naziv = parts.slice(1).join(' - ');
+                }
+                
                 row.innerHTML = `
-                    <td>${item.datum}</td>
-                    <td>${item.gr || ''}</td>
-                    <td>${item.sifra || ''}</td>
-                    <td>${item.ean || ''}</td>
-                    <td title="${item.naziv}">${item.naziv}</td>
-                    <td>${item.magacin}</td>
-                    <td>${item.partner}</td>
-                    <td>${item.jm || ''}</td>
-                    <td class="quantity-column">${item.kol_ulaz || ''}</td>
-                    <td class="quantity-column">${item.kol_izlaz || ''}</td>
+                    <td>${formatDate(item.datum)}</td>
+                    <td>${sifra}</td>
+                    <td title="${naziv}">${naziv}</td>
+                    <td>${item.partner || ''}</td>
+                    <td>${item.komercijalist_ime || ''}</td>
+                    <td class="quantity-column">${parseFloat(item.kolicina || 0).toFixed(2)}</td>
+                    <td class="quantity-column">€${parseFloat(item.iznos_sa_pdv || 0).toFixed(2)}</td>
                 `;
                 
                 row.addEventListener('click', function() {
@@ -1380,30 +1085,24 @@
             });
         }
 
-        // Event listeners for filters
-        magacinFilter.addEventListener('change', applyFilters);
-        partnerFilter.addEventListener('change', applyFilters);
-        grupaFilter.addEventListener('change', applyFilters);
-        rjFilter.addEventListener('change', applyFilters);
-        tarifFilter.addEventListener('change', applyFilters);
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}.${month}.${year}`;
+        }
 
-        document.querySelectorAll('.checkbox-filters input[type="checkbox"]').forEach(checkbox => {
-            checkbox.addEventListener('change', applyFilters);
-        });
-
-        // Date filter
-        applyDateFilter.addEventListener('click', applyFilters);
-
-        // Header button functions
-        addBtn.addEventListener('click', function() {
-            addModal.classList.add('show');
-        });
+        applyDateFilter.addEventListener('click', loadPrometData);
+        partnerFilter.addEventListener('change', loadPrometData);
+        komercijalistFilter.addEventListener('change', loadPrometData);
 
         printBtn.addEventListener('click', function() {
             const period = `${dateFrom.value} - ${dateTo.value}`;
-            const magacin = magacinFilter.value || 'Svi magacini';
+            const partner = partnerFilter.value || 'Svi partneri';
             document.getElementById('print-period').textContent = period;
-            document.getElementById('print-magacin').textContent = magacin;
+            document.getElementById('print-partner').textContent = partner;
             
             window.print();
         });
@@ -1412,64 +1111,78 @@
             sortModal.classList.add('show');
         });
 
-        karticaBtn.addEventListener('click', function() {
-            const selectedRow = document.querySelector('.data-table tbody tr.selected');
-            if (selectedRow) {
-                const cells = selectedRow.children;
-                const karticaContent = document.getElementById('kartica-content');
-                
-                karticaContent.innerHTML = `
-                    <div class="kartica-field">
-                        <div class="kartica-label">Datum:</div>
-                        <div class="kartica-value">${cells[0].textContent}</div>
-                    </div>
-                    <div class="kartica-field">
-                        <div class="kartica-label">Grupa:</div>
-                        <div class="kartica-value">${cells[1].textContent}</div>
-                    </div>
-                    <div class="kartica-field">
-                        <div class="kartica-label">Šifra:</div>
-                        <div class="kartica-value">${cells[2].textContent}</div>
-                    </div>
-                    <div class="kartica-field">
-                        <div class="kartica-label">EAN:</div>
-                        <div class="kartica-value">${cells[3].textContent || 'N/A'}</div>
-                    </div>
-                    <div class="kartica-field" style="grid-column: 1/-1;">
-                        <div class="kartica-label">Naziv artikla:</div>
-                        <div class="kartica-value">${cells[4].textContent}</div>
-                    </div>
-                    <div class="kartica-field">
-                        <div class="kartica-label">Magacin:</div>
-                        <div class="kartica-value">${cells[5].textContent}</div>
-                    </div>
-                    <div class="kartica-field">
-                        <div class="kartica-label">Partner:</div>
-                        <div class="kartica-value">${cells[6].textContent}</div>
-                    </div>
-                    <div class="kartica-field">
-                        <div class="kartica-label">Jedinica mere:</div>
-                        <div class="kartica-value">${cells[7].textContent || 'N/A'}</div>
-                    </div>
-                    <div class="kartica-field">
-                        <div class="kartica-label">Količina ulaz:</div>
-                        <div class="kartica-value">${cells[8].textContent || '0'}</div>
-                    </div>
-                    <div class="kartica-field">
-                        <div class="kartica-label">Količina izlaz:</div>
-                        <div class="kartica-value">${cells[9].textContent || '0'}</div>
-                    </div>
-                `;
-                
-                karticaModal.classList.add('show');
-            } else {
-                alert('Molimo izaberite red u tabeli.');
-            }
+        applySort.addEventListener('click', function() {
+            const selectedSort = document.querySelector('input[name="sort-by"]:checked').value;
+            
+            currentData.sort((a, b) => {
+                switch(selectedSort) {
+                    case 'datum':
+                        return new Date(b.datum) - new Date(a.datum);
+                    case 'naziv':
+                        const nazivA = (a.naziv_artikla || '').toLowerCase();
+                        const nazivB = (b.naziv_artikla || '').toLowerCase();
+                        return nazivA.localeCompare(nazivB);
+                    case 'partner':
+                        return (a.partner || '').localeCompare(b.partner || '');
+                    case 'kolicina':
+                        return parseFloat(b.kolicina || 0) - parseFloat(a.kolicina || 0);
+                    case 'iznos':
+                        return parseFloat(b.iznos_sa_pdv || 0) - parseFloat(a.iznos_sa_pdv || 0);
+                    default:
+                        return 0;
+                }
+            });
+            
+            updateTable(currentData);
+            sortModal.classList.remove('show');
         });
 
-        // Modal close events
-        closeAddModal.addEventListener('click', () => {
-            addModal.classList.remove('show');
+        karticaBtn.addEventListener('click', function() {
+            const selectedRow = document.querySelector('.data-table tbody tr.selected');
+            if (!selectedRow) {
+                alert('Molimo izaberite red u tabeli.');
+                return;
+            }
+
+            const cells = selectedRow.children;
+            const karticaContent = document.getElementById('kartica-content');
+            
+            karticaContent.innerHTML = `
+                <div class="kartica-field">
+                    <div class="kartica-label">Datum:</div>
+                    <div class="kartica-value">${cells[0].textContent}</div>
+                </div>
+                <div class="kartica-field">
+                    <div class="kartica-label">Šifra:</div>
+                    <div class="kartica-value">${cells[1].textContent}</div>
+                </div>
+                <div class="kartica-field" style="grid-column: 1/-1;">
+                    <div class="kartica-label">Naziv artikla:</div>
+                    <div class="kartica-value">${cells[2].textContent}</div>
+                </div>
+                <div class="kartica-field">
+                    <div class="kartica-label">Partner:</div>
+                    <div class="kartica-value">${cells[3].textContent}</div>
+                </div>
+                <div class="kartica-field">
+                    <div class="kartica-label">Komercijalist:</div>
+                    <div class="kartica-value">${cells[4].textContent || 'N/A'}</div>
+                </div>
+                <div class="kartica-field">
+                    <div class="kartica-label">Jedinica mere:</div>
+                    <div class="kartica-value">${cells[5].textContent || 'N/A'}</div>
+                </div>
+                <div class="kartica-field">
+                    <div class="kartica-label">Količina:</div>
+                    <div class="kartica-value">${cells[6].textContent}</div>
+                </div>
+                <div class="kartica-field">
+                    <div class="kartica-label">Iznos sa PDV:</div>
+                    <div class="kartica-value">${cells[7].textContent}</div>
+                </div>
+            `;
+            
+            karticaModal.classList.add('show');
         });
 
         closeKarticaModal.addEventListener('click', () => {
@@ -1480,16 +1193,11 @@
             sortModal.classList.remove('show');
         });
 
-        cancelAdd.addEventListener('click', () => {
-            addModal.classList.remove('show');
-        });
-
         cancelSort.addEventListener('click', () => {
             sortModal.classList.remove('show');
         });
 
-        // Close modals on outside click
-        [addModal, karticaModal, sortModal].forEach(modal => {
+        [karticaModal, sortModal].forEach(modal => {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
                     modal.classList.remove('show');
@@ -1497,41 +1205,9 @@
             });
         });
 
-        // Sort functionality
-        applySort.addEventListener('click', function() {
-            const selectedSort = document.querySelector('input[name="sort-by"]:checked').value;
-            
-            currentData.sort((a, b) => {
-                switch(selectedSort) {
-                    case 'datum':
-                        return new Date(a.datum) - new Date(b.datum);
-                    case 'sifra':
-                        return (a.sifra || '').localeCompare(b.sifra || '');
-                    case 'naziv':
-                        return (a.naziv || '').localeCompare(b.naziv || '');
-                    case 'magacin':
-                        return (a.magacin || '').localeCompare(b.magacin || '');
-                    case 'partner':
-                        return (a.partner || '').localeCompare(b.partner || '');
-                    case 'kolizlaz':
-                        const aVal = parseFloat(a.kol_izlaz) || 0;
-                        const bVal = parseFloat(b.kol_izlaz) || 0;
-                        return bVal - aVal; // Descending order for quantities
-                    default:
-                        return 0;
-                }
-            });
-            
-            updateTable(currentData);
-            sortModal.classList.remove('show');
-        });
-
-        // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                if (addModal.classList.contains('show')) {
-                    addModal.classList.remove('show');
-                } else if (karticaModal.classList.contains('show')) {
+                if (karticaModal.classList.contains('show')) {
                     karticaModal.classList.remove('show');
                 } else if (sortModal.classList.contains('show')) {
                     sortModal.classList.remove('show');
@@ -1546,10 +1222,6 @@
             }
         });
 
-        // Initialize current data from server
-        currentData = <%- JSON.stringify(prometData) %>;
-
-        // Handle window resize
         window.addEventListener('resize', function() {
             if (window.innerWidth > 576) {
                 sidebar.classList.remove('mobile-open');
@@ -1558,9 +1230,7 @@
             }
         });
 
-        // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            // Auto collapse sidebar on medium screens on load
             if (window.innerWidth <= 992 && window.innerWidth > 576) {
                 sidebar.classList.add('collapsed');
                 mainContent.classList.add('expanded');
@@ -1569,7 +1239,11 @@
                 sidebarIcon.classList.add('fa-chevron-right');
             }
             
-            console.log('Tehnolux Promet robe panel initialized - connected to database');
+            loadFilters().then(() => {
+                loadPrometData();
+            });
+            
+            console.log('Tehnolux Promet robe panel (Otpremnice only) initialized');
         });
     </script>
 </body>

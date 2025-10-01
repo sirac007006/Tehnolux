@@ -35,7 +35,7 @@
             overflow-x: hidden;
         }
 
-        /* Sidebar styles - poboljšano */
+        /* Sidebar styles */
         .sidebar {
             position: fixed;
             width: var(--sidebar-width);
@@ -373,7 +373,7 @@
             font-weight: 600;
         }
 
-        /* Table styles - poboljšano za responzivnost */
+        /* Table styles */
         .table-container {
             overflow-x: auto;
             margin: 1rem -1rem -1rem -1rem;
@@ -382,7 +382,7 @@
 
         .data-table {
             width: 100%;
-            min-width: 900px;
+            min-width: 1000px;
             border-collapse: collapse;
             margin-top: 1rem;
         }
@@ -403,21 +403,25 @@
             top: 0;
         }
 
-        /* Kolone za servis tabelu - skraćena verzija */
+        /* Kolone za servis tabelu - AŽURIRANO SA DATUMOM */
         .data-table th:nth-child(1),
-        .data-table td:nth-child(1) { width: 6%; text-align: center; }  /* ID */
+        .data-table td:nth-child(1) { width: 5%; text-align: center; }  /* ID */
         .data-table th:nth-child(2),
-        .data-table td:nth-child(2) { width: 18%; }  /* Kupac */
+        .data-table td:nth-child(2) { width: 15%; }  /* Kupac */
         .data-table th:nth-child(3),
-        .data-table td:nth-child(3) { width: 20%; }  /* Proizvod/Model */
+        .data-table td:nth-child(3) { width: 17%; }  /* Proizvod/Model */
         .data-table th:nth-child(4),
-        .data-table td:nth-child(4) { width: 20%; max-width: 250px; overflow: hidden; text-overflow: ellipsis; }  /* Opis kvara */
+        .data-table td:nth-child(4) { width: 18%; max-width: 200px; overflow: hidden; text-overflow: ellipsis; }  /* Opis kvara */
         .data-table th:nth-child(5),
-        .data-table td:nth-child(5) { width: 12%; text-align: center; }  /* Status */
+        .data-table td:nth-child(5) { width: 10%; text-align: center; }  /* Serviser */
         .data-table th:nth-child(6),
-        .data-table td:nth-child(6) { width: 12%; text-align: right; }  /* Cena servisa */
+        .data-table td:nth-child(6) { width: 10%; text-align: center; }  /* Status */
         .data-table th:nth-child(7),
-        .data-table td:nth-child(7) { width: 12%; }  /* Akcije */
+        .data-table td:nth-child(7) { width: 9%; text-align: center; }  /* Datum kreiranja */
+        .data-table th:nth-child(8),
+        .data-table td:nth-child(8) { width: 8%; text-align: right; }  /* Cena servisa */
+        .data-table th:nth-child(9),
+        .data-table td:nth-child(9) { width: 8%; }  /* Akcije */
 
         .data-table tr:last-child td {
             border-bottom: none;
@@ -459,6 +463,48 @@
         .status-isporucen {
             background-color: #f3e5f5;
             color: #7b1fa2;
+        }
+
+        /* Warning badges za datum */
+        .date-warning {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            font-size: 11px;
+        }
+
+        .date-warning-icon {
+            font-size: 14px;
+        }
+
+        .warning-normal {
+            color: #666;
+        }
+
+        .warning-medium {
+            color: #f39c12;
+            font-weight: 600;
+        }
+
+        .warning-high {
+            color: #e74c3c;
+            font-weight: 700;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Row highlighting based on warning level */
+        .row-warning-medium {
+            background-color: #fff9e6 !important;
+        }
+
+        .row-warning-high {
+            background-color: #ffe6e6 !important;
         }
 
         /* Modal styles */
@@ -617,10 +663,10 @@
             font-family: monospace;
         }
 
-        /* Responsive design - kao na artikli stranici */
+        /* Responsive design */
         @media (max-width: 1200px) {
             .data-table {
-                min-width: 800px;
+                min-width: 900px;
             }
         }
 
@@ -645,7 +691,7 @@
             }
 
             .data-table {
-                min-width: 750px;
+                min-width: 850px;
             }
 
             .header-actions {
@@ -665,14 +711,13 @@
         }
 
         @media (max-width: 768px) {
-
             .card {
                 padding: 1rem;
                 margin: 0.5rem;
             }
 
             .data-table {
-                min-width: 900px;
+                min-width: 1000px;
             }
 
             .toggle-sidebar {
@@ -699,7 +744,6 @@
             .sidebar.mobile-open .menu-title {
                 display: block;
             }
-
 
             .logo-container {
                 margin-bottom: 2rem;
@@ -863,27 +907,31 @@
                 min-width: 100%;
             }
 
-            /* Mobile kolone - optimizovane za manje kolona */
+            /* Mobile kolone */
             .data-table th:nth-child(1),
-            .data-table td:nth-child(1) { width: 8%; }
+            .data-table td:nth-child(1) { width: 6%; }
             .data-table th:nth-child(2),
-            .data-table td:nth-child(2) { width: 20%; }
+            .data-table td:nth-child(2) { width: 18%; }
             .data-table th:nth-child(3),
-            .data-table td:nth-child(3) { width: 22%; }
+            .data-table td:nth-child(3) { width: 20%; }
             .data-table th:nth-child(4),
             .data-table td:nth-child(4) { 
-                width: 25%; 
+                width: 22%; 
                 max-width: none;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
             }
             .data-table th:nth-child(5),
-            .data-table td:nth-child(5) { width: 12%; }
+            .data-table td:nth-child(5) { width: 10%; }
             .data-table th:nth-child(6),
             .data-table td:nth-child(6) { width: 10%; }
             .data-table th:nth-child(7),
-            .data-table td:nth-child(7) { width: 15%; }
+            .data-table td:nth-child(7) { width: 8%; }
+            .data-table th:nth-child(8),
+            .data-table td:nth-child(8) { width: 8%; }
+            .data-table th:nth-child(9),
+            .data-table td:nth-child(9) { width: 8%; }
 
             .btn span {
                 display: none;
@@ -941,7 +989,7 @@
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
+    <aside class="sidebar" id="sidebar">
         <div class="logo-container">
             <div class="logo">
                 <span class="logo-text">Tehnolux</span>
@@ -949,7 +997,7 @@
         </div>
         
         <nav class="sidebar-nav">
-            <!-- Unos Dokumentacije - skriva se na uređajima manjim od 768px osim na mobile sidebar -->
+            <!-- Unos Dokumentacije -->
             <div class="menu-section">
                 <div class="menu-title">Unos dokumentacije</div>
                 <div class="nav-item">
@@ -1026,11 +1074,6 @@
                     </a>
                     <div class="submenu">
                         <div class="nav-item">
-                            <a href="/karticekupca" class="nav-link">
-                                <span class="nav-text">Kartica kupca</span>
-                            </a>
-                        </div>
-                        <div class="nav-item">
                             <a href="/uplate" class="nav-link">
                                 <span class="nav-text">Uplate</span>
                             </a>
@@ -1038,6 +1081,11 @@
                         <div class="nav-item">
                             <a href="/partneri" class="nav-link">
                                 <span class="nav-text">Partneri</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/karticekupca" class="nav-link">
+                                <span class="nav-text">Kartica kupca</span>
                             </a>
                         </div>
                     </div>
@@ -1097,12 +1145,11 @@
                         <option value="gotov">Gotov</option>
                         <option value="isporucen">Isporučen</option>
                     </select>
-                    <select class="form-control filter-select" id="technician-filter">
-                        <option value="">Svi tehničari</option>
-                        <option value="Marko Petrović">Marko Petrović</option>
-                        <option value="Ana Jovanović">Ana Jovanović</option>
-                        <option value="Stefan Nikolić">Stefan Nikolić</option>
-                        <option value="Milica Stojanović">Milica Stojanović</option>
+                    <select class="form-control filter-select" id="serviser-filter">
+                        <option value="">Svi serviseri</option>
+                        <% serviseri.forEach(serviser => { %>
+                        <option value="<%= serviser.ime_servisera %>"><%= serviser.ime_servisera %></option>
+                        <% }); %>
                     </select>
                 </div>
             </div>
@@ -1115,45 +1162,82 @@
                             <th>Kupac</th>
                             <th>Proizvod/Model</th>
                             <th>Opis kvara</th>
+                            <th>Serviser</th>
                             <th>Status</th>
+                            <th>Datum kreiranja</th>
                             <th>Cena (€)</th>
                             <th>Akcije</th>
                         </tr>
                     </thead>
                     <tbody id="services-tbody">
-                        <% servisi.forEach(servis => { %>
-                        <tr data-id="<%= servis.id %>">
-                            <td class="numeric-column"><%= servis.broj_servisa %></td>
-                            <td><%= servis.ime_kupca %></td>
-                            <td><%= servis.proizvod_model %></td>
-                            <td title="<%= servis.opis_kvara %>"><%= servis.opis_kvara %></td>
-                            <td><span class="status-badge status-<%= servis.status %>">
-                                <% if (servis.status === 'primljen') { %>Primljen<% } %>
-                                <% if (servis.status === 'u-radu') { %>U radu<% } %>
-                                <% if (servis.status === 'ceka-deo') { %>Čeka deo<% } %>
-                                <% if (servis.status === 'gotov') { %>Gotov<% } %>
-                                <% if (servis.status === 'isporucen') { %>Isporučen<% } %>
-                            </span></td>
-                            <td class="price-column">€<%= parseFloat(servis.procenjena_cena || 0).toFixed(2) %></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-sm btn-primary edit-service-btn" data-id="<%= servis.id %>" title="Izmeni">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-warning status-service-btn" data-id="<%= servis.id %>" title="Promeni status">
-                                        <i class="fas fa-exchange-alt"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-secondary print-service-btn" data-id="<%= servis.id %>" title="Štampaj">
-                                        <i class="fas fa-print"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger delete-service-btn" data-id="<%= servis.id %>" title="Obriši">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <% }); %>
-                    </tbody>
+    <% servisi.forEach(servis => { 
+        // Kalkulacija dana od kreiranja
+        const createdDate = new Date(servis.datum_kreiranja);
+        const today = new Date();
+        const diffTime = Math.abs(today - createdDate);
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        
+        // NOVA LOGIKA - Ne prikazuj upozorenja ako je status 'gotov' ili 'isporucen'
+        const isCompleted = servis.status === 'gotov' || servis.status === 'isporucen';
+        
+        let warningClass = 'warning-normal';
+        let warningIcon = '';
+        let rowClass = '';
+        
+        // Primeni upozorenja samo ako servis NIJE završen
+        if (!isCompleted) {
+            if (diffDays >= 15) {
+                warningClass = 'warning-high';
+                warningIcon = '<i class="fas fa-exclamation-triangle date-warning-icon"></i>';
+                rowClass = 'row-warning-high';
+            } else if (diffDays >= 7) {
+                warningClass = 'warning-medium';
+                warningIcon = '<i class="fas fa-exclamation-circle date-warning-icon"></i>';
+                rowClass = 'row-warning-medium';
+            }
+        }
+        
+        const formattedDate = createdDate.toLocaleDateString('sr-RS');
+    %>
+    <tr data-id="<%= servis.id %>" class="<%= rowClass %>">
+        <td class="numeric-column"><%= servis.broj_servisa %></td>
+        <td><%= servis.ime_kupca %></td>
+        <td><%= servis.proizvod_model %></td>
+        <td title="<%= servis.opis_kvara %>"><%= servis.opis_kvara %></td>
+        <td><%= servis.tehnicar || 'Nije dodeljen' %></td>
+        <td><span class="status-badge status-<%= servis.status %>">
+            <% if (servis.status === 'primljen') { %>Primljen<% } %>
+            <% if (servis.status === 'u-radu') { %>U radu<% } %>
+            <% if (servis.status === 'ceka-deo') { %>Čeka deo<% } %>
+            <% if (servis.status === 'gotov') { %>Gotov<% } %>
+            <% if (servis.status === 'isporucen') { %>Isporučen<% } %>
+        </span></td>
+        <td>
+            <div class="date-warning <%= warningClass %>" title="Kreiran: <%= formattedDate %> (Pre <%= diffDays %> dana)">
+                <%- warningIcon %>
+                <span><%= diffDays %>d</span>
+            </div>
+        </td>
+        <td class="price-column">€<%= parseFloat(servis.procenjena_cena || 0).toFixed(2) %></td>
+        <td>
+            <div class="action-buttons">
+                <button class="btn btn-sm btn-primary edit-service-btn" data-id="<%= servis.id %>" title="Izmeni">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-warning status-service-btn" data-id="<%= servis.id %>" title="Promeni status">
+                    <i class="fas fa-exchange-alt"></i>
+                </button>
+                <button class="btn btn-sm btn-secondary print-service-btn" data-id="<%= servis.id %>" title="Štampaj">
+                    <i class="fas fa-print"></i>
+                </button>
+                <button class="btn btn-sm btn-danger delete-service-btn" data-id="<%= servis.id %>" title="Obriši">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </td>
+    </tr>
+    <% }); %>
+</tbody>
                 </table>
             </div>
         </div>
@@ -1224,14 +1308,18 @@
                 <!-- Peta sekcija - Servisni podaci -->
                 <div class="form-row-3">
                     <div class="form-group">
-                        <label class="form-label" for="assigned-technician">Tehničar:</label>
-                        <select class="form-control" id="assigned-technician" required>
-                            <option value="">Izaberite tehničara</option>
-                            <option value="Marko Petrović">Marko Petrović</option>
-                            <option value="Ana Jovanović">Ana Jovanović</option>
-                            <option value="Stefan Nikolić">Stefan Nikolić</option>
-                            <option value="Milica Stojanović">Milica Stojanović</option>
-                        </select>
+                        <label class="form-label" for="assigned-technician">Serviser:</label>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <select class="form-control" id="assigned-technician" required style="flex: 1;">
+                                <option value="">Izaberite servisera</option>
+                                <% serviseri.forEach(serviser => { %>
+                                <option value="<%= serviser.ime_servisera %>"><%= serviser.ime_servisera %></option>
+                                <% }); %>
+                            </select>
+                            <button type="button" class="btn btn-sm btn-secondary" id="add-serviser-btn" title="Dodaj novog servisera">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="priority-level">Prioritet:</label>
@@ -1309,6 +1397,29 @@
         </div>
     </div>
 
+    <!-- Modal za dodavanje novog servisera -->
+    <div class="modal" id="serviser-modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Dodaj novog servisera</h3>
+                <button class="close-modal" id="close-serviser-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="serviser-form">
+                <div class="form-group">
+                    <label class="form-label" for="serviser-name">Ime servisera:</label>
+                    <input type="text" class="form-control" id="serviser-name" required placeholder="Unesite ime i prezime servisera">
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-secondary" id="cancel-serviser-btn">Otkaži</button>
+                    <button type="submit" class="btn btn-success">Dodaj servisera</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         // DOM Elements
         const sidebar = document.getElementById('sidebar');
@@ -1322,13 +1433,18 @@
         // Modal elements
         const serviceModal = document.getElementById('service-modal');
         const statusModal = document.getElementById('status-modal');
+        const serviserModal = document.getElementById('serviser-modal');
         const addServiceBtn = document.getElementById('add-service-btn');
+        const addServiserBtn = document.getElementById('add-serviser-btn');
         const closeModal = document.getElementById('close-modal');
         const closeStatusModal = document.getElementById('close-status-modal');
+        const closeServiserModal = document.getElementById('close-serviser-modal');
         const cancelBtn = document.getElementById('cancel-btn');
         const cancelStatusBtn = document.getElementById('cancel-status-btn');
+        const cancelServiserBtn = document.getElementById('cancel-serviser-btn');
         const serviceForm = document.getElementById('service-form');
         const statusForm = document.getElementById('status-form');
+        const serviserForm = document.getElementById('serviser-form');
         const modalTitle = document.getElementById('modal-title');
         const serviceIdInput = document.getElementById('service-id');
         const statusServiceIdInput = document.getElementById('status-service-id');
@@ -1337,7 +1453,7 @@
         const servicesTable = document.getElementById('services-tbody');
         const searchInput = document.getElementById('search-services');
         const statusFilter = document.getElementById('status-filter');
-        const technicianFilter = document.getElementById('technician-filter');
+        const serviserFilter = document.getElementById('serviser-filter');
         const refreshBtn = document.getElementById('refresh-btn');
         const printReportBtn = document.getElementById('print-report-btn');
 
@@ -1491,7 +1607,7 @@
                     
                     if (row) {
                         statusServiceIdInput.value = id;
-                        const currentStatus = row.cells[4].querySelector('.status-badge').className.split(' ').find(cls => cls.startsWith('status-')).replace('status-', '');
+                        const currentStatus = row.cells[5].querySelector('.status-badge').className.split(' ').find(cls => cls.startsWith('status-')).replace('status-', '');
                         newStatusSelect.value = currentStatus;
                         newStatusSelect.dispatchEvent(new Event('change'));
                         statusModal.classList.add('show');
@@ -1573,8 +1689,10 @@
                 customer: row.cells[1].textContent.trim(),
                 product: row.cells[2].textContent.trim(),
                 problem: row.cells[3].title || row.cells[3].textContent.trim(),
-                status: row.cells[4].textContent.trim(),
-                cost: row.cells[5].textContent.trim()
+                serviser: row.cells[4].textContent.trim(),
+                status: row.cells[5].textContent.trim(),
+                dateCreated: row.cells[6].querySelector('.date-warning').title,
+                cost: row.cells[7].textContent.trim()
             };
 
             // Create print window
@@ -1614,19 +1732,19 @@
                             <div class="value">${serviceData.problem}</div>
                         </div>
                         <div class="info-row">
+                            <div class="label">Serviser:</div>
+                            <div class="value">${serviceData.serviser}</div>
+                        </div>
+                        <div class="info-row">
                             <div class="label">Status:</div>
                             <div class="value">${serviceData.status}</div>
                         </div>
                         <div class="info-row">
-                            <div class="label">Cena servisa:</div>
-                            <div class="value">${serviceData.cost}</div>
+                            <div class="label">Datum kreiranja:</div>
+                            <div class="value">${serviceData.dateCreated}</div>
                         </div>
                     </div>
                     <div class="signature">
-                        <div>
-                            <p>_____________________</p>
-                            <p>Potpis tehničara</p>
-                        </div>
                         <div>
                             <p>_____________________</p>
                             <p>Potpis kupca</p>
@@ -1699,6 +1817,12 @@
             serviceModal.classList.add('show');
         });
 
+        // Add new serviser
+        addServiserBtn.addEventListener('click', () => {
+            document.getElementById('serviser-name').value = '';
+            serviserModal.classList.add('show');
+        });
+
         // Close modals
         closeModal.addEventListener('click', () => {
             serviceModal.classList.remove('show');
@@ -1708,12 +1832,20 @@
             statusModal.classList.remove('show');
         });
 
+        closeServiserModal.addEventListener('click', () => {
+            serviserModal.classList.remove('show');
+        });
+
         cancelBtn.addEventListener('click', () => {
             serviceModal.classList.remove('show');
         });
 
         cancelStatusBtn.addEventListener('click', () => {
             statusModal.classList.remove('show');
+        });
+
+        cancelServiserBtn.addEventListener('click', () => {
+            serviserModal.classList.remove('show');
         });
 
         serviceModal.addEventListener('click', (e) => {
@@ -1725,6 +1857,12 @@
         statusModal.addEventListener('click', (e) => {
             if (e.target === statusModal) {
                 statusModal.classList.remove('show');
+            }
+        });
+
+        serviserModal.addEventListener('click', (e) => {
+            if (e.target === serviserModal) {
+                serviserModal.classList.remove('show');
             }
         });
 
@@ -1802,22 +1940,69 @@
                     showNotification(data.message, 'success');
                     statusModal.classList.remove('show');
                     
-                    // Update the row in the table
-                    const row = document.querySelector(`tr[data-id="${serviceId}"]`);
-                    if (row) {
-                        const statusBadge = row.cells[4].querySelector('.status-badge');
-                        statusBadge.className = `status-badge status-${data.newStatus}`;
-                        statusBadge.textContent = getStatusText(data.newStatus);
-                        
-                        if (statusData.finalna_cena) {
-                            row.cells[5].textContent = '€' + parseFloat(statusData.finalna_cena).toFixed(2);
-                        }
-                    }
+                    // Reload page to update warning indicators
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
                 } else {
                     showNotification(data.message, 'error');
                 }
             } catch (error) {
                 showNotification('Greška pri promeni statusa.', 'error');
+            }
+        });
+
+        // Serviser form submission
+        serviserForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const serviserName = document.getElementById('serviser-name').value.trim();
+            
+            if (!serviserName) {
+                showNotification('Ime servisera je obavezno.', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/serviseri', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ime_servisera: serviserName
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    serviserModal.classList.remove('show');
+                    
+                    // Add new serviser to the dropdown
+                    const serviserSelect = document.getElementById('assigned-technician');
+                    const newOption = document.createElement('option');
+                    newOption.value = serviserName;
+                    newOption.textContent = serviserName;
+                    serviserSelect.appendChild(newOption);
+                    
+                    // Select the newly added serviser
+                    serviserSelect.value = serviserName;
+                    
+                    // Also add to filter dropdown
+                    const filterSelect = document.getElementById('serviser-filter');
+                    const filterOption = document.createElement('option');
+                    filterOption.value = serviserName;
+                    filterOption.textContent = serviserName;
+                    filterSelect.appendChild(filterOption);
+                    
+                    showNotification(`Serviser "${serviserName}" je dodat i automatski odabran.`, 'success');
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            } catch (error) {
+                showNotification('Greška pri dodavanju servisera.', 'error');
             }
         });
 
@@ -1836,8 +2021,8 @@
         // Search and filter functionality
         function filterTable() {
             const searchTerm = searchInput.value.toLowerCase();
-            const statusFilter = document.getElementById('status-filter').value;
-            const technicianFilter = document.getElementById('technician-filter').value;
+            const statusFilterValue = document.getElementById('status-filter').value;
+            const serviserFilterValue = document.getElementById('serviser-filter').value;
             const rows = document.querySelectorAll('#services-tbody tr');
             
             rows.forEach(row => {
@@ -1845,15 +2030,17 @@
                     const customer = row.cells[1].textContent.toLowerCase();
                     const product = row.cells[2].textContent.toLowerCase();
                     const problem = (row.cells[3].title || row.cells[3].textContent).toLowerCase();
-                    const status = row.cells[4].querySelector('.status-badge').className;
+                    const serviser = row.cells[4].textContent.toLowerCase();
+                    const status = row.cells[5].querySelector('.status-badge').className;
                     
                     const matchesSearch = customer.includes(searchTerm) || 
                                         product.includes(searchTerm) || 
                                         problem.includes(searchTerm);
                     
-                    const matchesStatus = !statusFilter || status.includes(`status-${statusFilter}`);
+                    const matchesStatus = !statusFilterValue || status.includes(`status-${statusFilterValue}`);
+                    const matchesServiser = !serviserFilterValue || serviser.includes(serviserFilterValue.toLowerCase());
                     
-                    if (matchesSearch && matchesStatus) {
+                    if (matchesSearch && matchesStatus && matchesServiser) {
                         row.style.display = '';
                     } else {
                         row.style.display = 'none';
@@ -1864,7 +2051,7 @@
 
         searchInput.addEventListener('input', filterTable);
         document.getElementById('status-filter').addEventListener('change', filterTable);
-        document.getElementById('technician-filter').addEventListener('change', filterTable);
+        document.getElementById('serviser-filter').addEventListener('change', filterTable);
 
         // Print report
         printReportBtn.addEventListener('click', function() {
@@ -1875,14 +2062,19 @@
             
             let tableRows = '';
             visibleRows.forEach(row => {
+                const dateWarning = row.cells[6].querySelector('.date-warning');
+                const dateInfo = dateWarning ? dateWarning.title : '';
+                
                 tableRows += `
                     <tr>
                         <td>${row.cells[0].textContent}</td>
                         <td>${row.cells[1].textContent}</td>
                         <td>${row.cells[2].textContent}</td>
                         <td>${row.cells[3].title || row.cells[3].textContent}</td>
-                        <td>${row.cells[4].textContent.trim()}</td>
-                        <td>${row.cells[5].textContent}</td>
+                        <td>${row.cells[4].textContent}</td>
+                        <td>${row.cells[5].textContent.trim()}</td>
+                        <td>${dateInfo}</td>
+                        <td>${row.cells[7].textContent}</td>
                     </tr>
                 `;
             });
@@ -1895,7 +2087,7 @@
                         body { font-family: Arial, sans-serif; margin: 20px; }
                         .header { text-align: center; margin-bottom: 30px; }
                         table { width: 100%; border-collapse: collapse; }
-                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 11px; }
                         th { background-color: #f8f9fa; font-weight: bold; }
                         .numeric { text-align: right; }
                         @media print { body { margin: 0; } }
@@ -1914,7 +2106,9 @@
                                 <th>Kupac</th>
                                 <th>Proizvod/Model</th>
                                 <th>Opis kvara</th>
+                                <th>Serviser</th>
                                 <th>Status</th>
+                                <th>Datum kreiranja</th>
                                 <th>Cena (€)</th>
                             </tr>
                         </thead>
@@ -1971,6 +2165,8 @@
                     serviceModal.classList.remove('show');
                 } else if (statusModal.classList.contains('show')) {
                     statusModal.classList.remove('show');
+                } else if (serviserModal.classList.contains('show')) {
+                    serviserModal.classList.remove('show');
                 } else if (sidebar.classList.contains('mobile-open')) {
                     closeMobileSidebar();
                 }

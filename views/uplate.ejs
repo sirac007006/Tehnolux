@@ -35,7 +35,7 @@
             overflow-x: hidden;
         }
 
-        /* Sidebar styles - poboljšano kao u artikli fajlu */
+        /* Sidebar styles */
         .sidebar {
             position: fixed;
             width: var(--sidebar-width);
@@ -88,7 +88,7 @@
             margin-right: 0;
         }
 
-        /* Menu sections - poboljšano */
+        /* Menu sections */
         .sidebar-nav {
             flex: 1;
             overflow-y: auto;
@@ -156,7 +156,7 @@
             padding: 10px;
         }
 
-        /* Submenu styles - poboljšano */
+        /* Submenu styles */
         .submenu {
             max-height: 0;
             overflow: hidden;
@@ -182,7 +182,7 @@
             display: none;
         }
 
-        /* Toggle button - uvek dole */
+        /* Toggle button */
         .toggle-sidebar {
             position: sticky;
             bottom: 0;
@@ -406,7 +406,7 @@
             opacity: 0.3;
         }
 
-        /* Table styles - optimizovano za manje laptopove */
+        /* Table styles */
         .table-container {
             overflow-x: auto;
             margin: 1rem -1rem -1rem -1rem;
@@ -436,7 +436,6 @@
             top: 0;
         }
 
-        /* Optimizovane kolone za manje laptopove */
         .data-table th:nth-child(1),
         .data-table td:nth-child(1) { width: 70px; }
         .data-table th:nth-child(2),
@@ -575,6 +574,57 @@
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
             gap: 1rem;
+        }
+
+        /* Autocomplete styles */
+        .autocomplete-container {
+            position: relative;
+        }
+
+        .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .autocomplete-list.show {
+            display: block;
+        }
+
+        .autocomplete-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+
+        .autocomplete-item:hover,
+        .autocomplete-item.selected {
+            background-color: #f8f9fa;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-item-title {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .autocomplete-item-subtitle {
+            font-size: 11px;
+            color: #666;
+            margin-top: 2px;
         }
 
         /* Search and filter */
@@ -967,11 +1017,6 @@
                     </a>
                     <div class="submenu open">
                         <div class="nav-item">
-                            <a href="/karticekupca" class="nav-link">
-                                <span class="nav-text">Kartica kupca</span>
-                            </a>
-                        </div>
-                        <div class="nav-item">
                             <a href="/uplate" class="nav-link active">
                                 <span class="nav-text">Uplate</span>
                             </a>
@@ -979,6 +1024,11 @@
                         <div class="nav-item">
                             <a href="/partneri" class="nav-link">
                                 <span class="nav-text">Partneri</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/karticekupca" class="nav-link">
+                                <span class="nav-text">Kartica kupca</span>
                             </a>
                         </div>
                     </div>
@@ -1158,12 +1208,7 @@
                                             <button class="btn btn-sm btn-primary edit-payment-btn" data-id="<%= uplata.id %>" title="Uredi">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <button class="btn btn-sm btn-info view-payment-btn" data-id="<%= uplata.id %>" title="Detalji">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-success print-receipt-btn" data-id="<%= uplata.id %>" title="Štampaj">
-                                                <i class="fas fa-print"></i>
-                                            </button>
+                                          
                                             <button class="btn btn-sm btn-danger delete-payment-btn" data-id="<%= uplata.id %>" title="Obriši">
                                                 <i class="fas fa-trash"></i>
                                             </button>
@@ -1196,6 +1241,8 @@
             </div>
             <form id="payment-form">
                 <input type="hidden" id="payment-id">
+                <input type="hidden" id="partner-sifra">
+                <input type="hidden" id="komercijalist-id">
                 
                 <!-- Osnovna informacija -->
                 <h4 style="margin-bottom: 1rem; color: var(--primary-color); border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">
@@ -1214,8 +1261,11 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="customer-name">Kupac:</label>
-                    <input type="text" class="form-control" id="customer-name" required>
+                    <label class="form-label" for="customer-name">Kupac (partner):</label>
+                    <div class="autocomplete-container">
+                        <input type="text" class="form-control" id="customer-name" placeholder="Počnite kucati naziv partnera..." required>
+                        <div class="autocomplete-list" id="customer-autocomplete"></div>
+                    </div>
                 </div>
 
                 <!-- Način plaćanja -->
@@ -1255,7 +1305,10 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="salesperson">Komercijalist:</label>
-                        <input type="text" class="form-control" id="salesperson" placeholder="Ime komercijalista">
+                        <div class="autocomplete-container">
+                            <input type="text" class="form-control" id="salesperson" placeholder="Počnite kucati ime komercijalista...">
+                            <div class="autocomplete-list" id="salesperson-autocomplete"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -1278,6 +1331,8 @@
         // Initialize with server data
         let paymentsData = <%- JSON.stringify(uplate || []) %>;
         let filteredData = [...paymentsData];
+        let partneriData = [];
+        let komercijalistiData = [];
 
         // DOM Elements
         const sidebar = document.getElementById('sidebar');
@@ -1297,6 +1352,14 @@
         const modalTitle = document.getElementById('modal-title');
         const paymentIdInput = document.getElementById('payment-id');
 
+        // Autocomplete elements
+        const customerInput = document.getElementById('customer-name');
+        const customerAutocomplete = document.getElementById('customer-autocomplete');
+        const salespersonInput = document.getElementById('salesperson');
+        const salespersonAutocomplete = document.getElementById('salesperson-autocomplete');
+        const partnerSifraInput = document.getElementById('partner-sifra');
+        const komercijalistIdInput = document.getElementById('komercijalist-id');
+
         // Table and filter elements
         const paymentsTable = document.getElementById('payments-tbody');
         const searchInput = document.getElementById('search-payments');
@@ -1310,6 +1373,112 @@
         const applyDateFilterBtn = document.getElementById('apply-date-filter');
         const clearDateFilterBtn = document.getElementById('clear-date-filter');
         const quickDateBtns = document.querySelectorAll('.quick-date-btn');
+
+        // Load partners and komercijalisti data
+        async function loadPartneriData() {
+            try {
+                const response = await fetch('/api/partneri');
+                partneriData = await response.json();
+                console.log('Loaded partneri data:', partneriData.length, 'partners');
+            } catch (error) {
+                console.error('Error loading partneri:', error);
+                partneriData = [];
+            }
+        }
+
+        async function loadKomercijalistiData() {
+            try {
+                const response = await fetch('/api/komercijalisti');
+                komercijalistiData = await response.json();
+                console.log('Loaded komercijalisti data:', komercijalistiData.length, 'komercijalisti');
+            } catch (error) {
+                console.error('Error loading komercijalisti:', error);
+                komercijalistiData = [];
+            }
+        }
+
+        // Autocomplete functionality
+        function setupAutocomplete(input, dropdown, data, searchFields, displayField, subtitleField, callback) {
+            let selectedIndex = -1;
+            let filteredItems = [];
+
+            input.addEventListener('input', function() {
+                const value = this.value.toLowerCase().trim();
+                dropdown.innerHTML = '';
+                selectedIndex = -1;
+                
+                if (value.length < 2) {
+                    dropdown.classList.remove('show');
+                    return;
+                }
+
+                filteredItems = data.filter(item => {
+                    return searchFields.some(field => {
+                        const fieldValue = item[field];
+                        return fieldValue && fieldValue.toLowerCase().includes(value);
+                    });
+                }).slice(0, 10); // Limit to 10 results
+
+                if (filteredItems.length === 0) {
+                    dropdown.classList.remove('show');
+                    return;
+                }
+
+                filteredItems.forEach((item, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'autocomplete-item';
+                    div.innerHTML = `
+                        <div class="autocomplete-item-title">${item[displayField]}</div>
+                        ${subtitleField && item[subtitleField] ? `<div class="autocomplete-item-subtitle">${item[subtitleField]}</div>` : ''}
+                    `;
+                    
+                    div.addEventListener('click', function() {
+                        input.value = item[displayField];
+                        dropdown.classList.remove('show');
+                        if (callback) callback(item);
+                    });
+                    
+                    dropdown.appendChild(div);
+                });
+
+                dropdown.classList.add('show');
+            });
+
+            input.addEventListener('keydown', function(e) {
+                const items = dropdown.querySelectorAll('.autocomplete-item');
+                
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                    updateSelection(items);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selectedIndex = Math.max(selectedIndex - 1, -1);
+                    updateSelection(items);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && items[selectedIndex]) {
+                        items[selectedIndex].click();
+                    }
+                } else if (e.key === 'Escape') {
+                    dropdown.classList.remove('show');
+                    selectedIndex = -1;
+                }
+            });
+
+            function updateSelection(items) {
+                items.forEach((item, index) => {
+                    item.classList.toggle('selected', index === selectedIndex);
+                });
+            }
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.remove('show');
+                }
+            });
+        }
 
         // Format currency
         function formatCurrency(amount) {
@@ -1465,57 +1634,67 @@
 
         // Attach event listeners to action buttons
         function attachActionListeners() {
-            // Edit buttons
+            // Edit buttons (blue button with edit icon)
             document.querySelectorAll('.edit-payment-btn').forEach(btn => {
-                btn.addEventListener('click', async function() {
+                btn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
                     const id = this.dataset.id;
+                    console.log('Edit button clicked for payment ID:', id);
+                    
                     try {
                         const response = await fetch(`/api/uplate/${id}`);
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
                         const payment = await response.json();
+                        console.log('Payment data loaded for editing:', payment);
+                        
                         fillForm(payment);
                         modalTitle.textContent = 'Uredi uplatu';
                         paymentModal.classList.add('show');
                     } catch (error) {
-                        console.error('Error fetching payment:', error);
-                        alert('Greška pri dohvatanju uplate.');
-                    }
-                });
-            });
-
-            // View buttons
-            document.querySelectorAll('.view-payment-btn').forEach(btn => {
-                btn.addEventListener('click', async function() {
-                    const id = this.dataset.id;
-                    try {
-                        const response = await fetch(`/api/uplate/${id}`);
-                        const payment = await response.json();
-                        showPaymentDetails(payment);
-                    } catch (error) {
-                        console.error('Error fetching payment:', error);
-                        alert('Greška pri dohvatanju uplate.');
+                        console.error('Error fetching payment for edit:', error);
+                        alert('Greška pri dohvatanju uplate za pregled.');
                     }
                 });
             });
 
             // Print receipt buttons
             document.querySelectorAll('.print-receipt-btn').forEach(btn => {
-                btn.addEventListener('click', async function() {
+                btn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
                     const id = this.dataset.id;
+                    console.log('Print button clicked for payment ID:', id);
+                    
                     try {
                         const response = await fetch(`/api/uplate/${id}`);
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
                         const payment = await response.json();
+                        console.log('Payment data loaded for printing:', payment);
+                        
                         printReceipt(payment);
                     } catch (error) {
-                        console.error('Error fetching payment:', error);
-                        alert('Greška pri dohvatanju uplate.');
+                        console.error('Error fetching payment for print:', error);
+                        alert('Greška pri dohvatanju uplate za štampanje.');
                     }
                 });
             });
 
             // Delete buttons
             document.querySelectorAll('.delete-payment-btn').forEach(btn => {
-                btn.addEventListener('click', async function() {
+                btn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
                     const id = this.dataset.id;
+                    console.log('Delete button clicked for payment ID:', id);
+                    
                     if (confirm(`Da li ste sigurni da želite da obrišete uplatu "${id}"?`)) {
                         try {
                             const response = await fetch(`/api/uplate/${id}`, {
@@ -1537,18 +1716,39 @@
             });
         }
 
-        // Show payment details
+        // Show payment details in a better formatted popup
         function showPaymentDetails(payment) {
-            alert(`Detalji uplate:\n\n` +
-                  `ID: ${payment.id}\n` +
-                  `Datum: ${formatDate(payment.datum)}\n` +
-                  `Kupac: ${payment.kupac}\n` +
-                  `Iznos: ${formatCurrency(payment.iznos)}\n` +
-                  `Način plaćanja: ${payment.nacin}\n` +
-                  `Status: ${payment.status}\n` +
-                  `Dokument: ${payment.dokument || 'N/A'}\n` +
-                  `Komercijalist: ${payment.komercijalist || 'N/A'}\n` +
-                  `Napomene: ${payment.napomene || 'Nema napomena'}`);
+            const statusText = {
+                'primljena': 'Primljena',
+                'cekanje': 'Na čekanju', 
+                'odbijena': 'Odbijena'
+            };
+            
+            const methodText = {
+                'gotovina': 'Gotovina',
+                'kartica': 'Kartica',
+                'virman': 'Virman'
+            };
+            
+            const details = `
+=== DETALJI UPLATE ===
+
+ID Uplate: ${payment.id}
+Datum: ${formatDate(payment.datum)}
+Kupac: ${payment.kupac}
+Iznos: ${formatCurrency(payment.iznos)}
+Način plaćanja: ${methodText[payment.nacin] || payment.nacin}
+Status: ${statusText[payment.status] || payment.status}
+Dokument: ${payment.dokument || 'Nije unešen'}
+Komercijalist: ${payment.komercijalist || 'Nije dodjeljen'}
+
+Napomene: 
+${payment.napomene || 'Nema dodatnih napomena'}
+
+========================
+            `.trim();
+            
+            alert(details);
         }
 
         // Print receipt
@@ -1596,12 +1796,26 @@ Hvala Vam na ukazanom povjerenju!
             document.getElementById('document-number').value = payment.dokument || '';
             document.getElementById('salesperson').value = payment.komercijalist || '';
             document.getElementById('payment-notes').value = payment.napomene || '';
+
+            // Try to find partner and komercijalist IDs
+            const partner = partneriData.find(p => p.Naziv_partnera === payment.kupac);
+            if (partner) {
+                partnerSifraInput.value = partner.Sifra;
+            }
+
+            const komercijalist = komercijalistiData.find(k => k.ime_prezime === payment.komercijalist);
+            if (komercijalist) {
+                komercijalistIdInput.value = komercijalist.id;
+            }
         }
 
         // Clear form
         function clearForm() {
             paymentForm.reset();
             paymentIdInput.value = '';
+            partnerSifraInput.value = '';
+            komercijalistIdInput.value = '';
+            
             const now = new Date();
             const formattedNow = now.getFullYear() + '-' + 
                 String(now.getMonth() + 1).padStart(2, '0') + '-' + 
@@ -1713,7 +1927,9 @@ Hvala Vam na ukazanom povjerenju!
                 status: document.getElementById('payment-status').value,
                 dokument: document.getElementById('document-number').value,
                 komercijalist: document.getElementById('salesperson').value,
-                napomene: document.getElementById('payment-notes').value
+                napomene: document.getElementById('payment-notes').value,
+                partner_sifra: partnerSifraInput.value,
+                komercijalist_id: komercijalistIdInput.value
             };
 
             try {
@@ -1771,6 +1987,8 @@ Hvala Vam na ukazanom povjerenju!
         // Refresh button
         refreshBtn.addEventListener('click', async function() {
             await loadPayments();
+            await loadPartneriData();
+            await loadKomercijalistiData();
             searchInput.value = '';
             statusFilter.value = '';
             methodFilter.value = '';
@@ -1898,13 +2116,45 @@ Hvala Vam na ukazanom povjerenju!
         });
 
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             initializeDateInputs();
             updateStatistics();
             handleResponsiveLayout();
             attachActionListeners();
             
-            console.log('Tehnolux Uplate panel initialized with database connection');
+            // Load data for autocomplete
+            await loadPartneriData();
+            await loadKomercijalistiData();
+            
+            // Setup autocomplete for customers (partneri)
+            setupAutocomplete(
+                customerInput,
+                customerAutocomplete,
+                partneriData,
+                ['Naziv_partnera', 'Grad', 'PIB'], // Search fields
+                'Naziv_partnera', // Display field
+                'Grad', // Subtitle field
+                function(selectedPartner) {
+                    partnerSifraInput.value = selectedPartner.Sifra;
+                    console.log('Selected partner:', selectedPartner.Naziv_partnera, 'Sifra:', selectedPartner.Sifra);
+                }
+            );
+
+            // Setup autocomplete for salesperson (komercijalisti)
+            setupAutocomplete(
+                salespersonInput,
+                salespersonAutocomplete,
+                komercijalistiData.filter(k => k.status === 'aktivan'), // Only active komercijalisti
+                ['ime_prezime'], // Search fields
+                'ime_prezime', // Display field
+                'status', // Subtitle field
+                function(selectedKomercijalist) {
+                    komercijalistIdInput.value = selectedKomercijalist.id;
+                    console.log('Selected komercijalist:', selectedKomercijalist.ime_prezime, 'ID:', selectedKomercijalist.id);
+                }
+            );
+            
+            console.log('Tehnolux Uplate panel initialized with autocomplete functionality');
         });
 
         // Handle window resize

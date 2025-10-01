@@ -1,1599 +1,2240 @@
-import express from 'express';
-import bodyParser from 'body-parser';
-import pg from "pg";
-import dotenv from 'dotenv';
-
-dotenv.config();
-const app = express();
-const port = 3000;
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static("public"));
-app.use(express.json());
-
-const db = new pg.Client({
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    database: process.env.DB_NAME,
-    ssl: { rejectUnauthorized: false },
-})
-db.connect();
-
-// PARTNERI ROUTES - UPDATED sa Rabat kolonom
-app.get("/partneri", async(req, res) => {
-    try {
-        const partneri = (await db.query(
-            'SELECT * FROM "partneri" ORDER BY "Naziv_partnera"'
-        )).rows;
-        res.render("partneri.ejs", { partneri });
-    } catch (error) {
-        console.error("Error fetching partneri:", error);
-        res.status(500).send("Greška pri dohvatanju partnera.");
-    }
-});
-
-// API endpoint za partnere (JSON response) - IMPROVED
-app.get("/api/partneri", async(req, res) => {
-    try {
-        const partneri = (await db.query(
-            'SELECT * FROM "partneri" ORDER BY "Naziv_partnera"'
-        )).rows;
-        
-        // Debug log to see the structure of data
-        console.log('API Partneri response:', partneri.length, 'partners found');
-        if (partneri.length > 0) {
-            console.log('Sample partner structure:', Object.keys(partneri[0]));
-        }
-        
-        res.json(partneri);
-    } catch (error) {
-        console.error("Error fetching partneri:", error);
-        res.status(500).json({ error: "Greška pri dohvatanju partnera." });
-    }
-});
-
-// Uzmi pojedinačni partner po Sifri - NEW
-app.get("/partneri/:Sifra", async(req, res) => {
-    const Sifra = req.params.Sifra;
-    try {
-        const result = await db.query('SELECT * FROM "partneri" WHERE "Sifra" = $1', [Sifra]);
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Partner nije pronađen' });
-        }
-        res.json(result.rows[0]);
-    } catch (error) {
-        console.error("Error fetching partner:", error);
-        res.status(500).json({ error: "Greška pri dohvatanju partnera." });
-    }
-});
-
-// Dodaj partnera - UPDATED sa Rabat i poboljšanom validacijom
-app.post("/partneri", async (req, res) => {
-    const p = req.body;
-    try {
-        // Validacija obaveznih polja
-        if (!p.Naziv_partnera || !p.Sifra) {
-            return res.status(400).json({ error: "Naziv partnera i šifra su obavezni." });
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tehnolux Admin Panel - Pregled dokumenata</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #2ecc71;
+            --warning-color: #f1c40f;
+            --info-color: #17a2b8;
+            --text-color: #333;
+            --light-text: #ecf0f1;
+            --sidebar-width: 280px;
+            --sidebar-collapsed: 70px;
+            --header-height: 60px;
+            --transition-speed: 0.3s;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
-        // Proveri da li šifra već postoji
-        const existingPartner = await db.query('SELECT "Sifra" FROM "partneri" WHERE "Sifra" = $1', [p.Sifra]);
-        if (existingPartner.rows.length > 0) {
-            return res.status(400).json({ error: "Partner sa ovom šifrom već postoji." });
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        // Parsiranje rabata
-        const rabat = parseFloat(p.Rabat || p.rabat) || null;
-        if (rabat !== null && (rabat < 0 || rabat > 100)) {
-            return res.status(400).json({ error: "Rabat mora biti između 0 i 100%." });
+        body {
+            background-color: #f5f7fa;
+            color: var(--text-color);
+            overflow-x: hidden;
         }
 
-        await db.query(
-            `INSERT INTO "partneri"
-            ("Sifra", "Naziv_partnera", "Grad", "PIB", "Adresa", "Telefon", "Fax", "E_mail", "Lice1", "Lice2", "rabat")
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
-            [
-                p.Sifra, 
-                p.Naziv_partnera, 
-                p.Grad || null, 
-                p.PIB || null, 
-                p.Adresa || null, 
-                p.Telefon || null, 
-                p.Fax || null, 
-                p.E_mail || p.Email || null, 
-                p.Lice1 || p.Kontakt_osoba1 || null, 
-                p.Lice2 || p.Kontakt_osoba2 || null, 
-                rabat
-            ]
-        );
-        res.status(201).json({ message: "Partner je uspešno dodat.", sifra: p.Sifra });
-    } catch (error) {
-        console.error("Error adding partner:", error);
-        if (error.code === '23505') { // PostgreSQL unique violation
-            res.status(400).json({ error: "Partner sa ovom šifrom već postoji." });
-        } else {
-            res.status(500).json({ error: "Greška pri dodavanju partnera: " + error.message });
-        }
-    }
-});
-
-// Izmeni partnera - UPDATED sa Rabat i poboljšanom validacijom + DISCOUNT UPDATE SUPPORT
-app.put("/partneri/:Sifra", async (req, res) => {
-    const Sifra = req.params.Sifra;
-    const p = req.body;
-    try {
-        console.log(`Updating partner ${Sifra} with data:`, p); // Debug log
-        
-        // Validacija obaveznih polja
-        if (!p.Naziv_partnera) {
-            return res.status(400).json({ error: "Naziv partnera je obavezan." });
+        /* Sidebar styles */
+        .sidebar {
+            position: fixed;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--primary-color);
+            color: var(--light-text);
+            padding: 1.5rem 1rem;
+            transition: all var(--transition-speed);
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
 
-        // Proveri da li partner postoji
-        const existingPartner = await db.query('SELECT * FROM "partneri" WHERE "Sifra" = $1', [Sifra]);
-        if (existingPartner.rows.length === 0) {
-            return res.status(404).json({ error: "Partner nije pronađen." });
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed);
+            padding: 1rem 0.5rem;
         }
 
-        const existing = existingPartner.rows[0];
-        console.log(`Existing partner data:`, existing); // Debug log
-
-        // Parsiranje rabata - podržava oba naziva kolona
-        const rabat = parseFloat(p.Rabat || p.rabat) || null;
-        if (rabat !== null && (rabat < 0 || rabat > 100)) {
-            return res.status(400).json({ error: "Rabat mora biti između 0 i 100%." });
+        .logo-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            justify-content: center;
         }
 
-        console.log(`New discount value: ${rabat}`); // Debug log
-
-        // Koristi postojeće vrednosti ako nisu prosleđene nove
-        const updatedData = {
-            naziv: p.Naziv_partnera,
-            grad: p.Grad || existing.Grad || null,
-            pib: p.PIB || existing.PIB || null,
-            adresa: p.Adresa || existing.Adresa || null,
-            telefon: p.Telefon || existing.Telefon || null,
-            fax: p.Fax || existing.Fax || null,
-            email: p.E_mail || p.Email || existing.E_mail || null,
-            lice1: p.Lice1 || p.Kontakt_osoba1 || existing.Lice1 || null,
-            lice2: p.Lice2 || p.Kontakt_osoba2 || existing.Lice2 || null,
-            rabat: rabat !== null ? rabat : existing.rabat
-        };
-
-        await db.query(
-            `UPDATE "partneri" SET 
-                "Naziv_partnera"=$1, "Grad"=$2, "PIB"=$3, "Adresa"=$4, 
-                "Telefon"=$5, "Fax"=$6, "E_mail"=$7, "Lice1"=$8, "Lice2"=$9, "rabat"=$10
-             WHERE "Sifra"=$11`,
-            [
-                updatedData.naziv,
-                updatedData.grad,
-                updatedData.pib,
-                updatedData.adresa,
-                updatedData.telefon,
-                updatedData.fax,
-                updatedData.email,
-                updatedData.lice1,
-                updatedData.lice2,
-                updatedData.rabat,
-                Sifra
-            ]
-        );
-
-        console.log(`Partner ${Sifra} successfully updated with discount: ${updatedData.rabat}%`); // Debug log
-        
-        res.json({ 
-            message: "Partner je uspešno ažuriran.",
-            discount: updatedData.rabat
-        });
-    } catch (error) {
-        console.error("Error updating partner:", error);
-        res.status(500).json({ error: "Greška pri izmeni partnera: " + error.message });
-    }
-});
-
-// Obrisi partnera - IMPROVED sa boljim error handling
-app.delete("/partneri/:Sifra", async (req, res) => {
-    const Sifra = req.params.Sifra;
-    try {
-        // Proveri da li partner postoji
-        const existingPartner = await db.query('SELECT "Sifra" FROM "partneri" WHERE "Sifra" = $1', [Sifra]);
-        if (existingPartner.rows.length === 0) {
-            return res.status(404).json({ error: "Partner nije pronađen." });
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--light-text);
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
         }
 
-        await db.query('DELETE FROM "partneri" WHERE "Sifra"=$1', [Sifra]);
-        res.json({ message: "Partner je uspešno obrisan." });
-    } catch (error) {
-        console.error("Error deleting partner:", error);
-        if (error.code === '23503') { // PostgreSQL foreign key violation
-            res.status(400).json({ error: "Ne možete obrisati partnera koji se koristi u drugim dokumentima." });
-        } else {
-            res.status(500).json({ error: "Greška pri brisanju partnera." });
-        }
-    }
-});
-
-// NEW: Special endpoint for updating only partner discount (optimized for otpremnica/predracun)
-app.patch("/partneri/:Sifra/discount", async (req, res) => {
-    const Sifra = req.params.Sifra;
-    const { discount } = req.body;
-    
-    try {
-        console.log(`Updating discount for partner ${Sifra} to ${discount}%`); // Debug log
-        
-        // Validacija rabata
-        const rabat = parseFloat(discount);
-        if (isNaN(rabat) || rabat < 0 || rabat > 100) {
-            return res.status(400).json({ error: "Rabat mora biti između 0 i 100%." });
+        .logo-text {
+            margin-left: 10px;
         }
 
-        // Proveri da li partner postoji
-        const existingPartner = await db.query('SELECT "Sifra" FROM "partneri" WHERE "Sifra" = $1', [Sifra]);
-        if (existingPartner.rows.length === 0) {
-            return res.status(404).json({ error: "Partner nije pronađen." });
+        .sidebar.collapsed .logo-text {
+            display: none;
         }
 
-        // Ažuriraj samo rabat
-        await db.query('UPDATE "partneri" SET "rabat" = $1 WHERE "Sifra" = $2', [rabat, Sifra]);
-        
-        console.log(`Successfully updated discount for partner ${Sifra} to ${rabat}%`); // Debug log
-        
-        res.json({ 
-            message: "Rabat partnera je uspešno ažuriran.",
-            sifra: Sifra,
-            newDiscount: rabat
-        });
-    } catch (error) {
-        console.error("Error updating partner discount:", error);
-        res.status(500).json({ error: "Greška pri ažuriranju rabata partnera: " + error.message });
-    }
-});
-
-app.get("/karticekupca", async (req, res) => {
-    res.render("karticakupca.ejs");
-});
-
-// ARTIKLI ROUTES - UPDATED FOR SIMPLIFIED STRUCTURE (only 4 columns)
-
-// Prikaz svih artikala
-// ARTIKLI ROUTES - UPDATED FOR CONSISTENT COLUMN NAMING (sifra, naziv, jm, vrsta)
-
-// Prikaz svih artikala
-app.get("/artikli", async (req, res) => {
-    try {
-        const artikli = (await db.query('SELECT * FROM artikli ORDER BY sifra')).rows;
-        res.render("artikli.ejs", { artikli });
-    } catch (error) {
-        console.error("Error fetching artikli:", error);
-        res.status(500).send("Greška pri dohvatanju artikala.");
-    }
-});
-
-// API endpoint za artikle (JSON response)
-app.get("/api/artikli", async(req, res) => {
-    try {
-        const artikli = (await db.query('SELECT * FROM artikli ORDER BY sifra')).rows;
-        
-        console.log('API Artikli response:', artikli.length, 'articles found');
-        if (artikli.length > 0) {
-            console.log('Sample article structure:', Object.keys(artikli[0]));
-        }
-        
-        res.json(artikli);
-    } catch (error) {
-        console.error("Error fetching artikli:", error);
-        res.status(500).json({ error: "Greška pri dohvatanju artikala." });
-    }
-});
-
-// Uzmi pojedinačni artikal po šifri
-app.get("/artikli/:sifra", async (req, res) => {
-    const sifra = req.params.sifra;
-    try {
-        const result = await db.query('SELECT * FROM artikli WHERE sifra = $1', [sifra]);
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Artikal nije pronađen' });
-        }
-        res.json(result.rows[0]);
-    } catch (error) {
-        console.error("Error fetching artikal:", error);
-        res.status(500).json({ error: "Greška pri dohvatanju artikla." });
-    }
-});
-
-// Dodaj artikal
-app.post("/artikli", async (req, res) => {
-    const a = req.body;
-    try {
-        // Validacija obaveznih polja
-        if (!a.sifra || !a.naziv || !a.jm) {
-            return res.status(400).json({ error: "Šifra, naziv artikla i jedinica mere su obavezni." });
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
         }
 
-        // Proveri da li šifra već postoji
-        const existingArticle = await db.query('SELECT sifra FROM artikli WHERE sifra = $1', [a.sifra]);
-        if (existingArticle.rows.length > 0) {
-            return res.status(400).json({ error: "Artikal sa ovom šifrom već postoji." });
+        .menu-section {
+            margin-bottom: 1rem;
         }
 
-        await db.query(
-            `INSERT INTO artikli (sifra, naziv, jm, vrsta) 
-             VALUES ($1, $2, $3, $4)`,
-            [
-                a.sifra,
-                a.naziv,
-                a.jm,
-                a.vrsta || null
-            ]
-        );
-        
-        res.status(201).json({ 
-            message: "Artikal je uspešno dodat.", 
-            sifra: a.sifra 
-        });
-    } catch (error) {
-        console.error("Error adding artikal:", error);
-        if (error.code === '23505') { // PostgreSQL unique violation
-            res.status(400).json({ error: "Artikal sa ovom šifrom već postoji." });
-        } else {
-            res.status(500).json({ error: "Greška pri dodavanju artikla: " + error.message });
-        }
-    }
-});
-
-// Izmeni artikal
-app.put("/artikli/:sifra", async (req, res) => {
-    const sifra = req.params.sifra;
-    const a = req.body;
-    try {
-        // Validacija obaveznih polja
-        if (!a.naziv || !a.jm) {
-            return res.status(400).json({ error: "Naziv artikla i jedinica mere su obavezni." });
+        .menu-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 0.5rem;
+            padding: 0 1rem;
+            transition: all var(--transition-speed);
         }
 
-        // Proveri da li artikal postoji
-        const existingArticle = await db.query('SELECT * FROM artikli WHERE sifra = $1', [sifra]);
-        if (existingArticle.rows.length === 0) {
-            return res.status(404).json({ error: "Artikal nije pronađen." });
+        .sidebar.collapsed .menu-title {
+            display: none;
         }
 
-        await db.query(
-            `UPDATE artikli SET 
-                naziv = $1,
-                jm = $2,
-                vrsta = $3
-             WHERE sifra = $4`,
-            [
-                a.naziv,
-                a.jm,
-                a.vrsta || null,
-                sifra
-            ]
-        );
-        
-        res.json({ message: "Artikal je uspešno ažuriran." });
-    } catch (error) {
-        console.error("Error updating artikal:", error);
-        res.status(500).json({ error: "Greška pri izmeni artikla: " + error.message });
-    }
-});
-
-// Obriši artikal
-app.delete("/artikli/:sifra", async (req, res) => {
-    const sifra = req.params.sifra;
-    try {
-        // Proveri da li artikal postoji
-        const existingArticle = await db.query('SELECT sifra FROM artikli WHERE sifra = $1', [sifra]);
-        if (existingArticle.rows.length === 0) {
-            return res.status(404).json({ error: "Artikal nije pronađen." });
+        .nav-item {
+            margin-bottom: 0.2rem;
         }
 
-        await db.query('DELETE FROM artikli WHERE sifra = $1', [sifra]);
-        res.json({ message: "Artikal je uspešno obrisan." });
-    } catch (error) {
-        console.error("Error deleting artikal:", error);
-        if (error.code === '23503') { // PostgreSQL foreign key violation
-            res.status(400).json({ error: "Ne možete obrisati artikal koji se koristi u drugim dokumentima." });
-        } else {
-            res.status(500).json({ error: "Greška pri brisanju artikla." });
-        }
-    }
-});
-
-// Pretraži artikle po nazivu ili šifri
-app.get("/api/artikli/search", async (req, res) => {
-    const { query } = req.query;
-    
-    if (!query || query.length < 2) {
-        return res.status(400).json({ error: "Upit mora imati najmanje 2 karaktera." });
-    }
-
-    try {
-        const searchResult = await db.query(
-            `SELECT * FROM artikli 
-             WHERE LOWER(naziv) LIKE LOWER($1) OR LOWER(sifra) LIKE LOWER($1)
-             ORDER BY sifra`,
-            [`%${query}%`]
-        );
-
-        res.json(searchResult.rows);
-    } catch (error) {
-        console.error("Error searching artikli:", error);
-        res.status(500).json({ error: "Greška pri pretraživanju artikala." });
-    }
-});
-
-// Artikli statistike
-app.get("/api/artikli/stats", async (req, res) => {
-    try {
-        const stats = await db.query(`
-            SELECT 
-                COUNT(*) as total_items,
-                COUNT(DISTINCT vrsta) as total_categories,
-                COUNT(CASE WHEN vrsta IS NOT NULL THEN 1 END) as items_with_category,
-                COUNT(CASE WHEN vrsta IS NULL THEN 1 END) as items_without_category
-            FROM artikli
-        `);
-
-        const categoryStats = await db.query(`
-            SELECT 
-                vrsta as category,
-                COUNT(*) as count
-            FROM artikli 
-            WHERE vrsta IS NOT NULL
-            GROUP BY vrsta
-            ORDER BY count DESC
-        `);
-
-        res.json({
-            ...stats.rows[0],
-            categories: categoryStats.rows
-        });
-    } catch (error) {
-        console.error("Error fetching artikli stats:", error);
-        res.status(500).json({ error: "Greška pri dohvatanju statistika artikala." });
-    }
-});
-
-app.get("/lager", async (req, res) => {
-    try {
-        const lagerArtikli = (await db.query(
-            'SELECT * FROM lager ORDER BY sifra'
-        )).rows;
-        res.render("lager.ejs", { lagerArtikli });
-    } catch (error) {
-        console.error("Error fetching lager:", error);
-        res.status(500).send("Greška pri dohvatanju lager podataka.");
-    }
-});
-
-// API endpoint za lager (JSON response)
-app.get("/api/lager", async(req, res) => {
-    try {
-        const lagerArtikli = (await db.query(
-            'SELECT * FROM lager ORDER BY sifra'
-        )).rows;
-        
-        console.log('API Lager response:', lagerArtikli.length, 'items found');
-        res.json(lagerArtikli);
-    } catch (error) {
-        console.error("Error fetching lager:", error);
-        res.status(500).json({ error: "Greška pri dohvatanju lager podataka." });
-    }
-});
-
-// Uzmi pojedinačni lager artikal po ID-u
-app.get("/lager/:id", async(req, res) => {
-    const id = req.params.id;
-    try {
-        const result = await db.query('SELECT * FROM lager WHERE id = $1', [id]);
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Lager artikal nije pronađen' });
-        }
-        res.json(result.rows[0]);
-    } catch (error) {
-        console.error("Error fetching lager item:", error);
-        res.status(500).json({ error: "Greška pri dohvatanju lager artikla." });
-    }
-});
-
-// Uzmi lager artikal po šifri
-app.get("/lager/sifra/:sifra", async(req, res) => {
-    const sifra = req.params.sifra;
-    try {
-        const result = await db.query('SELECT * FROM lager WHERE sifra = $1', [sifra]);
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Lager artikal nije pronađen' });
-        }
-        res.json(result.rows[0]);
-    } catch (error) {
-        console.error("Error fetching lager item by sifra:", error);
-        res.status(500).json({ error: "Greška pri dohvatanju lager artikla." });
-    }
-});
-
-// Dodaj novi lager artikal
-app.post("/lager", async (req, res) => {
-    const l = req.body;
-    try {
-        // Validacija obaveznih polja
-        if (!l.sifra || !l.naziv || !l.jm || l.cena_bez_pdv === undefined || l.cena_sa_pdv === undefined) {
-            return res.status(400).json({ 
-                error: "Šifra, naziv, jedinica mere i cene su obavezni." 
-            });
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 10px 1rem;
+            color: var(--light-text);
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            transition: all var(--transition-speed);
+            position: relative;
+            font-size: 14px;
         }
 
-        // Proveri da li šifra već postoji
-        const existingItem = await db.query('SELECT sifra FROM lager WHERE sifra = $1', [l.sifra]);
-        if (existingItem.rows.length > 0) {
-            return res.status(400).json({ error: "Artikal sa ovom šifrom već postoji u lageru." });
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
         }
 
-        // Parsiranje numeričkih vrednosti
-        const kolicina = parseFloat(l.kolicina) || 0;
-        const cena_bez_pdv = parseFloat(l.cena_bez_pdv);
-        const cena_sa_pdv = parseFloat(l.cena_sa_pdv);
-
-        // Validacija cena
-        if (cena_bez_pdv < 0 || cena_sa_pdv < 0) {
-            return res.status(400).json({ error: "Cene ne mogu biti negativne." });
+        .nav-link.active {
+            background-color: var(--secondary-color);
         }
 
-        if (kolicina < 0) {
-            return res.status(400).json({ error: "Količina ne može biti negativna." });
+        .nav-icon {
+            margin-right: 12px;
+            font-size: 16px;
+            min-width: 16px;
+            text-align: center;
         }
 
-        await db.query(
-            `INSERT INTO lager (sifra, naziv, jm, kolicina, cena_bez_PDV, cena_sa_PDV, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)`,
-            [l.sifra, l.naziv, l.jm, kolicina, cena_bez_pdv, cena_sa_pdv]
-        );
-
-        res.status(201).json({ 
-            message: "Lager artikal je uspešno dodat.", 
-            sifra: l.sifra 
-        });
-    } catch (error) {
-        console.error("Error adding lager item:", error);
-        if (error.code === '23505') { // PostgreSQL unique violation
-            res.status(400).json({ error: "Artikal sa ovom šifrom već postoji u lageru." });
-        } else {
-            res.status(500).json({ error: "Greška pri dodavanju lager artikla: " + error.message });
-        }
-    }
-});
-
-// Izmeni lager artikal
-app.put("/lager/:id", async (req, res) => {
-    const id = req.params.id;
-    const l = req.body;
-    try {
-        // Validacija obaveznih polja
-        if (!l.naziv || !l.jm || l.cena_bez_pdv === undefined || l.cena_sa_pdv === undefined) {
-            return res.status(400).json({ 
-                error: "Naziv, jedinica mere i cene su obavezni." 
-            });
+        .sidebar.collapsed .nav-text {
+            display: none;
         }
 
-        // Proveri da li artikal postoji
-        const existingItem = await db.query('SELECT * FROM lager WHERE id = $1', [id]);
-        if (existingItem.rows.length === 0) {
-            return res.status(404).json({ error: "Lager artikal nije pronađen." });
+        .sidebar.collapsed .nav-icon {
+            margin-right: 0;
         }
 
-        // Parsiranje numeričkih vrednosti
-        const kolicina = parseFloat(l.kolicina) || 0;
-        const cena_bez_pdv = parseFloat(l.cena_bez_pdv);
-        const cena_sa_pdv = parseFloat(l.cena_sa_pdv);
-
-        // Validacija
-        if (cena_bez_pdv < 0 || cena_sa_pdv < 0) {
-            return res.status(400).json({ error: "Cene ne mogu biti negativne." });
+        .sidebar.collapsed .nav-link {
+            justify-content: center;
+            padding: 10px;
         }
 
-        if (kolicina < 0) {
-            return res.status(400).json({ error: "Količina ne može biti negativna." });
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height var(--transition-speed);
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: var(--border-radius);
+            margin-top: 0.2rem;
+            margin-left: 1rem;
+            margin-right: 0.5rem;
         }
 
-        await db.query(
-            `UPDATE lager SET 
-                naziv = $1, jm = $2, kolicina = $3, 
-                cena_bez_PDV = $4, cena_sa_PDV = $5, updated_at = CURRENT_TIMESTAMP
-             WHERE id = $6`,
-            [l.naziv, l.jm, kolicina, cena_bez_pdv, cena_sa_pdv, id]
-        );
-
-        res.json({ message: "Lager artikal je uspešno ažuriran." });
-    } catch (error) {
-        console.error("Error updating lager item:", error);
-        res.status(500).json({ error: "Greška pri izmeni lager artikla: " + error.message });
-    }
-});
-
-// Obrisi lager artikal
-app.delete("/lager/:id", async (req, res) => {
-    const id = req.params.id;
-    try {
-        // Proveri da li artikal postoji
-        const existingItem = await db.query('SELECT id FROM lager WHERE id = $1', [id]);
-        if (existingItem.rows.length === 0) {
-            return res.status(404).json({ error: "Lager artikal nije pronađen." });
+        .submenu.open {
+            max-height: 400px;
         }
 
-        await db.query('DELETE FROM lager WHERE id = $1', [id]);
-        res.json({ message: "Lager artikal je uspešno obrisan." });
-    } catch (error) {
-        console.error("Error deleting lager item:", error);
-        res.status(500).json({ error: "Greška pri brisanju lager artikla." });
-    }
-});
-
-// Ažuriraj količinu lager artikla (za inventar)
-app.patch("/lager/:id/quantity", async (req, res) => {
-    const id = req.params.id;
-    const { kolicina, operation } = req.body; // operation can be 'set', 'add', 'subtract'
-    
-    try {
-        if (kolicina === undefined || kolicina < 0) {
-            return res.status(400).json({ error: "Količina mora biti pozitivna." });
+        .submenu .nav-link {
+            padding: 8px 1rem;
+            font-size: 13px;
+            margin-left: 0;
         }
 
-        // Uzmi trenutne podatke artikla
-        const currentItem = await db.query('SELECT * FROM lager WHERE id = $1', [id]);
-        if (currentItem.rows.length === 0) {
-            return res.status(404).json({ error: "Lager artikal nije pronađen." });
+        .sidebar.collapsed .submenu {
+            display: none;
         }
 
-        const item = currentItem.rows[0];
-        let newQuantity;
-
-        switch(operation) {
-            case 'add':
-                newQuantity = parseFloat(item.kolicina) + parseFloat(kolicina);
-                break;
-            case 'subtract':
-                newQuantity = parseFloat(item.kolicina) - parseFloat(kolicina);
-                if (newQuantity < 0) {
-                    return res.status(400).json({ error: "Količina ne može biti negativna." });
-                }
-                break;
-            case 'set':
-            default:
-                newQuantity = parseFloat(kolicina);
-                break;
+        .toggle-sidebar {
+            position: sticky;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--light-text);
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            margin-top: auto;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        await db.query(
-            'UPDATE lager SET kolicina = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
-            [newQuantity, id]
-        );
-
-        res.json({ 
-            message: "Količina lager artikla je uspešno ažurirana.",
-            newQuantity: newQuantity,
-            oldQuantity: item.kolicina
-        });
-    } catch (error) {
-        console.error("Error updating lager quantity:", error);
-        res.status(500).json({ error: "Greška pri ažuriranju količine: " + error.message });
-    }
-});
-
-// Pretraži lager po nazivu ili šifri
-app.get("/api/lager/search", async (req, res) => {
-    const { query } = req.query;
-    
-    if (!query || query.length < 2) {
-        return res.status(400).json({ error: "Upit mora imati najmanje 2 karaktera." });
-    }
-
-    try {
-        const searchResult = await db.query(
-            `SELECT * FROM lager 
-             WHERE LOWER(naziv) LIKE LOWER($1) OR LOWER(sifra) LIKE LOWER($1)
-             ORDER BY sifra`,
-            [`%${query}%`]
-        );
-
-        res.json(searchResult.rows);
-    } catch (error) {
-        console.error("Error searching lager:", error);
-        res.status(500).json({ error: "Greška pri pretraživanju lagera." });
-    }
-});
-
-// Lager statistike
-app.get("/api/lager/stats", async (req, res) => {
-    try {
-        const stats = await db.query(`
-            SELECT 
-                COUNT(*) as total_items,
-                COUNT(CASE WHEN kolicina > 0 THEN 1 END) as items_in_stock,
-                COUNT(CASE WHEN kolicina = 0 THEN 1 END) as out_of_stock,
-                COUNT(CASE WHEN kolicina < 5 AND kolicina > 0 THEN 1 END) as low_stock,
-                ROUND(AVG(cena_bez_PDV), 2) as avg_price_bez_PDV,
-                ROUND(SUM(kolicina * cena_bez_PDV), 2) as total_value_bez_PDV,
-                ROUND(SUM(kolicina * cena_sa_PDV), 2) as total_value_sa_PDV
-            FROM lager
-        `);
-
-        res.json(stats.rows[0]);
-    } catch (error) {
-        console.error("Error fetching lager stats:", error);
-        res.status(500).json({ error: "Greška pri dohvatanju statistika lagera." });
-    }
-});
-
-// KOMERCIJALISTI ROUTES
-app.get("/komercijalisti", async (req, res) => {
-    try {
-        const komercijalisti = (await db.query(
-            'SELECT * FROM komercijalisti ORDER BY ime_prezime'
-        )).rows;
-        res.render("komercijalisti.ejs", { komercijalisti });
-    } catch (error) {
-        console.error("Error fetching komercijalisti:", error);
-        res.status(500).send("Greška pri dohvatanju komercijalista.");
-    }
-});
-
-// API endpoint za komercijaliste (JSON response)
-app.get("/api/komercijalisti", async(req, res) => {
-    try {
-        const komercijalisti = (await db.query(
-            'SELECT * FROM komercijalisti ORDER BY ime_prezime'
-        )).rows;
-        
-        console.log('API Komercijalisti response:', komercijalisti.length, 'komercijalisti found');
-        if (komercijalisti.length > 0) {
-            console.log('Sample komercijalist structure:', Object.keys(komercijalisti[0]));
-        }
-        
-        res.json(komercijalisti);
-    } catch (error) {
-        console.error("Error fetching komercijalisti:", error);
-        res.status(500).json({ error: "Greška pri dohvatanju komercijalista." });
-    }
-});
-
-// Uzmi pojedinačnog komercijalista po ID-u
-app.get("/komercijalisti/:id", async(req, res) => {
-    const id = req.params.id;
-    try {
-        const result = await db.query('SELECT * FROM komercijalisti WHERE id = $1', [id]);
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Komercijalist nije pronađen' });
-        }
-        res.json(result.rows[0]);
-    } catch (error) {
-        console.error("Error fetching komercijalist:", error);
-        res.status(500).json({ error: "Greška pri dohvatanju komercijalista." });
-    }
-});
-
-// Dodaj novog komercijalista
-app.post("/komercijalisti", async (req, res) => {
-    const k = req.body;
-    try {
-        // Validacija obaveznih polja
-        if (!k.ime_prezime) {
-            return res.status(400).json({ error: "Ime i prezime je obavezno." });
+        .toggle-sidebar:hover {
+            background-color: rgba(255, 255, 255, 0.2);
         }
 
-        // Parsiranje numeričkih vrednosti
-        const broj_kupaca = parseInt(k.broj_kupaca) || 0;
-        const mjesecna_prodaja = parseFloat(k.mjesecna_prodaja) || 0;
-        const performanse = parseFloat(k.performanse) || 0;
-
-        // Validacija performansi (trebaju biti između 0 i 100)
-        if (performanse < 0 || performanse > 100) {
-            return res.status(400).json({ error: "Performanse moraju biti između 0 i 100%." });
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: all var(--transition-speed);
+            min-height: 100vh;
+            padding: 1rem;
+            padding-top: calc(var(--header-height) + 1rem);
         }
 
-        // Validacija statusa
-        const validStatuses = ['aktivan', 'neaktivan', 'pauza'];
-        const status = k.status || 'aktivan';
-        if (!validStatuses.includes(status)) {
-            return res.status(400).json({ error: "Status mora biti 'aktivan', 'neaktivan' ili 'pauza'." });
+        .main-content.expanded {
+            margin-left: var(--sidebar-collapsed);
         }
 
-        await db.query(
-            `INSERT INTO komercijalisti (ime_prezime, broj_kupaca, mjesecna_prodaja, performanse, status)
-            VALUES ($1, $2, $3, $4, $5)`,
-            [k.ime_prezime, broj_kupaca, mjesecna_prodaja, performanse, status]
-        );
-
-        res.status(201).json({ 
-            message: "Komercijalist je uspešno dodat.",
-            ime_prezime: k.ime_prezime
-        });
-    } catch (error) {
-        console.error("Error adding komercijalist:", error);
-        res.status(500).json({ error: "Greška pri dodavanju komercijalista: " + error.message });
-    }
-});
-
-// Izmeni komercijalista
-app.put("/komercijalisti/:id", async (req, res) => {
-    const id = req.params.id;
-    const k = req.body;
-    try {
-        console.log(`Updating komercijalist ${id} with data:`, k);
-
-        // Validacija obaveznih polja
-        if (!k.ime_prezime) {
-            return res.status(400).json({ error: "Ime i prezime je obavezno." });
+        .header {
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            height: var(--header-height);
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all var(--transition-speed);
+            z-index: 900;
         }
 
-        // Proveri da li komercijalist postoji
-        const existingKomercijalist = await db.query('SELECT * FROM komercijalisti WHERE id = $1', [id]);
-        if (existingKomercijalist.rows.length === 0) {
-            return res.status(404).json({ error: "Komercijalist nije pronađen." });
+        .header.expanded {
+            left: var(--sidebar-collapsed);
         }
 
-        const existing = existingKomercijalist.rows[0];
-
-        // Parsiranje numeričkih vrednosti sa fallback na postojeće vrednosti
-        const broj_kupaca = parseInt(k.broj_kupaca) || existing.broj_kupaca || 0;
-        const mjesecna_prodaja = parseFloat(k.mjesecna_prodaja) || existing.mjesecna_prodaja || 0;
-        const performanse = parseFloat(k.performanse) !== undefined ? parseFloat(k.performanse) : existing.performanse || 0;
-
-        // Validacija performansi
-        if (performanse < 0 || performanse > 100) {
-            return res.status(400).json({ error: "Performanse moraju biti između 0 i 100%." });
+        .page-title {
+            font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+            font-weight: 600;
         }
 
-        // Validacija statusa
-        const validStatuses = ['aktivan', 'neaktivan', 'pauza'];
-        const status = k.status || existing.status || 'aktivan';
-        if (!validStatuses.includes(status)) {
-            return res.status(400).json({ error: "Status mora biti 'aktivan', 'neaktivan' ili 'pauza'." });
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
         }
 
-        await db.query(
-            `UPDATE komercijalisti SET 
-                ime_prezime = $1,
-                broj_kupaca = $2,
-                mjesecna_prodaja = $3,
-                performanse = $4,
-                status = $5
-             WHERE id = $6`,
-            [k.ime_prezime, broj_kupaca, mjesecna_prodaja, performanse, status, id]
-        );
-
-        console.log(`Komercijalist ${id} successfully updated`);
-        
-        res.json({ 
-            message: "Komercijalist je uspešno ažuriran.",
-            id: id
-        });
-    } catch (error) {
-        console.error("Error updating komercijalist:", error);
-        res.status(500).json({ error: "Greška pri izmeni komercijalista: " + error.message });
-    }
-});
-
-// Obrisi komercijalista
-app.delete("/komercijalisti/:id", async (req, res) => {
-    const id = req.params.id;
-    try {
-        // Proveri da li komercijalist postoji
-        const existingKomercijalist = await db.query('SELECT id FROM komercijalisti WHERE id = $1', [id]);
-        if (existingKomercijalist.rows.length === 0) {
-            return res.status(404).json({ error: "Komercijalist nije pronađen." });
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: clamp(11px, 1.5vw, 13px);
+            font-weight: 500;
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
         }
 
-        await db.query('DELETE FROM komercijalisti WHERE id = $1', [id]);
-        res.json({ message: "Komercijalist je uspešno obrisan." });
-    } catch (error) {
-        console.error("Error deleting komercijalist:", error);
-        if (error.code === '23503') { // PostgreSQL foreign key violation
-            res.status(400).json({ error: "Ne možete obrisati komercijalista koji se koristi u drugim dokumentima." });
-        } else {
-            res.status(500).json({ error: "Greška pri brisanju komercijalista." });
-        }
-    }
-});
-
-// Pretraži komercijaliste po imenu
-app.get("/api/komercijalisti/search", async (req, res) => {
-    const { query } = req.query;
-    
-    if (!query || query.length < 2) {
-        return res.status(400).json({ error: "Upit mora imati najmanje 2 karaktera." });
-    }
-
-    try {
-        const searchResult = await db.query(
-            `SELECT * FROM komercijalisti 
-             WHERE LOWER(ime_prezime) LIKE LOWER($1)
-             ORDER BY ime_prezime`,
-            [`%${query}%`]
-        );
-
-        res.json(searchResult.rows);
-    } catch (error) {
-        console.error("Error searching komercijalisti:", error);
-        res.status(500).json({ error: "Greška pri pretraživanju komercijalista." });
-    }
-});
-
-// Komercijalisti statistike
-app.get("/api/komercijalisti/stats", async (req, res) => {
-    try {
-        const stats = await db.query(`
-            SELECT 
-                COUNT(*) as total_komercijalisti,
-                COUNT(CASE WHEN status = 'aktivan' THEN 1 END) as aktivni,
-                COUNT(CASE WHEN status = 'neaktivan' THEN 1 END) as neaktivni,
-                COUNT(CASE WHEN status = 'pauza' THEN 1 END) as na_pauzi,
-                ROUND(AVG(performanse), 2) as avg_performanse,
-                ROUND(SUM(mjesecna_prodaja), 2) as total_mjesecna_prodaja,
-                SUM(broj_kupaca) as total_kupaca,
-                ROUND(AVG(broj_kupaca), 2) as avg_kupaca_po_komercijalisti
-            FROM komercijalisti
-        `);
-
-        const topPerformers = await db.query(`
-            SELECT ime_prezime, performanse, mjesecna_prodaja, broj_kupaca, status
-            FROM komercijalisti 
-            WHERE status = 'aktivan'
-            ORDER BY performanse DESC 
-            LIMIT 5
-        `);
-
-        res.json({
-            ...stats.rows[0],
-            top_performers: topPerformers.rows
-        });
-    } catch (error) {
-        console.error("Error fetching komercijalisti stats:", error);
-        res.status(500).json({ error: "Greška pri dohvatanju statistika komercijalista." });
-    }
-});
-
-// Ažuriraj status komercijalista
-app.patch("/komercijalisti/:id/status", async (req, res) => {
-    const id = req.params.id;
-    const { status } = req.body;
-    
-    try {
-        // Validacija statusa
-        const validStatuses = ['aktivan', 'neaktivan', 'pauza'];
-        if (!validStatuses.includes(status)) {
-            return res.status(400).json({ error: "Status mora biti 'aktivan', 'neaktivan' ili 'pauza'." });
+        .btn-primary {
+            background-color: var(--secondary-color);
+            color: white;
         }
 
-        // Proveri da li komercijalist postoji
-        const existingKomercijalist = await db.query('SELECT id FROM komercijalisti WHERE id = $1', [id]);
-        if (existingKomercijalist.rows.length === 0) {
-            return res.status(404).json({ error: "Komercijalist nije pronađen." });
+        .btn-primary:hover {
+            background-color: #2980b9;
         }
 
-        // Ažuriraj samo status
-        await db.query('UPDATE komercijalisti SET status = $1 WHERE id = $2', [status, id]);
-        
-        console.log(`Successfully updated status for komercijalist ${id} to ${status}`);
-        
-        res.json({ 
-            message: "Status komercijalista je uspešno ažuriran.",
-            id: id,
-            newStatus: status
-        });
-    } catch (error) {
-        console.error("Error updating komercijalist status:", error);
-        res.status(500).json({ error: "Greška pri ažuriranju statusa komercijalista: " + error.message });
-    }
-});
-
-// =============================================================================
-// NOVA SEKCIJA: PRAVLJENJE DOKUMENATA - UNIFIED DOCUMENT CREATION
-// =============================================================================
-
-// Glavna ruta za prikaz stranice za pravljenje dokumenata
-app.get("/pravljenjedokumenta", async (req, res) => {
-    try {
-        // Učitaj sve potrebne podatke za kreiranje dokumenata
-        const [dokumenti, lagerArtikli, komercijalisti, partneri] = await Promise.all([
-            db.query('SELECT * FROM dokumenti ORDER BY datum DESC, id DESC'),
-            db.query('SELECT * FROM lager ORDER BY sifra'),
-            db.query('SELECT * FROM komercijalisti ORDER BY ime_prezime'),
-            db.query('SELECT * FROM partneri ORDER BY "Naziv_partnera"')
-        ]);
-
-        res.render("pravljenjedokumenta.ejs", { 
-            dokumenti: dokumenti.rows,
-            lagerArtikli: lagerArtikli.rows,
-            komercijalisti: komercijalisti.rows,
-            partneri: partneri.rows
-        });
-    } catch (error) {
-        console.error("Error fetching data for pravljenjedokumenta:", error);
-        res.status(500).send("Greška pri dohvatanju podataka za pravljenje dokumenata.");
-    }
-});
-
-// API endpoint za kreiranje novog dokumenta (univerzalni)
-app.post("/api/pravljenjedokumenta", async (req, res) => {
-    
-    try {
-        await db.query('BEGIN');
-        
-        const { 
-            tipDokumenta, 
-            partner, 
-            komercijalist_id,
-            artikli, 
-            rabat, 
-            ukupanIznos,
-            napomene 
-        } = req.body;
-        
-        // Validacija osnovnih podataka
-        if (!tipDokumenta || !partner || !komercijalist_id || !artikli || artikli.length === 0) {
-            await db.query('ROLLBACK');
-            return res.status(400).json({ 
-                error: "Tip dokumenta, partner, komercijalist i artikli su obavezni." 
-            });
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
         }
 
-        // Validacija da komercijalist postoji i aktivan je
-        const komercijalistResult = await db.query(
-            'SELECT * FROM komercijalisti WHERE id = $1 AND status = \'aktivan\'', 
-            [komercijalist_id]
-        );
-        if (komercijalistResult.rows.length === 0) {
-            await db.query('ROLLBACK');
-            return res.status(400).json({ error: "Komercijalist nije pronađen ili nije aktivan." });
+        .btn-success:hover {
+            background-color: #27ae60;
         }
-        const komercijalist = komercijalistResult.rows[0];
 
-        const today = new Date().toISOString().split('T')[0];
-        
-        // Generiši broj dokumenta na osnovu tipa
-        const year = new Date().getFullYear();
-        const month = String(new Date().getMonth() + 1).padStart(2, '0');
-        
-        let documentTypePattern;
-        let documentPrefix;
-        
-        switch(tipDokumenta.toLowerCase()) {
-            case 'ponuda':
-                documentTypePattern = 'Ponuda%';
-                documentPrefix = 'PON';
-                break;
-            case 'predracun':
-                documentTypePattern = 'Predračun%';
-                documentPrefix = 'PR';
-                break;
-            case 'otpremnica':
-                documentTypePattern = 'Otpremnica%';
-                documentPrefix = 'OTP';
-                break;
-            case 'kalkulacija':
-                documentTypePattern = 'Kalkulacija%';
-                documentPrefix = 'KAL';
-                break;
-            default:
-                await db.query('ROLLBACK');
-                return res.status(400).json({ error: "Nepoznat tip dokumenta." });
+        .btn-danger {
+            background-color: var(--accent-color);
+            color: white;
         }
-        
-        // Npr. year = 2025, month = 9
-const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
 
-// Napravi objekat datuma i pomeri ga na sledeći mesec
-const endDateObj = new Date(year, month, 1); // JS meseci su 0-based, zato ide "month" bez -1
-const endDate = endDateObj.toISOString().split("T")[0]; // prvi dan sledećeg meseca
-const countResult = await db.query(
-  `SELECT COUNT(*) as count 
-   FROM dokumenti 
-   WHERE tip_dokumenta LIKE $1
-   AND datum >= $2::date
-   AND datum <  $3::date`,
-  [documentTypePattern, startDate, endDate]
-);
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
 
-        
-        const documentNumber = `${documentPrefix}-${String(parseInt(countResult.rows[0].count) + 1).padStart(3, '0')}-${year}${month}`;
-        
-        // Obradi artikle i ažuriraj lager (samo za otpremnica i kalkulacija)
-        const processedArtikli = [];
-        let totalKolicina = 0;
-        let lagerUpdateErrors = [];
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
 
-        for (const artikal of artikli) {
-            // Validacija artikla iz lager-a
-            const lagerResult = await db.query('SELECT * FROM lager WHERE sifra = $1', [artikal.sifra]);
-            if (lagerResult.rows.length === 0) {
-                lagerUpdateErrors.push(`Artikal ${artikal.sifra} nije pronađen u lageru`);
-                continue;
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: #333;
+        }
+
+        .btn-warning:hover {
+            background-color: #f39c12;
+        }
+
+        .btn-info {
+            background-color: var(--info-color);
+            color: white;
+        }
+
+        .btn-info:hover {
+            background-color: #138496;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-color);
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
+            background-color: white;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        .filter-controls {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 2rem;
+        }
+
+        .filter-section {
+            margin-bottom: 2rem;
+        }
+
+        .filter-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .filter-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            transition: border-color var(--transition-speed);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .date-filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .date-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: clamp(1rem, 2vw, 1.5rem);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e6e9ed;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .card-title {
+            font-size: clamp(1.1rem, 2vw, 1.3rem);
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin: 1rem -1rem -1rem -1rem;
+            padding: 0 1rem 1rem 1rem;
+            border-radius: var(--border-radius);
+        }
+
+        .data-table {
+            width: 100%;
+            min-width: 600px;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: clamp(6px, 1vw, 10px) clamp(8px, 1.2vw, 12px);
+            text-align: left;
+            border-bottom: 1px solid #e6e9ed;
+            font-size: clamp(10px, 1vw, 12px);
+            white-space: nowrap;
+        }
+
+        .data-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: clamp(10px, 1vw, 12px);
+        }
+
+        .data-table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #f8f9fa;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .data-table tbody tr.selected {
+            background-color: #e3f2fd;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .price-column {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: var(--success-color);
+        }
+
+        .doc-type-column {
+            font-weight: 600;
+            color: var(--info-color);
+        }
+
+        .date-column {
+            font-family: 'Courier New', monospace;
+            color: #666;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.3rem;
+            justify-content: center;
+        }
+
+        .btn-sm {
+            padding: clamp(4px, 1vw, 6px) clamp(8px, 1.5vw, 10px);
+            font-size: clamp(10px, 1vw, 12px);
+            border-radius: 4px;
+        }
+
+        /* EDIT MODAL STYLES */
+        .edit-modal {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .edit-modal.show {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .edit-modal-content {
+            background-color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 1400px;
+            margin: 40px auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .edit-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e6e9ed;
+        }
+
+        .edit-modal-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .close-modal:hover {
+            background-color: #f8f9fa;
+            color: var(--accent-color);
+        }
+
+        .edit-form-section {
+            margin-bottom: 2rem;
+        }
+
+        .edit-form-section h4 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-size: 13px;
+        }
+
+        .edit-artikli-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .edit-artikli-table th,
+        .edit-artikli-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e6e9ed;
+            font-size: 12px;
+        }
+
+        .edit-artikli-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .edit-artikli-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .edit-artikli-table input,
+        .edit-artikli-table select {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .edit-artikli-table input:focus,
+        .edit-artikli-table select:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+        }
+
+        .edit-artikli-table .numeric-input {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+
+        .edit-totals {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid var(--success-color);
+        }
+
+        .edit-totals h4 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            border: none;
+            padding: 0;
+        }
+
+        .edit-totals-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 14px;
+        }
+
+        .edit-totals-row.grand {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid #ddd;
+        }
+
+        .btn-add-row {
+            margin-top: 1rem;
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-add-row:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn-remove-row {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .btn-remove-row:hover {
+            background-color: #c0392b;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 2px solid #e6e9ed;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .search-box input {
+            padding-left: 40px;
+            border: 2px solid #e6e9ed;
+            border-radius: 25px;
+        }
+
+        .search-box input:focus {
+            border-color: var(--secondary-color);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: 16px;
+        }
+
+        /* Modal Details */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 1rem;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: clamp(1.5rem, 3vw, 2rem);
+            width: 100%;
+            max-width: min(700px, 95vw);
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e6e9ed;
+        }
+
+        .modal-title {
+            font-size: clamp(1.1rem, 2.2vw, 1.3rem);
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        /* Print Document */
+        .print-document {
+            display: none;
+            width: 210mm;
+            margin: 0 auto;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.3;
+            color: #000;
+            background: white;
+            padding: 20px;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
             }
             
-            const lagerArtikal = lagerResult.rows[0];
-            const requestedQuantity = parseFloat(artikal.kolicina) || 0;
+            .print-document, .print-document * {
+                visibility: visible;
+            }
             
-            // Za otpremnicu i kalkulaciju, oduzmi sa lagera
-            if (['otpremnica', 'kalkulacija'].includes(tipDokumenta.toLowerCase())) {
-                if (lagerArtikal.kolicina < requestedQuantity) {
-                    lagerUpdateErrors.push(
-                        `Nedovoljna količina za artikal ${artikal.sifra} - dostupno: ${lagerArtikal.kolicina}, traži se: ${requestedQuantity}`
-                    );
-                    continue;
+            .print-document {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                display: block;
+                page-break-after: auto;
+            }
+            
+            .print-document {
+                page-break-inside: avoid;
+            }
+            
+            .document-header,
+            .customer-info,
+            .items-table,
+            .totals-section,
+            .signature-section {
+                page-break-inside: avoid;
+            }
+            
+            .items-table {
+                page-break-inside: avoid;
+            }
+            
+            .items-table tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+            
+            @page {
+                margin: 10mm;
+                size: A4 portrait;
+            }
+            
+            .modal,
+            .sidebar,
+            .header,
+            .main-content,
+            button,
+            #close-preview {
+                display: none !important;
+                visibility: hidden !important;
+            }
+        }
+
+        .document-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+        }
+
+        .company-info {
+            flex: 1;
+        }
+
+        .company-info h2 {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .document-info {
+            text-align: right;
+            flex: 1;
+        }
+
+        .customer-info {
+            margin: 20px 0;
+            border: 1px solid #000;
+            padding: 10px;
+        }
+
+        .customer-info h3 {
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .items-table th,
+        .items-table td {
+            border: 1px solid #000;
+            padding: 5px;
+            text-align: center;
+            font-size: 10px;
+        }
+
+        .items-table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+
+        .items-table .text-left {
+            text-align: left;
+        }
+
+        .items-table .text-right {
+            text-align: right;
+        }
+
+        .totals-section {
+            margin-top: 20px;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .signature-section {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .signature-box {
+            width: 200px;
+            text-align: center;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .filter-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                width: var(--sidebar-collapsed);
+            }
+            
+            .sidebar .logo-text,
+            .sidebar .nav-text,
+            .sidebar .menu-title {
+                display: none;
+            }
+            
+            .main-content,
+            .header {
+                margin-left: var(--sidebar-collapsed);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .edit-modal-content {
+                padding: 1rem;
+                margin: 20px auto;
+            }
+
+            .edit-artikli-table {
+                font-size: 11px;
+            }
+
+            .edit-artikli-table input,
+            .edit-artikli-table select {
+                font-size: 11px;
+                padding: 4px 6px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+
+            .date-filters {
+                grid-template-columns: 1fr;
+            }
+
+            .btn span {
+                display: none;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 320px;
+                z-index: 2500;
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            .sidebar.mobile-open .logo-text,
+            .sidebar.mobile-open .nav-text,
+            .sidebar.mobile-open .menu-title {
+                display: block;
+            }
+
+            .main-content,
+            .header {
+                margin-left: 0;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .sidebar-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background-color: rgba(0, 0, 0, 0.4);
+                z-index: 2000;
+                display: none;
+            }
+
+            .sidebar-overlay.show {
+                display: block;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card, .filter-controls {
+            animation: fadeIn 0.6s ease forwards;
+        }
+    </style>
+</head>
+<body>
+    <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="logo-container">
+            <div class="logo">
+                <span class="logo-text">Tehnolux</span>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="menu-section">
+                <div class="menu-title">Unos dokumentacije</div>
+                <div class="nav-item">
+                    <a href="/pravljenjedokumenta" class="nav-link">
+                        <i class="fas fa-file nav-icon"></i>
+                        <span class="nav-text">Dokumenti</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-title">Pregled</div>
+                <div class="nav-item has-submenu">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-eye nav-icon"></i>
+                        <span class="nav-text">Pregledi</span>
+                    </a>
+                    <div class="submenu open">
+                        <div class="nav-item">
+                            <a href="/lager" class="nav-link">
+                                <span class="nav-text">Lager</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/prometrobe" class="nav-link">
+                                <span class="nav-text">Promet robe</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/dokumenti" class="nav-link active">
+                                <span class="nav-text">Pregled dokumenata</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-title">Šifrarnik</div>
+                <div class="nav-item has-submenu">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-database nav-icon"></i>
+                        <span class="nav-text">Šifarnici</span>
+                    </a>
+                    <div class="submenu">
+                        <div class="nav-item">
+                            <a href="/artikli" class="nav-link">
+                                <span class="nav-text">Artikli</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/magacini" class="nav-link">
+                                <span class="nav-text">Magacini</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/komercijalisti" class="nav-link">
+                                <span class="nav-text">Komercijalisti</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-title">Kupci</div>
+                <div class="nav-item has-submenu">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-users nav-icon"></i>
+                        <span class="nav-text">Upravljanje kupcima</span>
+                    </a>
+                    <div class="submenu">
+                        <div class="nav-item">
+                            <a href="/uplate" class="nav-link">
+                                <span class="nav-text">Uplate</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/partneri" class="nav-link">
+                                <span class="nav-text">Partneri</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/karticekupca" class="nav-link">
+                                <span class="nav-text">Kartica kupca</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="menu-section">
+                <div class="menu-title">Servis</div>
+                <div class="nav-item">
+                    <a href="/servis" class="nav-link">
+                        <i class="fas fa-tools nav-icon"></i>
+                        <span class="nav-text">Servis</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <button class="toggle-sidebar" id="toggle-sidebar">
+            <i class="fas fa-chevron-left" id="sidebar-icon"></i>
+        </button>
+    </aside>
+
+    <header class="header" id="header">
+        <h1 class="page-title">Pregled dokumenata</h1>
+        
+        <div class="header-actions">
+            <button class="btn btn-info" id="print-btn">
+                <i class="fas fa-print"></i>
+                <span>Štampaj</span>
+            </button>
+            <button class="btn btn-warning" id="export-btn">
+                <i class="fas fa-file-export"></i>
+                <span>Izvezi</span>
+            </button>
+            <button class="btn btn-secondary" id="refresh-btn">
+                <i class="fas fa-sync-alt"></i>
+                <span>Osvježi</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="main-content" id="main-content">
+        <div class="filter-controls">
+            <div class="filter-section">
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="form-control" id="search-documents" placeholder="Pretraži dokumente po partneru, nazivu artikla ili tipu dokumenta...">
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <div class="filter-section-title">
+                    <i class="fas fa-filter"></i> Osnovni filteri
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label class="filter-label">Partner:</label>
+                        <select class="form-control" id="partner-filter">
+                            <option value="">Svi partneri</option>
+                            <% partneri.forEach(partner => { %>
+                                <option value="<%= partner %>"><%= partner %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Tip dokumenta:</label>
+                        <select class="form-control" id="tip-filter">
+                            <option value="">Svi tipovi</option>
+                            <% tipovi.forEach(tip => { %>
+                                <option value="<%= tip %>"><%= tip %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Naziv artikla:</label>
+                        <select class="form-control" id="artikal-filter">
+                            <option value="">Svi artikli</option>
+                            <% artikli.forEach(artikal => { %>
+                                <option value="<%= artikal %>"><%= artikal %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <div class="filter-section-title">
+                    <i class="fas fa-calendar"></i> Datumski filteri
+                </div>
+                <div class="date-filters">
+                    <div class="date-group">
+                        <label class="filter-label">Period od:</label>
+                        <input type="date" class="form-control" id="date-from" value="2025-01-01">
+                    </div>
+                    <div class="date-group">
+                        <label class="filter-label">Period do:</label>
+                        <input type="date" class="form-control" id="date-to" value="2025-01-31">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Lista dokumenata</h3>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <span id="document-count" style="color: #666; font-size: 14px;">Ukupno: <%= dokumenti.length %> dokumenata</span>
+                    <button class="btn btn-primary btn-sm" id="apply-filters">
+                        <i class="fas fa-filter"></i> Primeni filtere
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table" id="dokumenti-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Datum</th>
+                            <th>Partner</th>
+                            <th>Tip dokumenta</th>
+                            <th>Naziv artikla</th>
+                            <th>Iznos sa PDV (€)</th>
+                            <th>Akcije</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dokumenti-tbody">
+                        <% dokumenti.forEach((dokument, index) => { %>
+                            <tr <%= index === 0 ? 'class="selected"' : '' %>>
+                                <td><%= dokument.id %></td>
+                                <td class="date-column"><%= new Date(dokument.datum).toLocaleDateString('sr-RS') %></td>
+                                <td><%= dokument.partner %></td>
+                                <td class="doc-type-column"><%= dokument.tip_dokumenta %></td>
+                                <td title="<%= dokument.naziv_artikla %>" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    <%= dokument.naziv_artikla %>
+                                </td>
+                                <td class="price-column">
+                                    <%= Number(dokument.iznos_sa_pdv).toLocaleString('sr-RS', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn btn-sm btn-info view-document-btn" data-id="<%= dokument.id %>" title="Pregled">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-warning edit-document-btn" data-id="<%= dokument.id %>" title="Izmeni">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-primary print-document-btn" data-id="<%= dokument.id %>" title="Štampaj">
+                                            <i class="fas fa-print"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger delete-document-btn" data-id="<%= dokument.id %>" title="Obriši">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- EDIT MODAL -->
+    <div class="edit-modal" id="edit-modal">
+        <div class="edit-modal-content">
+            <div class="edit-modal-header">
+                <h3 class="edit-modal-title">
+                    <i class="fas fa-edit"></i> Izmena dokumenta
+                </h3>
+                <button class="close-modal" id="close-edit-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="edit-form">
+                <input type="hidden" id="edit-dokument-id">
+
+                <div class="edit-form-section">
+                    <h4><i class="fas fa-info-circle"></i> Osnovni podaci</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Datum:</label>
+                            <input type="date" class="form-control" id="edit-datum" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Partner:</label>
+                            <select class="form-control" id="edit-partner" required>
+                                <% sviPartneri.forEach(p => { %>
+                                    <option value="<%= p.Naziv_partnera %>"><%= p.Naziv_partnera %></option>
+                                <% }); %>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tip dokumenta:</label>
+                            <input type="text" class="form-control" id="edit-tip-dokumenta" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Komercijalist:</label>
+                            <select class="form-control" id="edit-komercijalist">
+                                <option value="">Bez komercijaliste</option>
+                                <% komercijalisti.forEach(k => { %>
+                                    <option value="<%= k.id %>"><%= k.ime_prezime %></option>
+                                <% }); %>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="edit-form-section">
+                    <h4><i class="fas fa-list"></i> Artikli u dokumentu</h4>
+                    
+                    <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                        <table class="edit-artikli-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;">Rb.</th>
+                                    <th style="width: 100px;">Šifra</th>
+                                    <th style="width: 200px;">Naziv</th>
+                                    <th style="width: 60px;">JM</th>
+                                    <th style="width: 90px;">Količina</th>
+                                    <th style="width: 100px;">Cena bez PDV</th>
+                                    <th style="width: 100px;">Cena sa PDV</th>
+                                    <th style="width: 80px;">Rabat (%)</th>
+                                    <th style="width: 110px;">Ukupno bez PDV</th>
+                                    <th style="width: 110px;">Ukupno sa PDV</th>
+                                    <th style="width: 60px;">Akcija</th>
+                                </tr>
+                            </thead>
+                            <tbody id="edit-artikli-tbody">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <button type="button" class="btn-add-row" onclick="addEditRow()">
+                        <i class="fas fa-plus"></i> Dodaj artikal
+                    </button>
+                </div>
+
+                <div class="edit-totals">
+                    <h4><i class="fas fa-calculator"></i> Ukupno</h4>
+                    <div class="edit-totals-row">
+                        <span>Ukupna količina:</span>
+                        <span id="edit-total-kolicina">0</span>
+                    </div>
+                    <div class="edit-totals-row">
+                        <span>Ukupno bez PDV:</span>
+                        <span id="edit-total-bez-pdv">0.00 €</span>
+                    </div>
+                    <div class="edit-totals-row">
+                        <span>PDV iznos:</span>
+                        <span id="edit-total-pdv">0.00 €</span>
+                    </div>
+                    <div class="edit-totals-row grand">
+                        <span>UKUPNO SA PDV:</span>
+                        <span id="edit-total-sa-pdv">0.00 €</span>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="cancel-edit-btn">
+                        <i class="fas fa-times"></i> Otkaži
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Sačuvaj izmene
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Document Details Modal -->
+    <div class="modal" id="document-details-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Detalji dokumenta</h3>
+                <button class="close-modal" id="close-details-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="document-details-content">
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                <button type="button" class="btn btn-secondary" id="close-details-btn">Zatvori</button>
+                <button type="button" class="btn btn-primary" id="print-from-details-btn">Štampaj</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Document -->
+    <div class="print-document" id="print-document">
+        <div class="document-header">
+            <div class="company-info">
+                <h2>TEHNO LUX</h2>
+                <div>Podgorica, Bulevar Pera Cetkovica 36</div>
+                <div>Tel: 020/656-411</div>
+                <div>Fax:</div>
+            </div>
+            <div class="document-info">
+                <div>PIB: 02390264</div>
+                <div>PDV: 30154-03169-8</div>
+                <div>Šif.djel.:</div>
+                <div style="margin-top: 10px;">Ž.R: <strong>530-18008-18</strong></div>
+                <div><strong>510-1062-55</strong></div>
+                <div><strong>520-30872-94</strong></div>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; margin: 20px 0;">
+            <div>
+                <div>Podgorica, <span id="print-date"></span> godine</div>
+                <div style="margin-top: 10px;"><strong><span id="print-document-type"></span> br. <span id="print-doc-number"></span></strong></div>
+            </div>
+            <div style="text-align: right;">
+                <div>Kupac: <span id="print-customer-code"></span></div>
+            </div>
+        </div>
+
+        <div class="customer-info">
+            <h3 id="print-customer-name"></h3>
+            <div>PIB: <span id="print-customer-pib"></span></div>
+            <div>PDV: <span id="print-customer-pdv"></span></div>
+            <div>Adresa: <span id="print-customer-address"></span></div>
+            <div>Grad: <span id="print-customer-city"></span></div>
+        </div>
+
+        <div style="margin: 20px 0;">
+            <div>Na osnovu: _________________________ fakturišemo Vam:</div>
+        </div>
+
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Rb</th>
+                    <th>ŠIFRA</th>
+                    <th>NAZIV PROIZVODA/USLUGE</th>
+                    <th>JM</th>
+                    <th>Količina</th>
+                    <th>Cijena bez PDV (€)</th>
+                    <th>Vrijednost bez PDV (€)</th>
+                    <th>Rabat (%)</th>
+                    <th>PDV Stopa</th>
+                    <th>Iznos (€)</th>
+                    <th>Cijena sa PDV (€)</th>
+                    <th>Vrijednost sa PDV (€)</th>
+                </tr>
+            </thead>
+            <tbody id="print-items-tbody">
+            </tbody>
+        </table>
+
+        <div class="totals-section">
+            <div><strong>Vrijednost bez PDV: <span id="print-total-bez-pdv"></span> €</strong></div>
+            <div><strong>Iznos rabata: <span id="print-total-rabat"></span> €</strong></div>
+            <div style="border-top: 1px solid #000; margin-top: 5px; padding-top: 5px;">
+                <strong>Osnovica za stopu 21%: <span id="print-osnovica"></span> €</strong>
+            </div>
+            <div><strong>PDV po stopi 21%: <span id="print-pdv-iznos"></span> €</strong></div>
+            <div style="border-top: 2px solid #000; margin-top: 5px; padding-top: 5px;">
+                <strong>IZNOS ZA UPLATU €: <span id="print-total-sa-pdv"></span></strong>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px;" id="print-disclaimer">
+            <div><strong>OVO NIJE PDV RAČUN!!!</strong></div>
+        </div>
+
+        <div class="signature-section">
+            <div class="signature-box">
+                <div id="print-signature-left">Otpremio,</div>
+            </div>
+            <div class="signature-box">
+                <div>Primio,</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Pass server data to JavaScript
+        const lagerArtikli = <%- JSON.stringify(lagerArtikli) %>;
+        const sviPartneri = <%- JSON.stringify(sviPartneri) %>;
+        const komercijalisti = <%- JSON.stringify(komercijalisti) %>;
+        const dokumentiData = <%- JSON.stringify(dokumenti) %>;
+
+        let currentEditingDocument = null;
+        let filteredData = [...dokumentiData];
+
+        // Sidebar toggle
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+        const header = document.getElementById('header');
+        const toggleSidebar = document.getElementById('toggle-sidebar');
+        const sidebarIcon = document.getElementById('sidebar-icon');
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+        toggleSidebar.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            header.classList.toggle('expanded');
+            
+            if (sidebar.classList.contains('collapsed')) {
+                sidebarIcon.classList.remove('fa-chevron-left');
+                sidebarIcon.classList.add('fa-chevron-right');
+            } else {
+                sidebarIcon.classList.remove('fa-chevron-right');
+                sidebarIcon.classList.add('fa-chevron-left');
+            }
+        });
+
+        // Mobile menu
+        mobileMenuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('mobile-open');
+            sidebarOverlay.classList.toggle('show');
+            
+            if (sidebar.classList.contains('mobile-open')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        });
+
+        sidebarOverlay.addEventListener('click', function() {
+            sidebar.classList.remove('mobile-open');
+            sidebarOverlay.classList.remove('show');
+            document.body.style.overflow = '';
+        });
+
+        // Submenu functionality
+        document.querySelectorAll('.nav-item.has-submenu > .nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const parent = this.parentElement;
+                const submenu = parent.querySelector('.submenu');
+                
+                document.querySelectorAll('.nav-item.has-submenu').forEach(item => {
+                    if (item !== parent) {
+                        item.classList.remove('open');
+                        item.querySelector('.submenu').classList.remove('open');
+                    }
+                });
+                
+                parent.classList.toggle('open');
+                submenu.classList.toggle('open');
+            });
+        });
+
+        // EDIT MODAL FUNCTIONS
+        document.addEventListener('click', async (e) => {
+            if (e.target.closest('.edit-document-btn')) {
+                const id = e.target.closest('.edit-document-btn').dataset.id;
+                await openEditModal(id);
+            }
+
+            if (e.target.closest('.view-document-btn')) {
+                const id = e.target.closest('.view-document-btn').dataset.id;
+                showDocumentDetails(id);
+            }
+
+            if (e.target.closest('.print-document-btn')) {
+                const id = e.target.closest('.print-document-btn').dataset.id;
+                const dokument = dokumentiData.find(d => d.id == id);
+                if (dokument) {
+                    await generatePrintDocumentFromData(dokument);
+                    window.print();
+                }
+            }
+
+            if (e.target.closest('.delete-document-btn')) {
+                const id = e.target.closest('.delete-document-btn').dataset.id;
+                if (confirm('Da li ste sigurni da želite da obrišete ovaj dokument?')) {
+                    alert('Funkcija brisanja će biti implementirana');
+                }
+            }
+        });
+
+        async function openEditModal(id) {
+            try {
+                const response = await fetch(`/api/dokumenti/${id}`);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    alert('Greška pri učitavanju dokumenta');
+                    return;
                 }
                 
-                console.log(`Deducting ${requestedQuantity} from lager for artikal ${artikal.sifra}`);
-                await db.query(
-                    'UPDATE lager SET kolicina = kolicina - $1 WHERE sifra = $2',
-                    [requestedQuantity, artikal.sifra]
-                );
+                currentEditingDocument = data;
+                
+                document.getElementById('edit-dokument-id').value = data.dokument.id;
+                document.getElementById('edit-datum').value = new Date(data.dokument.datum).toISOString().split('T')[0];
+                document.getElementById('edit-partner').value = data.dokument.partner;
+                document.getElementById('edit-tip-dokumenta').value = data.dokument.tip_dokumenta;
+                document.getElementById('edit-komercijalist').value = data.dokument.komercijalist_id || '';
+                
+                populateEditArtikliTable(data.artikli);
+                
+                document.getElementById('edit-modal').classList.add('show');
+                
+            } catch (error) {
+                console.error('Error loading document:', error);
+                alert('Greška pri učitavanju dokumenta');
+            }
+        }
+
+        function populateEditArtikliTable(artikli) {
+            const tbody = document.getElementById('edit-artikli-tbody');
+            tbody.innerHTML = '';
+            
+            artikli.forEach((artikal, index) => {
+                addEditRow(artikal, index);
+            });
+            
+            recalculateEditTotals();
+        }
+
+        function addEditRow(artikal = null, index = null) {
+            const tbody = document.getElementById('edit-artikli-tbody');
+            const rowIndex = index !== null ? index : tbody.children.length;
+            
+            const row = document.createElement('tr');
+            row.dataset.rowIndex = rowIndex;
+            
+            const sifraOptions = lagerArtikli.map(la => `
+                <option value="${la.sifra}" 
+                        data-naziv="${la.naziv}"
+                        data-jm="${la.jm || la.JM}"
+                        data-cena-bez="${la.cena_bez_PDV}"
+                        data-cena-sa="${la.cena_sa_PDV}"
+                        ${artikal && artikal.sifra === la.sifra ? 'selected' : ''}>
+                    ${la.sifra}
+                </option>
+            `).join('');
+            
+            row.innerHTML = `
+                <td>${rowIndex + 1}</td>
+                <td>
+                    <select class="artikal-select" onchange="populateEditArtikalData(this)">
+                        <option value="">-</option>
+                        ${sifraOptions}
+                    </select>
+                </td>
+                <td><input type="text" class="artikal-naziv" value="${artikal ? artikal.naziv : ''}" required></td>
+                <td><input type="text" class="artikal-jm" value="${artikal ? artikal.jm : 'kom'}" required></td>
+                <td><input type="number" class="artikal-kolicina numeric-input" value="${artikal ? artikal.kolicina : 1}" step="0.01" min="0.01" required oninput="calculateEditRow(this)"></td>
+                <td><input type="number" class="artikal-cena-bez numeric-input" value="${artikal ? parseFloat(artikal.cena_bez_pdv).toFixed(2) : 0}" step="0.01" min="0" required oninput="calculateEditRow(this)"></td>
+                <td><input type="number" class="artikal-cena-sa numeric-input" value="${artikal ? parseFloat(artikal.cena_sa_pdv).toFixed(2) : 0}" step="0.01" min="0" required oninput="calculateEditRow(this)"></td>
+                <td><input type="number" class="artikal-rabat numeric-input" value="${artikal ? parseFloat(artikal.rabat).toFixed(1) : 0}" step="0.1" min="0" max="100" oninput="calculateEditRow(this)"></td>
+                <td><input type="text" class="artikal-total-bez numeric-input" readonly></td>
+                <td><input type="text" class="artikal-total-sa numeric-input" readonly></td>
+                <td>
+                    <button type="button" class="btn-remove-row" onclick="removeEditRow(this)">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            
+            tbody.appendChild(row);
+            
+            if (artikal) {
+                calculateEditRow(row.querySelector('.artikal-kolicina'));
             }
             
-            processedArtikli.push({
-                sifra: artikal.sifra,
-                naziv: lagerArtikal.naziv,
-                jm: lagerArtikal.jm,
-                kolicina: requestedQuantity,
-                cena_bez_pdv: parseFloat(lagerArtikal.cena_bez_pdv) || 0,
-                cena_sa_pdv: parseFloat(lagerArtikal.cena_sa_pdv) || 0
+            updateEditRowNumbers();
+        }
+
+        function populateEditArtikalData(select) {
+            const row = select.closest('tr');
+            const selectedOption = select.options[select.selectedIndex];
+            
+            if (selectedOption.value) {
+                row.querySelector('.artikal-naziv').value = selectedOption.dataset.naziv;
+                row.querySelector('.artikal-jm').value = selectedOption.dataset.jm;
+                row.querySelector('.artikal-cena-bez').value = parseFloat(selectedOption.dataset.cenaBez).toFixed(2);
+                row.querySelector('.artikal-cena-sa').value = parseFloat(selectedOption.dataset.cenaSa).toFixed(2);
+                
+                calculateEditRow(row.querySelector('.artikal-kolicina'));
+            }
+        }
+
+        function calculateEditRow(input) {
+            const row = input.closest('tr');
+            
+            const kolicina = parseFloat(row.querySelector('.artikal-kolicina').value) || 0;
+            const cenaBez = parseFloat(row.querySelector('.artikal-cena-bez').value) || 0;
+            const cenaSa = parseFloat(row.querySelector('.artikal-cena-sa').value) || 0;
+            const rabat = parseFloat(row.querySelector('.artikal-rabat').value) || 0;
+            
+            const totalBezBefore = cenaBez * kolicina;
+            const rabatAmount = totalBezBefore * (rabat / 100);
+            const totalBez = totalBezBefore - rabatAmount;
+            
+            const totalSaBefore = cenaSa * kolicina;
+            const rabatAmountSa = totalSaBefore * (rabat / 100);
+            const totalSa = totalSaBefore - rabatAmountSa;
+            
+            row.querySelector('.artikal-total-bez').value = totalBez.toFixed(2);
+            row.querySelector('.artikal-total-sa').value = totalSa.toFixed(2);
+            
+            recalculateEditTotals();
+        }
+
+        function recalculateEditTotals() {
+            let totalKolicina = 0;
+            let totalBezPdv = 0;
+            let totalSaPdv = 0;
+            
+            document.querySelectorAll('#edit-artikli-tbody tr').forEach(row => {
+                const kolicina = parseFloat(row.querySelector('.artikal-kolicina').value) || 0;
+                const totalBez = parseFloat(row.querySelector('.artikal-total-bez').value) || 0;
+                const totalSa = parseFloat(row.querySelector('.artikal-total-sa').value) || 0;
+                
+                totalKolicina += kolicina;
+                totalBezPdv += totalBez;
+                totalSaPdv += totalSa;
             });
             
-            totalKolicina += requestedQuantity;
+            const totalPdv = totalSaPdv - totalBezPdv;
+            
+            document.getElementById('edit-total-kolicina').textContent = totalKolicina.toFixed(2);
+            document.getElementById('edit-total-bez-pdv').textContent = totalBezPdv.toFixed(2) + ' €';
+            document.getElementById('edit-total-pdv').textContent = totalPdv.toFixed(2) + ' €';
+            document.getElementById('edit-total-sa-pdv').textContent = totalSaPdv.toFixed(2) + ' €';
         }
 
-        // Ako ima grešaka sa lagerom, prekini transakciju
-        if (lagerUpdateErrors.length > 0) {
-            await db.query('ROLLBACK');
-            return res.status(400).json({ 
-                error: "Greške pri obradi lagera",
-                details: lagerUpdateErrors 
+        function removeEditRow(btn) {
+            const tbody = document.getElementById('edit-artikli-tbody');
+            if (tbody.children.length <= 1) {
+                alert('Morate imati najmanje jedan artikal u dokumentu.');
+                return;
+            }
+            
+            btn.closest('tr').remove();
+            updateEditRowNumbers();
+            recalculateEditTotals();
+        }
+
+        function updateEditRowNumbers() {
+            document.querySelectorAll('#edit-artikli-tbody tr').forEach((row, index) => {
+                row.dataset.rowIndex = index;
+                row.cells[0].textContent = index + 1;
             });
         }
 
-        if (processedArtikli.length === 0) {
-            await db.query('ROLLBACK');
-            return res.status(400).json({ error: "Nijedan artikal nije uspešno obrađen." });
-        }
-        
-        // Kreiraj string artikala za dokumenti tabelu
-        const artikliString = processedArtikli.map(item => 
-            `${item.sifra} - ${item.naziv} (${item.kolicina} ${item.jm})`
-        ).join(', ');
-        
-        // Kalkulacije za iznose
-        const rabatValue = parseFloat(rabat) || 0;
-        const calculatedUkupanIznos = ukupanIznos || {
-            iznosBezPdv: 0,
-            iznosSaPdv: 0,
-            pdvIznos: 0
-        };
-        
-        // Sačuvaj glavni dokument u dokumenti tabelu
-        const documentResult = await db.query(
-            `INSERT INTO dokumenti (
-                datum, partner, tip_dokumenta, naziv_artikla, 
-                kolicina, iznos_bez_pdv, iznos_sa_pdv, pdv_iznos, rabat
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
-            [
-                today,
-                partner,
-                `${tipDokumenta} ${documentNumber}`,
-                artikliString,
-                totalKolicina,
-                parseFloat(calculatedUkupanIznos.iznosBezPdv) || 0,
-                parseFloat(calculatedUkupanIznos.iznosSaPdv) || 0,
-                parseFloat(calculatedUkupanIznos.pdvIznos) || 0,
-                rabatValue
-            ]
-        );
-
-        const documentId = documentResult.rows[0].id;
-        
-        // Ažuriraj podatke komercijalista (povećaj broj kupaca ako je novi partner)
-        const existingPartnerCheck = await db.query(
-            'SELECT COUNT(*) as count FROM dokumenti WHERE partner = $1 AND id < $2', 
-            [partner, documentId]
-        );
-        
-        const isNewPartner = parseInt(existingPartnerCheck.rows[0].count) === 0;
-        
-        // Ažuriraj mjesečnu prodaju komercijalista
-        const monthlyIncrease = parseFloat(calculatedUkupanIznos.iznosSaPdv) || 0;
-        let updateQuery = 'UPDATE komercijalisti SET mjesecna_prodaja = mjesecna_prodaja + $1';
-        let updateParams = [monthlyIncrease];
-        
-        if (isNewPartner) {
-            updateQuery += ', broj_kupaca = broj_kupaca + 1';
-        }
-        
-        updateQuery += ' WHERE id = $2';
-        updateParams.push(komercijalist_id);
-        
-        await db.query(updateQuery, updateParams);
-        
-        // Ažuriraj performanse komercijalista (jednostavna kalkulacija)
-        const newPerformanceScore = Math.min(100, komercijalist.performanse + (monthlyIncrease / 1000));
-        await db.query(
-            'UPDATE komercijalisti SET performanse = $1 WHERE id = $2',
-            [parseFloat(newPerformanceScore.toFixed(2)), komercijalist_id]
-        );
-        
-        await db.query('COMMIT');
-        
-        res.json({ 
-            success: true, 
-            documentNumber: documentNumber,
-            documentId: documentId,
-            message: `${tipDokumenta} je uspešno kreiran/a`,
-            komercijalist: komercijalist.ime_prezime,
-            processedItems: processedArtikli.length,
-            lagerUpdated: ['otpremnica', 'kalkulacija'].includes(tipDokumenta.toLowerCase()),
-            newPartner: isNewPartner
+        // Close modal
+        document.getElementById('close-edit-modal').addEventListener('click', () => {
+            document.getElementById('edit-modal').classList.remove('show');
         });
-        
-    } catch (error) {
-        await db.query('ROLLBACK');
-        console.error("Error creating document:", error);
-        res.status(500).json({ error: "Greška pri kreiranju dokumenta: " + error.message });
-    } 
-});
 
-// API endpoint za pregled dokumenata sa filtriranjem
-app.get("/api/pravljenjedokumenta/dokumenti", async (req, res) => {
-    try {
-        const { 
-            tip_dokumenta, 
-            partner, 
-            komercijalist,
-            datum_od, 
-            datum_do,
-            limit = 50 
-        } = req.query;
-        
-        let query = `
-            SELECT d.*, k.ime_prezime as komercijalist_ime 
-            FROM dokumenti d
-            LEFT JOIN komercijalisti k ON d.komercijalist_id = k.id
-            WHERE 1=1
-        `;
-        const params = [];
-        let paramCount = 0;
-        
-        if (tip_dokumenta) {
-            paramCount++;
-            query += ` AND d.tip_dokumenta LIKE ${paramCount}`;
-            params.push(`${tip_dokumenta}%`);
-        }
-        
-        if (partner) {
-            paramCount++;
-            query += ` AND d.partner ILIKE ${paramCount}`;
-            params.push(`%${partner}%`);
-        }
-        
-        if (komercijalist) {
-            paramCount++;
-            query += ` AND k.ime_prezime ILIKE ${paramCount}`;
-            params.push(`%${komercijalist}%`);
-        }
-        
-        if (datum_od) {
-            paramCount++;
-            query += ` AND d.datum >= ${paramCount}`;
-            params.push(datum_od);
-        }
-        
-        if (datum_do) {
-            paramCount++;
-            query += ` AND d.datum <= ${paramCount}`;
-            params.push(datum_do);
-        }
-        
-        query += ` ORDER BY d.datum DESC, d.id DESC LIMIT ${paramCount + 1}`;
-        params.push(parseInt(limit));
-        
-        const dokumenti = (await db.query(query, params)).rows;
-        res.json(dokumenti);
-    } catch (error) {
-        console.error("Error fetching filtered documents:", error);
-        res.status(500).json({ error: "Greška pri dohvatanju dokumenata." });
-    }
-});
-
-// API endpoint za dobijanje statistika dokumenata
-app.get("/api/pravljenjedokumenta/stats", async (req, res) => {
-    try {
-        const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
-        
-        const startDate = `${currentMonth}-01`;               // npr. "2025-09-01"
-        const endDate = new Date(currentMonth + "-01");
-        endDate.setMonth(endDate.getMonth() + 1);            // prvi dan sledećeg meseca
-        const endDateStr = endDate.toISOString().split("T")[0];
-
-        const stats = await db.query(`
-            SELECT 
-                COUNT(*) as total_documents,
-                COUNT(CASE WHEN datum >= $1::date AND datum < $2::date THEN 1 END) as current_month_docs,
-                COUNT(DISTINCT partner) as unique_partners,
-                ROUND(SUM(iznos_sa_pdv), 2) as total_revenue,
-                ROUND(AVG(iznos_sa_pdv), 2) as avg_document_value,
-                COUNT(CASE WHEN tip_dokumenta LIKE 'Ponuda%' THEN 1 END) as ponude_count,
-                COUNT(CASE WHEN tip_dokumenta LIKE 'Predračun%' THEN 1 END) as predracuni_count,
-                COUNT(CASE WHEN tip_dokumenta LIKE 'Otpremnica%' THEN 1 END) as otpremnice_count,
-                COUNT(CASE WHEN tip_dokumenta LIKE 'Kalkulacija%' THEN 1 END) as kalkulacije_count
-            FROM dokumenti
-        `, [startDate, endDateStr]);
-
-
-        const topKomercijalisti = await db.query(`
-            SELECT 
-                k.ime_prezime,
-                COUNT(d.id) as broj_dokumenata,
-                ROUND(SUM(d.iznos_sa_pdv), 2) as ukupna_vrednost,
-                k.performanse
-            FROM komercijalisti k
-            LEFT JOIN dokumenti d ON d.komercijalist_id = k.id
-            WHERE k.status = 'aktivan'
-            GROUP BY k.id, k.ime_prezime, k.performanse
-            ORDER BY ukupna_vrednost DESC
-            LIMIT 5
-        `);
-
-        res.json({
-            ...stats.rows[0],
-            top_komercijalisti: topKomercijalisti.rows,
-            current_month: currentMonth
+        document.getElementById('cancel-edit-btn').addEventListener('click', () => {
+            document.getElementById('edit-modal').classList.remove('show');
         });
-    } catch (error) {
-        console.error("Error fetching document stats:", error);
-        res.status(500).json({ error: "Greška pri dohvatanju statistika." });
-    }
-});
 
-// =============================================================================
-// OSTALE POSTOJEĆE RUTE (zadržane zbog kompatibilnosti)
-// =============================================================================
-
-app.get("/prometrobe", async (req, res) => {
-    res.render("prometrobe.ejs");
-});
-
-// DOKUMENTI ROUTES - UNCHANGED (works with any structure)
-
-// Prikaz svih dokumenata sa podacima za filtere
-app.get("/dokumenti", async (req, res) => {
-    try {
-        // Uzmi sve dokumente
-        const dokumenti = (await db.query('SELECT * FROM dokumenti ORDER BY datum DESC, id')).rows;
-        
-        // Uzmi jedinstvene partnere za filter
-        const partneri = (await db.query('SELECT DISTINCT partner FROM dokumenti ORDER BY partner')).rows.map(row => row.partner);
-        
-        // Uzmi jedinstvene tipove dokumenata za filter
-        const tipovi = (await db.query('SELECT DISTINCT tip_dokumenta FROM dokumenti ORDER BY tip_dokumenta')).rows.map(row => row.tip_dokumenta);
-        
-        // Uzmi jedinstvene nazive artikala za filter
-        const artikli = (await db.query('SELECT DISTINCT naziv_artikla FROM dokumenti ORDER BY naziv_artikla')).rows.map(row => row.naziv_artikla);
-        
-        res.render("dokumenti.ejs", { 
-            dokumenti, 
-            partneri, 
-            tipovi, 
-            artikli 
+        document.getElementById('edit-modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('edit-modal')) {
+                document.getElementById('edit-modal').classList.remove('show');
+            }
         });
-    } catch (error) {
-        console.error("Error fetching dokumenti:", error);
-        res.status(500).send("Greška pri dohvatanju dokumenata.");
-    }
-});
 
-// Uzmi pojedinačni dokument po ID-u
-app.get("/dokumenti/:id", async (req, res) => {
-    const id = req.params.id;
-    try {
-        const result = await db.query('SELECT * FROM dokumenti WHERE id = $1', [id]);
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Dokument nije pronađen' });
+        // Submit form
+        document.getElementById('edit-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Čuvam...';
+            
+            try {
+                const artikli = [];
+                document.querySelectorAll('#edit-artikli-tbody tr').forEach(row => {
+                    const select = row.querySelector('.artikal-select');
+                    const selectedOption = select.options[select.selectedIndex];
+                    
+                    artikli.push({
+                        sifra: selectedOption.value || 'N/A',
+                        naziv: row.querySelector('.artikal-naziv').value,
+                        jm: row.querySelector('.artikal-jm').value,
+                        kolicina: parseFloat(row.querySelector('.artikal-kolicina').value),
+                        cena_bez_pdv: parseFloat(row.querySelector('.artikal-cena-bez').value),
+                        cena_sa_pdv: parseFloat(row.querySelector('.artikal-cena-sa').value),
+                        rabat: parseFloat(row.querySelector('.artikal-rabat').value)
+                    });
+                });
+                
+                const data = {
+                    datum: document.getElementById('edit-datum').value,
+                    partner: document.getElementById('edit-partner').value,
+                    tip_dokumenta: document.getElementById('edit-tip-dokumenta').value,
+                    komercijalist_id: document.getElementById('edit-komercijalist').value || null,
+                    artikli: artikli
+                };
+                
+                const dokumentId = document.getElementById('edit-dokument-id').value;
+                
+                const response = await fetch(`/api/dokumenti/${dokumentId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Dokument je uspešno ažuriran!');
+                    document.getElementById('edit-modal').classList.remove('show');
+                    location.reload();
+                } else {
+                    alert('Greška: ' + (result.error || 'Nepoznata greška'));
+                }
+                
+            } catch (error) {
+                console.error('Error saving document:', error);
+                alert('Greška pri čuvanju dokumenta: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Sačuvaj izmene';
+            }
+        });
+
+        // Document details
+        function showDocumentDetails(id) {
+            const dokument = dokumentiData.find(d => d.id == id);
+            if (!dokument) return;
+            
+            const detailsHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <strong>ID:</strong> ${dokument.id}<br>
+                        <strong>Datum:</strong> ${new Date(dokument.datum).toLocaleDateString('sr-RS')}<br>
+                        <strong>Tip dokumenta:</strong> ${dokument.tip_dokumenta}<br>
+                        <strong>Partner:</strong> ${dokument.partner}
+                    </div>
+                    <div>
+                        <strong>Količina:</strong> ${parseFloat(dokument.kolicina).toFixed(2)}<br>
+                        <strong>Iznos bez PDV:</strong> ${parseFloat(dokument.iznos_bez_pdv).toFixed(2)} €<br>
+                        <strong>PDV iznos:</strong> ${parseFloat(dokument.pdv_iznos).toFixed(2)} €<br>
+                        <strong>Iznos sa PDV:</strong> ${parseFloat(dokument.iznos_sa_pdv).toFixed(2)} €<br>
+                        <strong>Rabat:</strong> ${parseFloat(dokument.rabat).toFixed(2)} €
+                    </div>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <strong>Naziv artikla:</strong>
+                    <div style="padding: 10px; background-color: #f8f9fa; border-radius: 4px; margin-top: 0.5rem; word-wrap: break-word; white-space: pre-wrap;">${dokument.naziv_artikla}</div>
+                </div>
+            `;
+            
+            document.getElementById('document-details-content').innerHTML = detailsHTML;
+            window.currentDocumentForPrint = dokument;
+            document.getElementById('document-details-modal').classList.add('show');
         }
-        res.json(result.rows[0]);
-    } catch (error) {
-        console.error("Error fetching dokument:", error);
-        res.status(500).json({ error: "Greška pri dohvatanju dokumenta." });
-    }
-});
 
-// Dodaj dokument
-app.post("/dokumenti", async (req, res) => {
-    const d = req.body;
-    try {
-        const kolicina = parseFloat(d.kolicina) || 0;
-        const iznos_bez_pdv = parseFloat(d.iznos_bez_pdv) || 0;
-        const pdv_iznos = parseFloat(d.pdv_iznos) || 0;
-        const rabat = parseFloat(d.rabat) || 0;
-        const iznos_sa_pdv = parseFloat(d.iznos_sa_pdv) || 0;
+        document.getElementById('close-details-modal').addEventListener('click', () => {
+            document.getElementById('document-details-modal').classList.remove('show');
+        });
 
-        await db.query(
-            `INSERT INTO dokumenti (
-                datum, partner, tip_dokumenta, naziv_artikla, 
-                kolicina, iznos_bez_pdv, iznos_sa_pdv, pdv_iznos, rabat
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-            [
-                d.datum,
-                d.partner,
-                d.tip_dokumenta,
-                d.naziv_artikla,
-                kolicina,
-                iznos_bez_pdv,
-                iznos_sa_pdv,
-                pdv_iznos,
-                rabat
-            ]
-        );
-        res.sendStatus(201);
-    } catch (error) {
-        console.error("Error adding dokument:", error);
-        res.status(500).send("Greška pri dodavanju dokumenta: " + error.message);
-    }
-});
+        document.getElementById('close-details-btn').addEventListener('click', () => {
+            document.getElementById('document-details-modal').classList.remove('show');
+        });
 
-// Izmeni dokument
-app.put("/dokumenti/:id", async (req, res) => {
-    const id = req.params.id;
-    const d = req.body;
-    try {
-        const kolicina = parseFloat(d.kolicina) || 0;
-        const iznos_bez_pdv = parseFloat(d.iznos_bez_pdv) || 0;
-        const pdv_iznos = parseFloat(d.pdv_iznos) || 0;
-        const rabat = parseFloat(d.rabat) || 0;
-        const iznos_sa_pdv = parseFloat(d.iznos_sa_pdv) || 0;
+        document.getElementById('print-from-details-btn').addEventListener('click', async () => {
+            if (window.currentDocumentForPrint) {
+                await generatePrintDocumentFromData(window.currentDocumentForPrint);
+                window.print();
+            }
+        });
 
-        await db.query(
-            `UPDATE dokumenti SET 
-                datum = $1,
-                partner = $2,
-                tip_dokumenta = $3,
-                naziv_artikla = $4,
-                kolicina = $5,
-                iznos_bez_pdv = $6,
-                iznos_sa_pdv = $7,
-                pdv_iznos = $8,
-                rabat = $9
-             WHERE id = $10`,
-            [
-                d.datum,
-                d.partner,
-                d.tip_dokumenta,
-                d.naziv_artikla,
-                kolicina,
-                iznos_bez_pdv,
-                iznos_sa_pdv,
-                pdv_iznos,
-                rabat,
-                id
-            ]
-        );
-        res.sendStatus(200);
-    } catch (error) {
-        console.error("Error updating dokument:", error);
-        res.status(500).send("Greška pri izmeni dokumenta: " + error.message);
-    }
-});
-
-// Obriši dokument
-app.delete("/dokumenti/:id", async (req, res) => {
-    const id = req.params.id;
-    try {
-        await db.query('DELETE FROM dokumenti WHERE id = $1', [id]);
-        res.sendStatus(200);
-    } catch (error) {
-        console.error("Error deleting dokument:", error);
-        res.status(500).send("Greška pri brisanju dokumenta.");
-    }
-});
-
-// API endpoint za filtriranje dokumenata
-app.get("/api/dokumenti/filter", async (req, res) => {
-    try {
-        const { partner, tip_dokumenta, naziv_artikla, datum_od, datum_do } = req.query;
-        
-        let query = 'SELECT * FROM dokumenti WHERE 1=1';
-        const params = [];
-        let paramCount = 0;
-        
-        if (partner) {
-            paramCount++;
-            query += ` AND partner = ${paramCount}`;
-            params.push(partner);
+        // Print functions
+        async function generatePrintDocumentFromData(documentData) {
+            const today = new Date();
+            const formattedDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
+            
+            const docNumberMatch = documentData.tip_dokumenta.match(/(\d{3}-\d{6})/);
+            const docNumber = docNumberMatch ? docNumberMatch[1] : 'N/A';
+            
+            const documentType = getDocumentTypeForPrint(documentData.tip_dokumenta);
+            
+            const partner = await loadPartnerByName(documentData.partner);
+            
+            document.getElementById('print-date').textContent = formattedDate;
+            document.getElementById('print-document-type').textContent = documentType;
+            document.getElementById('print-doc-number').textContent = docNumber;
+            
+            if (partner) {
+                document.getElementById('print-customer-code').textContent = partner.Sifra || partner.sifra || '';
+                document.getElementById('print-customer-name').textContent = partner.Naziv_partnera || partner.naziv_partnera || documentData.partner;
+                document.getElementById('print-customer-pib').textContent = partner.PIB || partner.pib || '';
+                document.getElementById('print-customer-pdv').textContent = partner.PDV || partner.pdv || '';
+                document.getElementById('print-customer-address').textContent = partner.Adresa || partner.adresa || '';
+                document.getElementById('print-customer-city').textContent = partner.Grad || partner.grad || '';
+            } else {
+                document.getElementById('print-customer-code').textContent = 'N/A';
+                document.getElementById('print-customer-name').textContent = documentData.partner;
+                document.getElementById('print-customer-pib').textContent = '';
+                document.getElementById('print-customer-pdv').textContent = '';
+                document.getElementById('print-customer-address').textContent = '';
+                document.getElementById('print-customer-city').textContent = '';
+            }
+            
+            const articles = parseArticlesFromDocument(
+                documentData.naziv_artikla,
+                parseFloat(documentData.kolicina),
+                parseFloat(documentData.iznos_bez_pdv) / parseFloat(documentData.kolicina),
+                parseFloat(documentData.iznos_sa_pdv) / parseFloat(documentData.kolicina),
+                parseFloat(documentData.rabat) || 0,
+                21
+            );
+            
+            let itemsHTML = '';
+            let totalBezPdv = 0;
+            let totalRabat = parseFloat(documentData.rabat) || 0;
+            let totalPdv = parseFloat(documentData.pdv_iznos) || 0;
+            let totalSaPdv = parseFloat(documentData.iznos_sa_pdv) || 0;
+            
+            articles.forEach((item, index) => {
+                const vrijednostBezPdv = item.cenaBezPdv * item.kolicina;
+                const rabatIznos = vrijednostBezPdv * (item.rabat / 100);
+                const vrijednostBezPdvSaRabatom = vrijednostBezPdv - rabatIznos;
+                const pdvIznos = vrijednostBezPdvSaRabatom * (item.pdvStopa / 100);
+                const vrijednostSaPdv = item.cenaSaPdv * item.kolicina;
+                
+                totalBezPdv += vrijednostBezPdvSaRabatom;
+                
+                itemsHTML += `
+                    <tr>
+                        <td>${item.rb}</td>
+                        <td>${item.sifra}</td>
+                        <td class="text-left">${item.naziv}</td>
+                        <td>${item.jm}</td>
+                        <td>${item.kolicina}</td>
+                        <td class="text-right">${item.cenaBezPdv.toFixed(3)}</td>
+                        <td class="text-right">${vrijednostBezPdv.toFixed(2)}</td>
+                        <td class="text-right">${item.rabat.toFixed(1)}%</td>
+                        <td class="text-right">${item.pdvStopa.toFixed(0)}%</td>
+                        <td class="text-right">${pdvIznos.toFixed(2)}</td>
+                        <td class="text-right">${item.cenaSaPdv.toFixed(3)}</td>
+                        <td class="text-right">${vrijednostSaPdv.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+            
+            document.getElementById('print-items-tbody').innerHTML = itemsHTML;
+            document.getElementById('print-total-bez-pdv').textContent = totalBezPdv.toFixed(2);
+            document.getElementById('print-total-rabat').textContent = totalRabat.toFixed(2);
+            document.getElementById('print-osnovica').textContent = totalBezPdv.toFixed(2);
+            document.getElementById('print-pdv-iznos').textContent = totalPdv.toFixed(2);
+            document.getElementById('print-total-sa-pdv').textContent = totalSaPdv.toFixed(2);
+            
+            document.getElementById('print-signature-left').textContent = getSignatureText(documentData.tip_dokumenta);
+            document.getElementById('print-disclaimer').innerHTML = `<div><strong>${getDisclaimerText(documentData.tip_dokumenta)}</strong></div>`;
         }
-        
-        if (tip_dokumenta) {
-            paramCount++;
-            query += ` AND tip_dokumenta = ${paramCount}`;
-            params.push(tip_dokumenta);
-        }
-        
-        if (naziv_artikla) {
-            paramCount++;
-            query += ` AND naziv_artikla = ${paramCount}`;
-            params.push(naziv_artikla);
-        }
-        
-        if (datum_od) {
-            paramCount++;
-            query += ` AND datum >= ${paramCount}::date`;
-            params.push(datum_od);
-        }
-        
-        if (datum_do) {
-            paramCount++;
-            query += ` AND datum <= ${paramCount}::date`;
-            params.push(datum_do);
-        }
-        
-        query += ' ORDER BY datum DESC, id';
-        
-        const dokumenti = (await db.query(query, params)).rows;
-        res.json(dokumenti);
-    } catch (error) {
-        console.error("Error filtering dokumenti:", error);
-        res.status(500).json({ error: "Greška pri filtriranju dokumenata." });
-    }
-});
 
-// API endpoint za generiranje broja dokumenata
-app.get("/api/dokumenti/count", async (req, res) => {
-    try {
-        const { year, month, type } = req.query;
-        let documentTypePattern;
-        
-        // Različiti paterni za različite tipove dokumenata
-        switch(type) {
-            case 'predracun':
-                documentTypePattern = 'Predračun%';
-                break;
-            case 'kalkulacija':
-                documentTypePattern = 'Kalkulacija%';
-                break;
-            case 'ponuda':
-                documentTypePattern = 'Ponuda%';
-                break;
-            case 'otpremnica':
-            default:
-                documentTypePattern = 'Otpremnica%';
-                break;
+        function getDocumentTypeForPrint(tipDokumenta) {
+            const tip = tipDokumenta.toLowerCase();
+            if (tip.includes('otpremnica')) return 'Otpremnica';
+            if (tip.includes('predracun')) return 'Predračun';
+            if (tip.includes('kalkulacija')) return 'Kalkulacija';
+            if (tip.includes('ponuda')) return 'Ponuda';
+            return 'Dokument';
         }
-        
-        const startDate = `${year}-${month}-01`;
-        const endDate = `${year}-${month}-31`;
-        
-        const result = await db.query(
-            `SELECT COUNT(*) as count FROM dokumenti 
-             WHERE tip_dokumenta LIKE $1 
-             AND datum >= $2 AND datum <= $3`,
-            [documentTypePattern, startDate, endDate]
-        );
-        
-        res.json({ count: parseInt(result.rows[0].count) });
-    } catch (error) {
-        console.error("Error counting documents:", error);
-        res.status(500).json({ error: "Greška pri brojanju dokumenata." });
-    }
-});
 
-app.get("/magacini", (req, res) => {
-    res.render("magacini.ejs");
-});
+        function getSignatureText(tipDokumenta) {
+            const tip = tipDokumenta.toLowerCase();
+            if (tip.includes('otpremnica')) return 'Otpremio,';
+            if (tip.includes('predracun')) return 'Izradio,';
+            if (tip.includes('kalkulacija')) return 'Kalkulisao,';
+            if (tip.includes('ponuda')) return 'Ponudio,';
+            return 'Izdao,';
+        }
 
-app.get("/uplate", (req, res) => {
-    res.render("uplate.ejs");
-});
+        function getDisclaimerText(tipDokumenta) {
+            const tip = tipDokumenta.toLowerCase();
+            if (tip.includes('otpremnica')) return 'OVO NIJE PDV RAČUN!!!';
+            if (tip.includes('predracun')) return 'OVO NIJE PDV RAČUN - PREDRAČUN!!!';
+            if (tip.includes('kalkulacija')) return 'KALKULACIJA - OVO NIJE PDV RAČUN!!!';
+            if (tip.includes('ponuda')) return 'PONUDA - OVO NIJE OBAVEZUJUĆI DOKUMENT!!!';
+            return 'OVO NIJE PDV RAČUN!!!';
+        }
 
-app.get("/servis", (req, res) => {
-    res.render("servis.ejs");
-});
+        async function loadPartnerByName(partnerName) {
+            try {
+                const partner = sviPartneri.find(p => 
+                    (p.Naziv_partnera || p.naziv_partnera || '').toLowerCase() === partnerName.toLowerCase()
+                );
+                return partner || null;
+            } catch (error) {
+                console.error('Error loading partner:', error);
+                return null;
+            }
+        }
 
-app.listen(port, () =>{
-    console.log("Server spreman na portu " + port);
-});
+        function parseArticlesFromDocument(nazivArtikla, kolicina, cenaBezPdv, cenaSaPdv, rabat, pdvStopa) {
+            if (nazivArtikla.includes(',') && nazivArtikla.includes(' - ')) {
+                const articles = [];
+                const parts = nazivArtikla.split(', ');
+                let articleIndex = 1;
+                
+                parts.forEach(part => {
+                    const match = part.match(/^(.+?)\s-\s(.+?)\s\((.+?)\s(.+?)\)$/);
+                    if (match) {
+                        const [, sifra, naziv, qty, jm] = match;
+                        articles.push({
+                            rb: articleIndex++,
+                            sifra: sifra.trim(),
+                            naziv: naziv.trim(),
+                            jm: jm.trim(),
+                            kolicina: parseFloat(qty) || 1,
+                            cenaBezPdv: cenaBezPdv / parts.length,
+                            cenaSaPdv: cenaSaPdv / parts.length,
+                            rabat: rabat || 0,
+                            pdvStopa: pdvStopa || 21
+                        });
+                    }
+                });
+                
+                return articles.length > 0 ? articles : [{
+                    rb: 1,
+                    sifra: 'N/A',
+                    naziv: nazivArtikla,
+                    jm: 'kom',
+                    kolicina: kolicina,
+                    cenaBezPdv: cenaBezPdv,
+                    cenaSaPdv: cenaSaPdv,
+                    rabat: rabat || 0,
+                    pdvStopa: pdvStopa || 21
+                }];
+            } else {
+                return [{
+                    rb: 1,
+                    sifra: 'N/A',
+                    naziv: nazivArtikla,
+                    jm: 'kom',
+                    kolicina: kolicina,
+                    cenaBezPdv: cenaBezPdv,
+                    cenaSaPdv: cenaSaPdv,
+                    rabat: rabat || 0,
+                    pdvStopa: pdvStopa || 21
+                }];
+            }
+        }
+
+        // Filter functions
+        function applyFilters() {
+            const searchTerm = document.getElementById('search-documents').value.toLowerCase();
+            const partner = document.getElementById('partner-filter').value;
+            const tip = document.getElementById('tip-filter').value;
+            const artikal = document.getElementById('artikal-filter').value;
+            const fromDate = document.getElementById('date-from').value;
+            const toDate = document.getElementById('date-to').value;
+            
+            filteredData = dokumentiData.filter(item => {
+                let passes = true;
+                
+                if (searchTerm) {
+                    const searchableText = `${item.partner} ${item.naziv_artikla} ${item.tip_dokumenta}`.toLowerCase();
+                    if (!searchableText.includes(searchTerm)) {
+                        passes = false;
+                    }
+                }
+                
+                if (partner && item.partner !== partner) {
+                    passes = false;
+                }
+                
+                if (tip && item.tip_dokumenta !== tip) {
+                    passes = false;
+                }
+                
+                if (artikal && item.naziv_artikla !== artikal) {
+                    passes = false;
+                }
+                
+                if (fromDate && toDate) {
+                    const itemDate = new Date(item.datum);
+                    const filterFromDate = new Date(fromDate);
+                    const filterToDate = new Date(toDate);
+                    
+                    if (itemDate < filterFromDate || itemDate > filterToDate) {
+                        passes = false;
+                    }
+                }
+                
+                return passes;
+            });
+            
+            renderDokumentiTable();
+        }
+
+        function renderDokumentiTable() {
+            const tbody = document.getElementById('dokumenti-tbody');
+            tbody.innerHTML = '';
+            
+            filteredData.forEach((item, index) => {
+                const row = document.createElement('tr');
+                if (index === 0) {
+                    row.classList.add('selected');
+                }
+                
+                row.innerHTML = `
+                    <td>${item.id}</td>
+                    <td class="date-column">${new Date(item.datum).toLocaleDateString('sr-RS')}</td>
+                    <td>${item.partner}</td>
+                    <td class="doc-type-column">${item.tip_dokumenta}</td>
+                    <td title="${item.naziv_artikla}" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.naziv_artikla}</td>
+                    <td class="price-column">${parseFloat(item.iznos_sa_pdv).toLocaleString('sr-RS', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-info view-document-btn" data-id="${item.id}" title="Pregled">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-warning edit-document-btn" data-id="${item.id}" title="Izmeni">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-primary print-document-btn" data-id="${item.id}" title="Štampaj">
+                                <i class="fas fa-print"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger delete-document-btn" data-id="${item.id}" title="Obriši">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+
+            document.getElementById('document-count').textContent = `Ukupno: ${filteredData.length} dokumenata`;
+        }
+
+        // Event listeners
+        document.getElementById('search-documents').addEventListener('input', applyFilters);
+        document.getElementById('partner-filter').addEventListener('change', applyFilters);
+        document.getElementById('tip-filter').addEventListener('change', applyFilters);
+        document.getElementById('artikal-filter').addEventListener('change', applyFilters);
+        document.getElementById('date-from').addEventListener('change', applyFilters);
+        document.getElementById('date-to').addEventListener('change', applyFilters);
+        document.getElementById('apply-filters').addEventListener('click', applyFilters);
+
+        document.getElementById('print-btn').addEventListener('click', () => {
+            window.print();
+        });
+
+        document.getElementById('export-btn').addEventListener('click', () => {
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + "ID,Datum,Partner,Tip dokumenta,Naziv artikla,Iznos sa PDV (€)\n"
+                + filteredData.map(item => 
+                    `${item.id},${new Date(item.datum).toLocaleDateString('sr-RS')},${item.partner},${item.tip_dokumenta},${item.naziv_artikla},${item.iznos_sa_pdv}`
+                ).join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "dokumenti.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        document.getElementById('refresh-btn').addEventListener('click', () => {
+            location.reload();
+        });
+
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 576) {
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (document.getElementById('edit-modal').classList.contains('show')) {
+                    document.getElementById('edit-modal').classList.remove('show');
+                } else if (document.getElementById('document-details-modal').classList.contains('show')) {
+                    document.getElementById('document-details-modal').classList.remove('show');
+                } else if (sidebar.classList.contains('mobile-open')) {
+                    sidebar.classList.remove('mobile-open');
+                    sidebarOverlay.classList.remove('show');
+                    document.body.style.overflow = '';
+                }
+            }
+        });
+
+        console.log('Tehnolux Pregled dokumenata initialized with edit functionality');
+    </script>
+</body>
+</html>

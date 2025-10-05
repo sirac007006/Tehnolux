@@ -128,7 +128,11 @@
         .nav-link.active {
             background-color: var(--secondary-color);
         }
-
+        .submenu .nav-link {
+            padding: 8px 1rem;
+            font-size: 13px;
+            margin-left: 0;
+        }
         .nav-icon {
             margin-right: 12px;
             font-size: 16px;
@@ -240,6 +244,7 @@
             gap: 6px;
             white-space: nowrap;
         }
+
 
         .btn-primary {
             background-color: var(--secondary-color);
@@ -831,11 +836,11 @@
                         <tr>
                             <th>Datum</th>
                             <th>Šifra</th>
-                            <th>Naziv artikla</th>
+                            <th>Artikal</th>
+                            <th>Jedinica</th>
+                            <th>Količina</th>
                             <th>Partner</th>
                             <th>Komercijalist</th>
-                            <th>Količina</th>
-                            <th>Iznos sa PDV</th>
                         </tr>
                     </thead>
                     <tbody id="promet-tbody">
@@ -872,6 +877,10 @@
                     <label for="sort-datum">Sortuj po datumu</label>
                 </div>
                 <div class="sort-option">
+                    <input type="radio" id="sort-sifra" name="sort-by" value="sifra">
+                    <label for="sort-sifra">Sortuj po šifri</label>
+                </div>
+                <div class="sort-option">
                     <input type="radio" id="sort-naziv" name="sort-by" value="naziv">
                     <label for="sort-naziv">Sortuj po nazivu artikla</label>
                 </div>
@@ -882,10 +891,6 @@
                 <div class="sort-option">
                     <input type="radio" id="sort-kolicina" name="sort-by" value="kolicina">
                     <label for="sort-kolicina">Sortuj po količini</label>
-                </div>
-                <div class="sort-option">
-                    <input type="radio" id="sort-iznos" name="sort-by" value="iznos">
-                    <label for="sort-iznos">Sortuj po iznosu</label>
                 </div>
             </div>
             <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
@@ -945,7 +950,7 @@
             if (sidebar.classList.contains('mobile-open')) {
                 document.body.style.overflow = 'hidden';
             } else {
-                document.body.style.overflow = '';
+                document.body.style.overflow= '';
             }
         });
 
@@ -1022,6 +1027,38 @@
             }
         }
 
+        function parseDocuments(documents) {
+            const artikli = [];
+            
+            documents.forEach(doc => {
+                if (!doc.naziv_artikla) return;
+                
+                const artikalStrings = doc.naziv_artikla.split(', ');
+                
+                artikalStrings.forEach(artStr => {
+                    const match = artStr.match(/^(.+?)\s-\s(.+?)\s\((.+?)\s(.+?)\)$/);
+                    
+                    if (match) {
+                        const [, sifra, naziv, kolicina, jm] = match;
+                        const kolicinaNum = parseFloat(kolicina) || 0;
+                        
+                        artikli.push({
+                            datum: doc.datum,
+                            sifra: sifra.trim(),
+                            naziv: naziv.trim(),
+                            kolicina: kolicinaNum,
+                            jm: jm.trim(),
+                            partner: doc.partner,
+                            komercijalist: doc.komercijalist_ime || 'N/A',
+                            tip_dokumenta: doc.tip_dokumenta
+                        });
+                    }
+                });
+            });
+            
+            return artikli;
+        }
+
         async function loadPrometData() {
             try {
                 const params = new URLSearchParams({
@@ -1034,8 +1071,8 @@
                 const response = await fetch(`/api/prometrobe?${params}`);
                 const data = await response.json();
                 
-                currentData = data;
-                updateTable(data);
+                currentData = parseDocuments(data);
+                updateTable(currentData);
             } catch (error) {
                 console.error('Error loading promet data:', error);
                 alert('Greška pri učitavanju podataka.');
@@ -1047,7 +1084,7 @@
             tbody.innerHTML = '';
             
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">Nema podataka za prikaz</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem;">Nema podataka za prikaz</td></tr>';
                 return;
             }
             
@@ -1056,24 +1093,17 @@
                 if (index === 0) {
                     row.classList.add('selected');
                 }
-                row.dataset.id = item.id;
-                
-                let sifra = '';
-                let naziv = item.naziv_artikla || '';
-                if (naziv.includes(' - ')) {
-                    const parts = naziv.split(' - ');
-                    sifra = parts[0];
-                    naziv = parts.slice(1).join(' - ');
-                }
+                row.dataset.sifra = item.sifra;
+                row.dataset.naziv = item.naziv;
                 
                 row.innerHTML = `
                     <td>${formatDate(item.datum)}</td>
-                    <td>${sifra}</td>
-                    <td title="${naziv}">${naziv}</td>
+                    <td>${item.sifra}</td>
+                    <td title="${item.naziv}">${item.naziv}</td>
+                    <td>${item.jm}</td>
+                    <td class="quantity-column">${item.kolicina.toFixed(2)}</td>
                     <td>${item.partner || ''}</td>
-                    <td>${item.komercijalist_ime || ''}</td>
-                    <td class="quantity-column">${parseFloat(item.kolicina || 0).toFixed(2)}</td>
-                    <td class="quantity-column">€${parseFloat(item.iznos_sa_pdv || 0).toFixed(2)}</td>
+                    <td>${item.komercijalist || ''}</td>
                 `;
                 
                 row.addEventListener('click', function() {
@@ -1118,16 +1148,14 @@
                 switch(selectedSort) {
                     case 'datum':
                         return new Date(b.datum) - new Date(a.datum);
+                    case 'sifra':
+                        return (a.sifra || '').localeCompare(b.sifra || '');
                     case 'naziv':
-                        const nazivA = (a.naziv_artikla || '').toLowerCase();
-                        const nazivB = (b.naziv_artikla || '').toLowerCase();
-                        return nazivA.localeCompare(nazivB);
+                        return (a.naziv || '').toLowerCase().localeCompare((b.naziv || '').toLowerCase());
                     case 'partner':
                         return (a.partner || '').localeCompare(b.partner || '');
                     case 'kolicina':
                         return parseFloat(b.kolicina || 0) - parseFloat(a.kolicina || 0);
-                    case 'iznos':
-                        return parseFloat(b.iznos_sa_pdv || 0) - parseFloat(a.iznos_sa_pdv || 0);
                     default:
                         return 0;
                 }
@@ -1161,24 +1189,20 @@
                     <div class="kartica-value">${cells[2].textContent}</div>
                 </div>
                 <div class="kartica-field">
-                    <div class="kartica-label">Partner:</div>
+                    <div class="kartica-label">Jedinica mere:</div>
                     <div class="kartica-value">${cells[3].textContent}</div>
                 </div>
                 <div class="kartica-field">
-                    <div class="kartica-label">Komercijalist:</div>
-                    <div class="kartica-value">${cells[4].textContent || 'N/A'}</div>
-                </div>
-                <div class="kartica-field">
-                    <div class="kartica-label">Jedinica mere:</div>
-                    <div class="kartica-value">${cells[5].textContent || 'N/A'}</div>
-                </div>
-                <div class="kartica-field">
                     <div class="kartica-label">Količina:</div>
-                    <div class="kartica-value">${cells[6].textContent}</div>
+                    <div class="kartica-value">${cells[4].textContent}</div>
                 </div>
                 <div class="kartica-field">
-                    <div class="kartica-label">Iznos sa PDV:</div>
-                    <div class="kartica-value">${cells[7].textContent}</div>
+                    <div class="kartica-label">Partner:</div>
+                    <div class="kartica-value">${cells[5].textContent}</div>
+                </div>
+                <div class="kartica-field">
+                    <div class="kartica-label">Komercijalist:</div>
+                    <div class="kartica-value">${cells[6].textContent || 'N/A'}</div>
                 </div>
             `;
             
@@ -1243,7 +1267,7 @@
                 loadPrometData();
             });
             
-            console.log('Tehnolux Promet robe panel (Otpremnice only) initialized');
+            console.log('Tehnolux Promet robe panel - artikli po redu (bez iznosa) initialized');
         });
     </script>
 </body>

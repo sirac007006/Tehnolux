@@ -607,7 +607,22 @@
             font-size: 1.5rem;
             font-weight: bold;
         }
+.sidebar-nav::-webkit-scrollbar {
+            width: 6px;
+        }
 
+        .sidebar-nav::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.5);
+        }
         /* Responsive design */
         @media (max-width: 992px) {
             .sidebar {
@@ -970,7 +985,6 @@
                                     <th>Iznos bez PDV</th>
                                     <th>Iznos sa PDV</th>
                                     <th>PDV iznos</th>
-                                    <th>Rabat</th>
                                 </tr>
                             </thead>
                             <tbody id="documents-tbody">
@@ -1177,7 +1191,6 @@
                             const iznosBezPdv = formatCurrency(parseFloat(doc.iznos_bez_pdv) || 0);
                             const iznosSaPdv = formatCurrency(parseFloat(doc.iznos_sa_pdv) || 0);
                             const pdvIznos = formatCurrency(parseFloat(doc.pdv_iznos) || 0);
-                            const rabat = formatCurrency(parseFloat(doc.rabat) || 0);
                             
                             row.innerHTML = `
                                 <td>${datum}</td>
@@ -1186,7 +1199,6 @@
                                 <td>${iznosBezPdv}</td>
                                 <td>${iznosSaPdv}</td>
                                 <td>${pdvIznos}</td>
-                                <td>${rabat}</td>
                             `;
                             documentsTbody.appendChild(row);
                         });

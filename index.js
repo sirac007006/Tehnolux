@@ -236,7 +236,7 @@ app.get("/api/karticekupca/saldos", async (req, res) => {
         COALESCE(SUM(d.iznos_sa_pdv), 0) as ukupne_otpremnice
       FROM "partneri" p
       LEFT JOIN "dokumenti" d ON d.partner = p."Naziv_partnera" 
-        AND d.tip_dokumenta LIKE 'Otpremnica%'${dateFilterOtpremnice}
+        AND d.tip_dokumenta LIKE 'otpremnica%'${dateFilterOtpremnice}
       GROUP BY p."Sifra", p."Naziv_partnera"
     `;
 
@@ -354,7 +354,7 @@ app.get("/api/karticekupca/partner/:id", async (req, res) => {
         "magacin"
        FROM "dokumenti"
        WHERE "partner" = $1 
-       AND "tip_dokumenta" LIKE 'Otpremnica%'${dateFilter}
+       AND "tip_dokumenta" LIKE 'otpremnica%'${dateFilter}
        ORDER BY "datum" DESC, "id" DESC`,
       queryParams
     );
@@ -491,7 +491,7 @@ app.get("/api/karticekupca/stats", async (req, res) => {
         SUM(iznos_sa_pdv) as ukupne_otpremnice,
         AVG(iznos_sa_pdv) as prosecna_otpremnica
       FROM "dokumenti" 
-      WHERE tip_dokumenta LIKE 'Otpremnica%'${dateFilter}
+      WHERE tip_dokumenta LIKE 'otpremnica%'${dateFilter}
     `, queryParams);
 
     // Statistike uplata
@@ -709,7 +709,7 @@ app.get("/api/karticekupca/analiza/:partnerId", async (req, res) => {
         COUNT(DISTINCT EXTRACT(MONTH FROM datum)) as aktivnih_meseci
       FROM "dokumenti" 
       WHERE partner = $1 
-      AND tip_dokumenta LIKE 'Otpremnica%'${dateFilter}
+      AND tip_dokumenta LIKE 'otpremnica%'${dateFilter}
     `, queryParams);
 
     // Detaljne statistike uplata
@@ -738,7 +738,7 @@ app.get("/api/karticekupca/analiza/:partnerId", async (req, res) => {
         SUM(iznos_sa_pdv) as ukupno
       FROM "dokumenti" 
       WHERE partner = $1 
-      AND tip_dokumenta LIKE 'Otpremnica%'${dateFilter}
+      AND tip_dokumenta LIKE 'otpremnica%'${dateFilter}
       GROUP BY EXTRACT(YEAR FROM datum), EXTRACT(MONTH FROM datum), TO_CHAR(datum, 'MM/YYYY')
       ORDER BY godina DESC, mesec DESC
       LIMIT 12
@@ -2144,7 +2144,7 @@ app.get("/komercijalisti/:id/dokumenti", async (req, res) => {
 app.get("/pravljenjedokumenta", async (req, res) => {
     try {
         const [dokumenti, lagerArtikli, komercijalisti, partneri] = await Promise.all([
-            db.query('SELECT * FROM dokumenti ORDER BY datum DESC, id DESC'),
+            db.query('SELECT * FROM dokumenti ORDER BY id DESC'),
             db.query('SELECT * FROM lager ORDER BY sifra'),
             db.query('SELECT * FROM komercijalisti ORDER BY ime_prezime'),
             db.query('SELECT * FROM partneri ORDER BY "Naziv_partnera"')
@@ -2172,8 +2172,7 @@ app.get("/pravljenjedokumenta", async (req, res) => {
     }
 });
 
-
-// API endpoint za kreiranje novog dokumenta (univerzalni)
+// REŠENJE 3 - Čuva ORIGINALNU cenu, rabat se primenjuje pri izračunavanju
 app.post("/api/pravljenjedokumenta", async (req, res) => {
     try {
         await db.query('BEGIN');
@@ -2187,7 +2186,7 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
             ukupanIznos
         } = req.body;
         
-        // Validacija osnovnih podataka
+        // Validacija
         if (!tipDokumenta || !partner || !komercijalist_id || !artikli || artikli.length === 0) {
             await db.query('ROLLBACK');
             return res.status(400).json({ 
@@ -2195,7 +2194,7 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
             });
         }
 
-        // Validacija da komercijalist postoji i aktivan je
+        // Validacija komercijalista
         const komercijalistResult = await db.query(
             'SELECT * FROM komercijalisti WHERE id = $1 AND status = \'aktivan\'', 
             [komercijalist_id]
@@ -2208,28 +2207,18 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
 
         const today = new Date().toISOString().split('T')[0];
         
-        // Generiši broj dokumenta - JEDNOSTAVNA NUMERACIJA
+        // Generiši broj dokumenta
         let documentPrefix;
-        
         switch(tipDokumenta.toLowerCase()) {
-            case 'ponuda':
-                documentPrefix = 'ponuda';
-                break;
-            case 'predracun':
-                documentPrefix = 'predracun';
-                break;
-            case 'otpremnica':
-                documentPrefix = 'otpremnica';
-                break;
-            case 'kalkulacija':
-                documentPrefix = 'kalkulacija';
-                break;
+            case 'ponuda': documentPrefix = 'ponuda'; break;
+            case 'predracun': documentPrefix = 'predracun'; break;
+            case 'otpremnica': documentPrefix = 'otpremnica'; break;
+            case 'kalkulacija': documentPrefix = 'kalkulacija'; break;
             default:
                 await db.query('ROLLBACK');
                 return res.status(400).json({ error: "Nepoznat tip dokumenta." });
         }
         
-        // Dobij poslednji broj za ovaj tip dokumenta
         const countResult = await db.query(
             `SELECT COUNT(*) as count 
              FROM dokumenti 
@@ -2240,13 +2229,12 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
         const nextNumber = parseInt(countResult.rows[0].count) + 1;
         const documentNumber = `${documentPrefix} ${nextNumber}`;
         
-        // Obradi artikle i ažuriraj lager
+        // Obradi artikle
         const processedArtikli = [];
         let totalKolicina = 0;
         let lagerUpdateErrors = [];
 
         for (const artikal of artikli) {
-            // ISPRAVLJEN UPIT - koristi "JM" umesto JM jer je kolona u bazi velika slova
             const lagerResult = await db.query(
                 'SELECT sifra, naziv, "JM", kolicina, "cena_bez_PDV", "cena_sa_PDV" FROM lager WHERE sifra = $1',
                 [artikal.sifra]
@@ -2260,7 +2248,7 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
             const lagerArtikal = lagerResult.rows[0];
             const requestedQuantity = parseFloat(artikal.kolicina) || 0;
             
-            // Za otpremnicu i kalkulaciju, uvek oduzmi sa lagera
+            // Za otpremnicu i kalkulaciju, oduzmi sa lagera
             if (['otpremnica', 'kalkulacija'].includes(tipDokumenta.toLowerCase())) {
                 await db.query(
                     'UPDATE lager SET kolicina = kolicina - $1 WHERE sifra = $2',
@@ -2268,20 +2256,20 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
                 );
             }
             
-            // ISPRAVKA - koristi lagerArtikal.JM (veliko slovo) iz baze
+            // Čuvaj ORIGINALNE cene iz lagera
             processedArtikli.push({
                 sifra: artikal.sifra,
                 naziv: lagerArtikal.naziv,
                 jm: lagerArtikal.JM || 'kom',
                 kolicina: requestedQuantity,
                 cena_bez_pdv: parseFloat(lagerArtikal.cena_bez_PDV) || 0,
-                cena_sa_pdv: parseFloat(lagerArtikal.cena_sa_PDV) || 0
+                cena_sa_pdv: parseFloat(lagerArtikal.cena_sa_PDV) || 0,
+                rabat: parseFloat(artikal.rabat) || 0
             });
             
             totalKolicina += requestedQuantity;
         }
 
-        // Ako ima grešaka sa lagerom, prekini transakciju
         if (lagerUpdateErrors.length > 0) {
             await db.query('ROLLBACK');
             return res.status(400).json({ 
@@ -2295,20 +2283,51 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
             return res.status(400).json({ error: "Nijedan artikal nije uspešno obrađen." });
         }
         
-        // Kreiraj string artikala za dokumenti tabelu
+        // String artikala
         const artikliString = processedArtikli.map(item => 
             `${item.sifra} - ${item.naziv} (${item.kolicina} ${item.jm})`
         ).join(', ');
         
-        // Kalkulacije za iznose
-        const rabatValue = parseFloat(rabat) || 0;
-        const calculatedUkupanIznos = {
-            iznosBezPdv: parseFloat(req.body.ukupnoBezPdv) || 0,
-            iznosSaPdv: parseFloat(req.body.ukupnoSaPdv) || 0,
-            pdvIznos: parseFloat(req.body.ukupanPdv) || 0
-        };
+        // KALKULACIJA - Čuva originalnu cenu, računa sa rabatom
+        let totalBezPdvBEZRabata = 0;  // Ovo ide u bazu
+        let totalBezPdvSARabatom = 0;  // Ovo je za PDV kalkulaciju
+        let totalPdv = 0;
+        let totalSaPdv = 0;
+        let sumaRabata = 0;
+
+        processedArtikli.forEach(artikal => {
+            const kolicina = parseFloat(artikal.kolicina) || 0;
+            const cenaBezPdv = parseFloat(artikal.cena_bez_pdv) || 0;
+            const rabat = parseFloat(artikal.rabat) || 0;
+            
+            // Ukupno BEZ rabata (originalno)
+            const iznosBezPdvOriginal = cenaBezPdv * kolicina;
+            
+            // Iznos rabata
+            const rabatIznos = iznosBezPdvOriginal * (rabat / 100);
+            
+            // Ukupno SA rabatom
+            const iznosBezPdvSaRabatom = iznosBezPdvOriginal - rabatIznos;
+            
+            // PDV se računa NA CENU SA RABATOM
+            const pdvIznos = iznosBezPdvSaRabatom * 0.21;
+            
+            // Konačan iznos sa PDV
+            const iznosSaPdv = iznosBezPdvSaRabatom + pdvIznos;
+            
+            totalBezPdvBEZRabata += iznosBezPdvOriginal;  // 3.36 (u bazu)
+            totalBezPdvSARabatom += iznosBezPdvSaRabatom; // 3.024
+            totalPdv += pdvIznos;                          // 0.635
+            totalSaPdv += iznosSaPdv;                      // 3.66
+            sumaRabata += rabat;
+        });
+
+        // Prosečan rabat
+        const prosecniRabat = processedArtikli.length > 0 
+            ? sumaRabata / processedArtikli.length 
+            : 0;
         
-        // Nadji naziv partnera po šifri
+        // Nađi naziv partnera
         const partnerRes = await db.query(
             'SELECT "Naziv_partnera" FROM partneri WHERE "Sifra" = $1',
             [partner]
@@ -2321,7 +2340,7 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
 
         const partnerNaziv = partnerRes.rows[0].Naziv_partnera;
 
-        // Upisi dokument
+        // Upiši u bazu - iznos_bez_pdv je ORIGINALNA cena (BEZ rabata)
         const documentResult = await db.query(
             `INSERT INTO dokumenti (
                 datum, partner, tip_dokumenta, naziv_artikla, 
@@ -2334,37 +2353,22 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
                 documentNumber,
                 artikliString,
                 totalKolicina,
-                parseFloat(calculatedUkupanIznos.iznosBezPdv) || 0,
-                parseFloat(calculatedUkupanIznos.iznosSaPdv) || 0,
-                parseFloat(calculatedUkupanIznos.pdvIznos) || 0,
-                rabatValue,
+                parseFloat(totalBezPdvBEZRabata) || 0,  // 3.36 (ORIGINALNA)
+                parseFloat(totalSaPdv) || 0,             // 3.66 (SA PDV)
+                parseFloat(totalPdv) || 0,               // 0.635 (PDV iznos)
+                prosecniRabat,                           // 10% (procenat)
                 komercijalist_id
             ]
         );
 
         const documentId = documentResult.rows[0].id;
         
-        // Ažuriraj rabat partnera
-        try {
-            await db.query(
-                'UPDATE partneri SET rabat = $1 WHERE "Sifra" = $2',
-                [rabatValue, partner]
-            );
-        } catch (e) {
-            console.error("Greška pri ažuriranju rabata partnera:", e.message);
-        }
-        
-        // Proveri da li je partner nov
-        const existingPartnerCheck = await db.query(
-            'SELECT COUNT(*) as count FROM dokumenti WHERE partner = $1 AND id < $2', 
-            [partnerNaziv, documentId]
-        );
-        
-        const isNewPartner = parseInt(existingPartnerCheck.rows[0].count) === 0;
-        
         await db.query('COMMIT');
 
-        console.log(`Document created: ${documentNumber}, Partner: ${partnerNaziv}, Amount: €${calculatedUkupanIznos.iznosSaPdv}`);
+        console.log(`Document created: ${documentNumber}, Partner: ${partnerNaziv}`);
+        console.log(`  Original price: €${totalBezPdvBEZRabata.toFixed(2)}`);
+        console.log(`  With discount: €${totalBezPdvSARabatom.toFixed(2)} (${prosecniRabat.toFixed(1)}% off)`);
+        console.log(`  Final with PDV: €${totalSaPdv.toFixed(2)}`);
         
         res.json({ 
             success: true, 
@@ -2373,8 +2377,7 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
             message: `${tipDokumenta} je uspešno kreiran/a`,
             komercijalist: komercijalist.ime_prezime,
             processedItems: processedArtikli.length,
-            lagerUpdated: ['otpremnica', 'kalkulacija'].includes(tipDokumenta.toLowerCase()),
-            newPartner: isNewPartner
+            lagerUpdated: ['otpremnica', 'kalkulacija'].includes(tipDokumenta.toLowerCase())
         });
         
     } catch (error) {
@@ -2383,7 +2386,6 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
         res.status(500).json({ error: "Greška pri kreiranju dokumenta: " + error.message });
     } 
 });
-
 app.get("/api/pravljenjedokumenta/dokumenti", async (req, res) => {
     try {
         const { 
@@ -2493,7 +2495,147 @@ app.get("/api/pravljenjedokumenta/stats", async (req, res) => {
         res.status(500).json({ error: "Greška pri dohvatanju statistika." });
     }
 });
-// API za ažuriranje rabata partnera
+// GET - Dobij rabat za partnera i artikal
+app.get("/api/rabat/:partnerSifra/:artikalSifra", async (req, res) => {
+    try {
+        const { partnerSifra, artikalSifra } = req.params;
+        
+        const result = await db.query(
+            'SELECT rabat FROM partner_artikal_rabat WHERE partner_sifra = $1 AND artikal_sifra = $2',
+            [partnerSifra, artikalSifra]
+        );
+        
+        if (result.rows.length > 0) {
+            res.json({ 
+                success: true, 
+                rabat: parseFloat(result.rows[0].rabat) 
+            });
+        } else {
+            // Ako nema sačuvanog rabata, vrati 0
+            res.json({ 
+                success: true, 
+                rabat: 0 
+            });
+        }
+    } catch (error) {
+        console.error("Error fetching rabat:", error);
+        res.status(500).json({ error: "Greška pri dohvatanju rabata." });
+    }
+});
+
+app.post("/api/rabat", async (req, res) => {
+    try {
+        const { partnerSifra, artikalSifra, rabat } = req.body;
+        
+        if (!partnerSifra || !artikalSifra) {
+            return res.status(400).json({ 
+                error: "Partner šifra i artikal šifra su obavezni." 
+            });
+        }
+        
+        const rabatValue = parseFloat(rabat) || 0;
+        
+        if (rabatValue < 0 || rabatValue > 100) {
+            return res.status(400).json({ 
+                error: "Rabat mora biti između 0 i 100." 
+            });
+        }
+        
+        // UPSERT (insert ili update ako već postoji)
+        await db.query(`
+            INSERT INTO partner_artikal_rabat (partner_sifra, artikal_sifra, rabat, poslednja_izmena)
+            VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+            ON CONFLICT (partner_sifra, artikal_sifra) 
+            DO UPDATE SET rabat = $3, poslednja_izmena = CURRENT_TIMESTAMP
+        `, [partnerSifra, artikalSifra, rabatValue]);
+        
+        res.json({ 
+            success: true, 
+            message: "Rabat je uspešno sačuvan.",
+            rabat: rabatValue
+        });
+        
+    } catch (error) {
+        console.error("Error saving rabat:", error);
+        res.status(500).json({ error: "Greška pri čuvanju rabata." });
+    }
+});
+
+// API - Dobij sve rabate za partnera (POSTOJEĆA RUTA - BEZ IZMENA)
+app.get("/api/rabat/partner/:partnerSifra", async (req, res) => {
+    try {
+        const { partnerSifra } = req.params;
+        
+        const result = await db.query(`
+            SELECT 
+                par.artikal_sifra,
+                par.rabat,
+                l.naziv,
+                par.poslednja_izmena
+            FROM partner_artikal_rabat par
+            LEFT JOIN lager l ON l.sifra = par.artikal_sifra
+            WHERE par.partner_sifra = $1
+            ORDER BY par.poslednja_izmena DESC
+        `, [partnerSifra]);
+        
+        res.json({ 
+            success: true, 
+            rabati: result.rows 
+        });
+        
+    } catch (error) {
+        console.error("Error fetching partner rabati:", error);
+        res.status(500).json({ error: "Greška pri dohvatanju rabata partnera." });
+    }
+});
+// GET - Uzmi dokument sa INDIVIDUALNIM RABATIMA po artiklima
+app.get("/api/dokumenti/:id/artikli-sa-rabatima", async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const dokumentResult = await db.query('SELECT * FROM dokumenti WHERE id = $1', [id]);
+        if (dokumentResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Dokument nije pronađen' });
+        }
+        
+        const dokument = dokumentResult.rows[0];
+        
+        // Nađi partnera
+        const partnerRes = await db.query(
+            'SELECT "Sifra" FROM partneri WHERE "Naziv_partnera" = $1',
+            [dokument.partner]
+        );
+        
+        const partnerSifra = partnerRes.rows.length > 0 ? partnerRes.rows[0].Sifra : null;
+        
+        // Parsiraj artikle
+        const artikli = parseArtikliFromDokument(dokument);
+        
+        // Dodaj INDIVIDUALNE rabate za svaki artikal
+        for (let artikal of artikli) {
+            if (partnerSifra && artikal.sifra !== 'N/A') {
+                const rabatResult = await db.query(
+                    'SELECT rabat FROM partner_artikal_rabat WHERE partner_sifra = $1 AND artikal_sifra = $2',
+                    [partnerSifra, artikal.sifra]
+                );
+                
+                artikal.rabat = rabatResult.rows.length > 0 ? parseFloat(rabatResult.rows[0].rabat) : 0;
+            } else {
+                artikal.rabat = 0;
+            }
+        }
+        
+        res.json({
+            success: true,
+            dokument: dokument,
+            artikli: artikli
+        });
+        
+    } catch (error) {
+        console.error("Error fetching dokument artikli sa rabatima:", error);
+        res.status(500).json({ error: "Greška pri dohvatanju dokumenta." });
+    }
+});
 app.put("/api/partneri/:sifra/rabat", async (req, res) => {
     try {
         const { sifra } = req.params;
@@ -2811,12 +2953,11 @@ app.get('/api/prometrobe/by-partner', async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 });
-// Prikaz svih dokumenata sa podacima za filtere
 // GET - Prikaz svih dokumenata SA MOGUĆNOŠĆU IZMENE
 app.get("/dokumenti", async (req, res) => {
     try {
         // Uzmi sve dokumente
-        const dokumenti = (await db.query('SELECT * FROM dokumenti ORDER BY datum DESC, id')).rows;
+        const dokumenti = (await db.query('SELECT * FROM dokumenti ORDER BY id DESC')).rows;
         
         // Uzmi jedinstvene partnere za filter
         const partneri = (await db.query('SELECT DISTINCT partner FROM dokumenti ORDER BY partner')).rows.map(row => row.partner);
@@ -2905,7 +3046,7 @@ app.put("/api/dokumenti/:id", async (req, res) => {
             `${a.sifra} - ${a.naziv} (${a.kolicina} ${a.jm})`
         ).join(', ');
         
-        // Kalkulacije
+        // Kalkulacije - ISPRAVLJENA LOGIKA
         let totalKolicina = 0;
         let totalBezPdv = 0;
         let totalSaPdv = 0;
@@ -2914,16 +3055,20 @@ app.put("/api/dokumenti/:id", async (req, res) => {
         
         artikli.forEach(a => {
             const kol = parseFloat(a.kolicina) || 0;
-            const cenaBezPdv = parseFloat(a.cena_bez_pdv) || 0;
-            const cenaSaPdv = parseFloat(a.cena_sa_pdv) || 0;
+            const cenaBezPdv = parseFloat(a.cena_bez_pdv) || 0;  // ORIGINALNA CENA
+            const cenaSaPdv = parseFloat(a.cena_sa_pdv) || 0;    // ORIGINALNA CENA sa PDV
             const rabat = parseFloat(a.rabat) || 0;
             
+            // Ukupno BEZ rabata
             const iznosBezPdvBefore = cenaBezPdv * kol;
-            const rabatAmount = iznosBezPdvBefore * (rabat / 100);
-            const iznosBezPdv = iznosBezPdvBefore - rabatAmount;
-            
             const iznosSaPdvBefore = cenaSaPdv * kol;
+            
+            // Rabat iznos
+            const rabatAmount = iznosBezPdvBefore * (rabat / 100);
             const rabatAmountSaPdv = iznosSaPdvBefore * (rabat / 100);
+            
+            // Ukupno SA rabatom
+            const iznosBezPdv = iznosBezPdvBefore - rabatAmount;
             const iznosSaPdv = iznosSaPdvBefore - rabatAmountSaPdv;
             
             const pdv = iznosSaPdv - iznosBezPdv;
@@ -3048,6 +3193,17 @@ app.get("/dokumenti/:id", async (req, res) => {
     }
 });
 
+// DELETE - Obriši dokument
+app.delete("/dokumenti/:id", async (req, res) => {
+    const id = req.params.id;
+    try {
+        await db.query('DELETE FROM dokumenti WHERE id = $1', [id]);
+        res.sendStatus(200);
+    } catch (error) {
+        console.error("Error deleting dokument:", error);
+        res.status(500).send("Greška pri brisanju dokumenta.");
+    }
+});
 // Dodaj dokument
 app.post("/dokumenti", async (req, res) => {
     const d = req.body;
@@ -3127,17 +3283,7 @@ app.put("/dokumenti/:id", async (req, res) => {
     }
 });
 
-// Obriši dokument
-app.delete("/dokumenti/:id", async (req, res) => {
-    const id = req.params.id;
-    try {
-        await db.query('DELETE FROM dokumenti WHERE id = $1', [id]);
-        res.sendStatus(200);
-    } catch (error) {
-        console.error("Error deleting dokument:", error);
-        res.status(500).send("Greška pri brisanju dokumenta.");
-    }
-});
+
 
 // API endpoint za filtriranje dokumenata
 app.get("/api/dokumenti/filter", async (req, res) => {
@@ -3197,17 +3343,17 @@ app.get("/api/dokumenti/count", async (req, res) => {
         // Različiti paterni za različite tipove dokumenata
         switch(type) {
             case 'predracun':
-                documentTypePattern = 'Predračun%';
+                documentTypePattern = 'predračun%';
                 break;
             case 'kalkulacija':
-                documentTypePattern = 'Kalkulacija%';
+                documentTypePattern = 'kalkulacija%';
                 break;
             case 'ponuda':
-                documentTypePattern = 'Ponuda%';
+                documentTypePattern = 'ponuda%';
                 break;
             case 'otpremnica':
             default:
-                documentTypePattern = 'Otpremnica%';
+                documentTypePattern = 'otpremnica%';
                 break;
         }
         
@@ -3236,23 +3382,28 @@ app.get("/api/artikli/autocomplete", async (req, res) => {
             return res.json([]);
         }
         
+        // KLJUČNA PROMENA: Uzmi cene iz LAGER tabele, ne iz artikli
         const result = await db.query(
-            `SELECT sifra, naziv, "JM", "cena_bez_PDV", "cena_sa_PDV" 
-             FROM lager 
-             WHERE LOWER(naziv) LIKE LOWER($1) 
-                OR CAST(sifra AS TEXT) LIKE $2
-             ORDER BY naziv
+            `SELECT 
+                l.sifra, 
+                l.naziv, 
+                l.jm as "JM", 
+                l.cena_bez_PDV, 
+                l.cena_sa_PDV 
+             FROM lager l
+             WHERE LOWER(l.naziv) LIKE LOWER($1) 
+                OR CAST(l.sifra AS TEXT) LIKE $2
+             ORDER BY l.naziv
              LIMIT 20`,
             [`%${query}%`, `%${query}%`]
         );
         
-        // Normalizuj nazive kolona za frontend
         const normalizedRows = result.rows.map(row => ({
             sifra: row.sifra,
             naziv: row.naziv,
-            jm: row.JM,
-            cena_bez_pdv: parseFloat(row.cena_bez_PDV || 0),
-            cena_sa_pdv: parseFloat(row.cena_sa_PDV || 0)
+            jm: row.JM || row.jm,
+            cena_bez_pdv: parseFloat(row.cena_bez_PDV || row.cena_bez_pdv || 0),
+            cena_sa_pdv: parseFloat(row.cena_sa_PDV || row.cena_sa_pdv || 0)
         }));
         
         console.log(`Autocomplete found ${normalizedRows.length} results for query: ${query}`);

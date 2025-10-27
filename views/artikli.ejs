@@ -1137,15 +1137,66 @@
             });
         }
 
-        // Fill form with article data
-        function fillForm(article) {
-            articleIdInput.value = article.sifra;
-            document.getElementById('sifra').value = article.sifra;
-            document.getElementById('naziv-artikla').value = article.naziv;
-            document.getElementById('jm').value = article.jm;
-            document.getElementById('cena').value = article.cena || '';
-            document.getElementById('vrsta-artikla').value = article.vrsta;
+// Fill form with article data - UPDATED za automatsko preuzimanje cene iz lager tabele
+async function fillForm(article) {
+    articleIdInput.value = article.sifra;
+    document.getElementById('sifra').value = article.sifra;
+    document.getElementById('naziv-artikla').value = article.naziv;
+    document.getElementById('jm').value = article.jm;
+    document.getElementById('vrsta-artikla').value = article.vrsta;
+    
+    // Uvek koristi cenu iz lager tabele
+    try {
+        const lagerResponse = await fetch(`/lager/sifra/${article.sifra}`);
+        if (lagerResponse.ok) {
+            const lagerArtikal = await lagerResponse.json();
+            if (lagerArtikal.cena_sa_PDV !== undefined && lagerArtikal.cena_sa_PDV !== null) {
+                document.getElementById('cena').value = parseFloat(lagerArtikal.cena_sa_PDV).toFixed(2);
+                return;
+            }
         }
+    } catch (error) {
+        console.log('Greška pri preuzimanju cene iz lager tabele:', error);
+    }
+    
+    // Fallback: koristi cenu iz artikli tabele ako lager nije dostupan
+    document.getElementById('cena').value = article.cena || '';
+}
+// Initialize sa automatskom sinhronizacijom
+document.addEventListener('DOMContentLoaded', function() {
+    attachActionListeners();
+    
+    // Automatska sinhronizacija u pozadini pri učitavanju stranice
+    setTimeout(() => {
+        fetch('/api/artikli/sync-prices-auto', { method: 'GET' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Auto-sync on load:', data.message);
+                    // Osveži prikaz ako je bilo izmena
+                    if (data.updatedCount > 0) {
+                        console.log('Osvežavam prikaz zbog izmena u cenama');
+                        // Možete dodati automatsko osvežavanje ako želite:
+                        // location.reload();
+                    }
+                }
+            })
+            .catch(error => console.log('Auto-sync on load failed:', error));
+    }, 1000);
+    
+    // Auto collapse sidebar on medium screens on load
+    if (window.innerWidth <= 992 && window.innerWidth > 576) {
+        sidebar.classList.add('collapsed');
+        mainContent.classList.add('expanded');
+        header.classList.add('expanded');
+        sidebarIcon.classList.remove('fa-chevron-left');
+        sidebarIcon.classList.add('fa-chevron-right');
+    }
+    
+    console.log('Tehnolux Artikli panel initialized - Auto price sync enabled');
+});
+// Uklonite event listener za sync dugme
+// document.getElementById('sync-prices-btn').addEventListener('click', ...);
 
         // Clear form
         function clearForm() {

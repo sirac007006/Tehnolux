@@ -1020,30 +1020,43 @@ app.get("/karticekupca", async (req, res) => {
     res.render("karticakupca.ejs");
 });
 
-// ARTIKLI ROUTES - UPDATED FOR SIMPLIFIED STRUCTURE (only 4 columns)
-
-// Prikaz svih artikala
-// ARTIKLI ROUTES - UPDATED FOR CONSISTENT COLUMN NAMING (sifra, naziv, jm, vrsta)
-
-// ARTIKLI ROUTES - Complete CRUD operations with price column
-
-// Get all articles - EJS view
-// Lista svih artikala (HTML stranica)
 app.get("/artikli", async (req, res) => {
     try {
+        // Prvo izvrši automatsku sinhronizaciju cena
+        try {
+            const syncResponse = await fetch(`http://localhost:${port}/api/artikli/sync-prices-auto`);
+            if (syncResponse.ok) {
+                const syncData = await syncResponse.json();
+                console.log('Auto-sync result:', syncData.message);
+            }
+        } catch (syncError) {
+            console.log('Auto-sync skipped or failed:', syncError.message);
+        }
+
+        // Zatim uzmi ažurirane podatke
         const artikli = (await db.query(
             'SELECT * FROM "artikli" ORDER BY "sifra"'
         )).rows;
+        
         res.render("artikli.ejs", { artikli });
     } catch (error) {
         console.error("Error fetching artikli:", error);
         res.status(500).send("Greška pri dohvatanju artikala.");
     }
 });
-
-// API endpoint za artikle (JSON response)
 app.get("/api/artikli", async (req, res) => {
     try {
+        // Prvo izvrši automatsku sinhronizaciju
+        try {
+            const syncResponse = await fetch(`http://localhost:${port}/api/artikli/sync-prices-auto`);
+            if (syncResponse.ok) {
+                const syncData = await syncResponse.json();
+                console.log('API Auto-sync result:', syncData.message);
+            }
+        } catch (syncError) {
+            console.log('API Auto-sync skipped:', syncError.message);
+        }
+
         const artikli = (await db.query(
             'SELECT * FROM "artikli" ORDER BY "sifra"'
         )).rows;
@@ -1058,23 +1071,58 @@ app.get("/api/artikli", async (req, res) => {
 app.get("/artikli/:sifra", async (req, res) => {
     try {
         const { sifra } = req.params;
-        const result = await db.query(
-            'SELECT * FROM "artikli" WHERE "sifra" = $1',
+        
+        // Prvo pokušaj da dobiješ podatke iz lager tabele (glavni izvor cene)
+        const lagerResult = await db.query(
+            'SELECT sifra, naziv, "JM" as jm, "cena_sa_PDV" as cena FROM lager WHERE sifra = $1',
             [sifra]
         );
 
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Artikal nije pronađen." });
-        }
+        if (lagerResult.rows.length > 0) {
+            const lagerArtikal = lagerResult.rows[0];
+            
+            // Proveri da li postoji u artikli tabeli i uzmi vrstu artikla
+            const artikalResult = await db.query(
+                'SELECT vrsta FROM artikli WHERE sifra = $1',
+                [sifra]
+            );
+            
+            const artikal = {
+                sifra: lagerArtikal.sifra,
+                naziv: lagerArtikal.naziv,
+                jm: lagerArtikal.jm,
+                cena: parseFloat(lagerArtikal.cena) || 0,
+                vrsta: artikalResult.rows.length > 0 ? artikalResult.rows[0].vrsta : 'Ostalo'
+            };
+            
+            // Ažuriraj artikli tabelu sa cenom iz lager tabele
+            if (artikalResult.rows.length > 0) {
+                await db.query(
+                    'UPDATE artikli SET cena = $1 WHERE sifra = $2',
+                    [artikal.cena, sifra]
+                );
+            }
+            
+            return res.json(artikal);
+        } else {
+            // Ako ne postoji u lageru, pokušaj iz artikli tabele
+            const artikalResult = await db.query(
+                'SELECT * FROM artikli WHERE sifra = $1',
+                [sifra]
+            );
 
-        res.json(result.rows[0]);
+            if (artikalResult.rows.length === 0) {
+                return res.status(404).json({ error: "Artikal nije pronađen." });
+            }
+
+            return res.json(artikalResult.rows[0]);
+        }
     } catch (error) {
         console.error("Error fetching article:", error);
         res.status(500).json({ error: "Greška pri dohvatanju artikla." });
     }
 });
 
-// Create new article
 app.post("/artikli", async (req, res) => {
     try {
         const { sifra, naziv, jm, cena, vrsta } = req.body;
@@ -1103,23 +1151,54 @@ app.post("/artikli", async (req, res) => {
             });
         }
 
+        await db.query('BEGIN');
+
+        // Ubaci u artikli tabelu
         const result = await db.query(
             'INSERT INTO "artikli" ("sifra", "naziv", "jm", "cena", "vrsta") VALUES ($1, $2, $3, $4, $5) RETURNING *',
             [sifra.trim(), naziv.trim(), jm.trim(), priceValue, vrsta.trim()]
         );
 
+        // Izračunaj cenu bez PDV-a (cena_sa_PDV / 1.21)
+        const cenaBezPDV = priceValue / 1.21;
+
+        // Sinhronizuj sa lager tabelom - SA automatskim izračunavanjem cene bez PDV-a
+        const existingLager = await db.query(
+            'SELECT sifra FROM lager WHERE sifra = $1',
+            [sifra]
+        );
+
+        if (existingLager.rows.length > 0) {
+            // Ažuriraj postojeći zapis u lageru
+            await db.query(
+                'UPDATE lager SET naziv = $1, "JM" = $2, "cena_bez_PDV" = $3, "cena_sa_PDV" = $4, updated_at = CURRENT_TIMESTAMP WHERE sifra = $5',
+                [naziv.trim(), jm.trim(), cenaBezPDV, priceValue, sifra]
+            );
+        } else {
+            // Kreiraj novi zapis u lageru - SA automatskim izračunavanjem cene bez PDV-a
+            await db.query(
+                `INSERT INTO lager (sifra, naziv, "JM", kolicina, "cena_bez_PDV", "cena_sa_PDV", updated_at)
+                VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)`,
+                [sifra, naziv.trim(), jm.trim(), 0, cenaBezPDV, priceValue]
+            );
+        }
+
+        await db.query('COMMIT');
+
         res.status(201).json({
-            message: "Artikal je uspešno kreiran.",
-            article: result.rows[0]
+            message: "Artikal je uspešno kreiran i sinhronizovan sa lagerom.",
+            article: result.rows[0],
+            cenaBezPDV: cenaBezPDV.toFixed(2),
+            cenaSaPDV: priceValue.toFixed(2)
         });
 
     } catch (error) {
+        await db.query('ROLLBACK');
         console.error("Error creating article:", error);
         res.status(500).json({ error: "Greška pri kreiranju artikla." });
     }
 });
 
-// Update existing article
 app.put("/artikli/:sifra", async (req, res) => {
     try {
         const { sifra } = req.params;
@@ -1149,21 +1228,53 @@ app.put("/artikli/:sifra", async (req, res) => {
             });
         }
 
+        await db.query('BEGIN');
+
         const result = await db.query(
             'UPDATE "artikli" SET "naziv" = $1, "jm" = $2, "cena" = $3, "vrsta" = $4 WHERE "sifra" = $5 RETURNING *',
             [naziv.trim(), jm.trim(), priceValue, vrsta.trim(), sifra]
         );
 
+        // Izračunaj cenu bez PDV-a (cena_sa_PDV / 1.21)
+        const cenaBezPDV = priceValue / 1.21;
+
+        // Sinhronizuj sa lager tabelom - SA automatskim izračunavanjem cene bez PDV-a
+        const existingLager = await db.query(
+            'SELECT sifra FROM lager WHERE sifra = $1',
+            [sifra]
+        );
+
+        if (existingLager.rows.length > 0) {
+            // Ažuriraj postojeći zapis u lageru
+            await db.query(
+                'UPDATE lager SET naziv = $1, "JM" = $2, "cena_bez_PDV" = $3, "cena_sa_PDV" = $4, updated_at = CURRENT_TIMESTAMP WHERE sifra = $5',
+                [naziv.trim(), jm.trim(), cenaBezPDV, priceValue, sifra]
+            );
+        } else {
+            // Kreiraj novi zapis u lageru - SA automatskim izračunavanjem cene bez PDV-a
+            await db.query(
+                `INSERT INTO lager (sifra, naziv, "JM", kolicina, "cena_bez_PDV", "cena_sa_PDV", updated_at)
+                VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)`,
+                [sifra, naziv.trim(), jm.trim(), 0, cenaBezPDV, priceValue]
+            );
+        }
+
+        await db.query('COMMIT');
+
         res.json({
-            message: "Artikal je uspešno ažuriran.",
-            article: result.rows[0]
+            message: "Artikal je uspešno ažuriran i sinhronizovan sa lagerom.",
+            article: result.rows[0],
+            cenaBezPDV: cenaBezPDV.toFixed(2),
+            cenaSaPDV: priceValue.toFixed(2)
         });
 
     } catch (error) {
+        await db.query('ROLLBACK');
         console.error("Error updating article:", error);
         res.status(500).json({ error: "Greška pri ažuriranju artikla." });
     }
 });
+
 
 // Delete article
 app.delete("/artikli/:sifra", async (req, res) => {
@@ -1266,7 +1377,48 @@ app.delete("/api/artikli/bulk", async (req, res) => {
         res.status(500).json({ error: "Greška pri brisanju artikala." });
     }
 });
+// Middleware za automatsku sinhronizaciju cena artikala
+app.use('/artikli', async (req, res, next) => {
+    if (req.method === 'GET' && !req.path.includes('/api/artikli/sync-prices')) {
+        try {
+            // Pozovi automatsku sinhronizaciju u pozadini
+            fetch(`http://localhost:${port}/api/artikli/sync-prices-auto`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Background auto-sync:', data.message);
+                })
+                .catch(err => {
+                    console.log('Background auto-sync failed:', err.message);
+                });
+        } catch (error) {
+            console.log('Background auto-sync error:', error.message);
+        }
+    }
+    next();
+});
+// Efikasnija automatska sinhronizacija za pozadinsko izvršavanje
+app.get("/api/artikli/background-sync", async (req, res) => {
+    try {
+        // Ova ruta se može pozvati iz cron job-a ili pozadinski
+        const result = await db.query(`
+            UPDATE artikli 
+            SET cena = l."cena_sa_PDV"
+            FROM lager l 
+            WHERE artikli.sifra = l.sifra 
+            AND (artikli.cena IS NULL OR artikli.cena != l."cena_sa_PDV")
+        `);
 
+        res.json({
+            success: true,
+            message: `Pozadinska sinhronizacija završena. Ažurirano: ${result.rowCount} artikala.`,
+            updatedCount: result.rowCount
+        });
+
+    } catch (error) {
+        console.error("Error in background sync:", error);
+        res.status(500).json({ error: "Greška pri pozadinskoj sinhronizaciji." });
+    }
+});
 // Export articles to CSV
 app.get("/api/artikli/export/csv", async (req, res) => {
     try {
@@ -1387,130 +1539,155 @@ app.get("/lager/sifra/:sifra", async(req, res) => {
     }
 });
 
-// Dodaj novi lager artikal
 app.post("/lager", async (req, res) => {
-    const l = req.body;
-    try {
-        // Validacija obaveznih polja
-        if (!l.sifra || !l.naziv || !l.jm || l.cena_bez_pdv === undefined || l.cena_sa_pdv === undefined) {
-            return res.status(400).json({ 
-                error: "Šifra, naziv, jedinica mere i cene su obavezni." 
-            });
-        }
+  try {
+    console.log("POST /lager body:", req.body);
 
-        // Proveri da li šifra već postoji
-        const existingItem = await db.query('SELECT sifra FROM lager WHERE sifra = $1', [l.sifra]);
-        if (existingItem.rows.length > 0) {
-            return res.status(400).json({ error: "Artikal sa ovom šifrom već postoji u lageru." });
-        }
+    const {
+      sifra,
+      naziv,
+      jm,
+      kolicina,
+      cena_bez_PDV,
+      cena_sa_PDV,
+      cena_bez_pdv,
+      cena_sa_pdv
+    } = req.body;
 
-        // Parsiranje numeričkih vrednosti
-        const kolicina = parseFloat(l.kolicina) || 0;
-        const cena_bez_pdv = parseFloat(l.cena_bez_pdv);
-        const cena_sa_pdv = parseFloat(l.cena_sa_pdv);
-
-        // Validacija cena
-        if (cena_bez_pdv < 0 || cena_sa_pdv < 0) {
-            return res.status(400).json({ error: "Cene ne mogu biti negativne." });
-        }
-
-        if (kolicina < 0) {
-            return res.status(400).json({ error: "Količina ne može biti negativna." });
-        }
-
-        await db.query(
-            `INSERT INTO lager (sifra, naziv, jm, kolicina, cena_bez_PDV, cena_sa_PDV, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)`,
-            [l.sifra, l.naziv, l.jm, kolicina, cena_bez_pdv, cena_sa_pdv]
-        );
-
-        res.status(201).json({ 
-            message: "Lager artikal je uspešno dodat.", 
-            sifra: l.sifra 
-        });
-    } catch (error) {
-        console.error("Error adding lager item:", error);
-        if (error.code === '23505') { // PostgreSQL unique violation
-            res.status(400).json({ error: "Artikal sa ovom šifrom već postoji u lageru." });
-        } else {
-            res.status(500).json({ error: "Greška pri dodavanju lager artikla: " + error.message });
-        }
+    // ✅ Validacija osnovnih polja
+    if (!sifra || !naziv || !jm) {
+      return res.status(400).json({ error: "Šifra, naziv i jedinica mere su obavezni." });
     }
+
+    // ✅ Uzimamo ispravne vrednosti cene (bilo velika ili mala slova)
+    const cenaBezPDV = parseFloat(cena_bez_PDV ?? cena_bez_pdv);
+    const cenaSaPDV = parseFloat(cena_sa_PDV ?? cena_sa_pdv);
+
+    if (isNaN(cenaBezPDV) || isNaN(cenaSaPDV)) {
+      return res.status(400).json({ error: "Cene moraju biti validni brojevi." });
+    }
+
+    const kolicinaVal = parseFloat(kolicina) || 0;
+
+    // ✅ Proveri da li već postoji artikal
+    const existing = await db.query('SELECT * FROM lager WHERE sifra = $1', [sifra]);
+
+    if (existing.rows.length > 0) {
+      // Ako postoji — ažuriraj
+      await db.query(
+        `UPDATE lager
+         SET naziv = $1,
+             "JM" = $2,
+             "cena_bez_PDV" = $3,
+             "cena_sa_PDV" = $4,
+             "kolicina" = $5,
+             updated_at = NOW()
+         WHERE sifra = $6`,
+        [naziv, jm, cenaBezPDV, cenaSaPDV, kolicinaVal, sifra]
+      );
+      return res.json({ message: "Artikal uspešno ažuriran u lageru." });
+    } else {
+      // Ako ne postoji — ubaci novi
+      await db.query(
+        `INSERT INTO lager (sifra, naziv, "JM", "cena_bez_PDV", "cena_sa_PDV", "kolicina")
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [sifra, naziv, jm, cenaBezPDV, cenaSaPDV, kolicinaVal]
+      );
+      return res.status(201).json({ message: "Artikal uspešno dodat u lager." });
+    }
+  } catch (error) {
+    console.error("Greška u POST /lager:", error);
+    res.status(500).json({ error: "Greška pri radu sa lagerom: " + error.message });
+  }
 });
 
-// Izmeni lager artikal
+
 app.put("/lager/:id", async (req, res) => {
-    const id = req.params.id;
-    const l = req.body;
-    try {
-        // Validacija obaveznih polja
-        if (!l.naziv || !l.jm || l.cena_bez_pdv === undefined || l.cena_sa_pdv === undefined) {
-            return res.status(400).json({ 
-                error: "Naziv, jedinica mere i cene su obavezni." 
-            });
-        }
+  try {
+    const { id } = req.params;
+    const {
+      naziv,
+      jm,
+      kolicina,
+      cena_bez_PDV,
+      cena_sa_PDV,
+      cena_bez_pdv,
+      cena_sa_pdv
+    } = req.body;
 
-        // Proveri da li artikal postoji
-        const existingItem = await db.query('SELECT * FROM lager WHERE id = $1', [id]);
-        if (existingItem.rows.length === 0) {
-            return res.status(404).json({ error: "Lager artikal nije pronađen." });
-        }
+    console.log(`PUT /lager/${id} body:`, req.body);
 
-        // Parsiranje numeričkih vrednosti
-        const kolicina = parseFloat(l.kolicina) || 0;
-        const cena_bez_pdv = parseFloat(l.cena_bez_pdv);
-        const cena_sa_pdv = parseFloat(l.cena_sa_pdv);
-
-        // Validacija
-        if (cena_bez_pdv < 0 || cena_sa_pdv < 0) {
-            return res.status(400).json({ error: "Cene ne mogu biti negativne." });
-        }
-
-        if (kolicina < 0) {
-            return res.status(400).json({ error: "Količina ne može biti negativna." });
-        }
-
-        await db.query(
-            `UPDATE lager SET 
-                naziv = $1, jm = $2, kolicina = $3, 
-                cena_bez_PDV = $4, cena_sa_PDV = $5, updated_at = CURRENT_TIMESTAMP
-             WHERE id = $6`,
-            [l.naziv, l.jm, kolicina, cena_bez_pdv, cena_sa_pdv, id]
-        );
-
-        res.json({ message: "Lager artikal je uspešno ažuriran." });
-    } catch (error) {
-        console.error("Error updating lager item:", error);
-        res.status(500).json({ error: "Greška pri izmeni lager artikla: " + error.message });
+    if (!naziv || !jm) {
+      return res.status(400).json({ error: "Naziv i jedinica mere su obavezni." });
     }
+
+    const cenaBezPDV = parseFloat(cena_bez_PDV ?? cena_bez_pdv);
+    const cenaSaPDV = parseFloat(cena_sa_PDV ?? cena_sa_pdv);
+    if (isNaN(cenaBezPDV) || isNaN(cenaSaPDV)) {
+      return res.status(400).json({ error: "Cene moraju biti validni brojevi." });
+    }
+
+    const kolicinaVal = parseFloat(kolicina) || 0;
+
+    // Proveri da li artikal postoji
+    const existing = await db.query('SELECT * FROM lager WHERE sifra = $1', [id]);
+    if (existing.rows.length === 0) {
+      return res.status(404).json({ error: "Artikal sa tom šifrom nije pronađen." });
+    }
+
+    // Ažuriraj
+    await db.query(
+      `UPDATE lager
+       SET naziv = $1,
+           "JM" = $2,
+           "cena_bez_PDV" = $3,
+           "cena_sa_PDV" = $4,
+           "kolicina" = $5,
+           updated_at = NOW()
+       WHERE sifra = $6`,
+      [naziv, jm, cenaBezPDV, cenaSaPDV, kolicinaVal, id]
+    );
+
+    res.json({ message: "Artikal uspešno ažuriran u lageru." });
+  } catch (error) {
+    console.error("Greška u PUT /lager/:id:", error);
+    res.status(500).json({ error: "Greška pri ažuriranju artikla u lageru: " + error.message });
+  }
 });
 
-// Obrisi lager artikal
-app.delete("/lager/:id", async (req, res) => {
-    const id = req.params.id;
-    try {
-        // Proveri da li artikal postoji
-        const existingItem = await db.query('SELECT id FROM lager WHERE id = $1', [id]);
-        if (existingItem.rows.length === 0) {
-            return res.status(404).json({ error: "Lager artikal nije pronađen." });
-        }
 
-        await db.query('DELETE FROM lager WHERE id = $1', [id]);
-        res.json({ message: "Lager artikal je uspešno obrisan." });
-    } catch (error) {
-        console.error("Error deleting lager item:", error);
-        res.status(500).json({ error: "Greška pri brisanju lager artikla." });
+
+// Obrisi artikal sa lagera po sifri
+app.delete("/lager/:sifra", async (req, res) => {
+  try {
+    const { sifra } = req.params;
+
+    // prvo proveri da li postoji
+    const result = await db.query("SELECT * FROM lager WHERE sifra = $1", [sifra]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: `Artikal sa šifrom ${sifra} nije pronađen.` });
     }
+
+    // obrisi po sifri
+    await db.query("DELETE FROM lager WHERE sifra = $1", [sifra]);
+
+    res.json({ message: `Artikal sa šifrom ${sifra} uspešno obrisan.` });
+  } catch (error) {
+    console.error("Greška u DELETE /lager/:sifra:", error);
+    res.status(500).json({ error: "Greška pri brisanju artikla iz lagera." });
+  }
 });
 
-// Ažuriraj količinu lager artikla (za inventar)
+
+
+
 app.patch("/lager/:id/quantity", async (req, res) => {
     const id = req.params.id;
-    const { kolicina, operation } = req.body; // operation can be 'set', 'add', 'subtract'
+    const { kolicina, operation } = req.body;
     
     try {
-        if (kolicina === undefined || kolicina < 0) {
-            return res.status(400).json({ error: "Količina mora biti pozitivna." });
+        if (kolicina === undefined) {
+            return res.status(400).json({ error: "Količina je obavezna." });
         }
 
         // Uzmi trenutne podatke artikla
@@ -1528,9 +1705,6 @@ app.patch("/lager/:id/quantity", async (req, res) => {
                 break;
             case 'subtract':
                 newQuantity = parseFloat(item.kolicina) - parseFloat(kolicina);
-                if (newQuantity < 0) {
-                    return res.status(400).json({ error: "Količina ne može biti negativna." });
-                }
                 break;
             case 'set':
             default:
@@ -1538,6 +1712,7 @@ app.patch("/lager/:id/quantity", async (req, res) => {
                 break;
         }
 
+        // DOZVOLJAVAMO NEGATIVNE KOLIČINE - UKLONJENA PROVERA
         await db.query(
             'UPDATE lager SET kolicina = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
             [newQuantity, id]
@@ -1553,6 +1728,8 @@ app.patch("/lager/:id/quantity", async (req, res) => {
         res.status(500).json({ error: "Greška pri ažuriranju količine: " + error.message });
     }
 });
+
+
 
 // Pretraži lager po nazivu ili šifri
 app.get("/api/lager/search", async (req, res) => {
@@ -3465,7 +3642,45 @@ app.get("/api/artikli/autocomplete", async (req, res) => {
         res.status(500).json({ error: "Greška pri pretraživanju artikala." });
     }
 });
+// API route za automatsku sinhronizaciju cena iz lager tabele SA PDV kalkulacijom
+app.get("/api/artikli/sync-prices-auto", async (req, res) => {
+    try {
+        await db.query('BEGIN');
 
+        // Sinhronizuj cene iz lager tabele u artikli tabelu i ažuriraj cenu bez PDV-a
+        const syncResult = await db.query(`
+            UPDATE artikli 
+            SET cena = l."cena_sa_PDV"
+            FROM lager l 
+            WHERE artikli.sifra = l.sifra 
+            AND (artikli.cena IS NULL OR artikli.cena != l."cena_sa_PDV")
+            RETURNING artikli.sifra, artikli.cena as stara_cena, l."cena_sa_PDV" as nova_cena
+        `);
+
+        // Takođe ažuriraj cenu bez PDV-a u lager tabeli za sve artikle
+        const pdvUpdateResult = await db.query(`
+            UPDATE lager 
+            SET "cena_bez_PDV" = "cena_sa_PDV" / 1.21,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE "cena_sa_PDV" IS NOT NULL
+            RETURNING sifra, "cena_bez_PDV", "cena_sa_PDV"
+        `);
+
+        await db.query('COMMIT');
+
+        res.json({
+            success: true,
+            message: `Automatski sinhronizovano ${syncResult.rowCount} cena artikala i ažurirane cene bez PDV-a za ${pdvUpdateResult.rowCount} artikala.`,
+            updatedCount: syncResult.rowCount,
+            pdvUpdatedCount: pdvUpdateResult.rowCount
+        });
+
+    } catch (error) {
+        await db.query('ROLLBACK');
+        console.error("Error in auto-sync prices:", error);
+        res.status(500).json({ error: "Greška pri automatskoj sinhronizaciji cena." });
+    }
+});
 // API endpoint za dobijanje artikla po šifri
 app.get("/api/lager/sifra/:sifra", async (req, res) => {
     try {

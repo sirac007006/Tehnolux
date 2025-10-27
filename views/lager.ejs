@@ -826,6 +826,10 @@
         .sidebar-nav::-webkit-scrollbar-thumb:hover {
             background: rgba(255,255,255,0.5);
         }
+        .stock-status.danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
     </style>
 </head>
 <body>
@@ -1042,23 +1046,26 @@
                     </thead>
                     <tbody id="stock-tbody">
                         <% lagerArtikli.forEach(function(item) { 
-                            let qty = parseFloat(item.kolicina);
-                            let status, statusLabel;
-                            
-                            if (qty === 0) {
-                                status = 'out';
-                                statusLabel = 'Nema na stanju';
-                            } else if (qty <= 5) {
-                                status = 'low';
-                                statusLabel = 'Niske zalihe';
-                            } else if (qty <= 20) {
-                                status = 'medium';
-                                statusLabel = 'Srednje zalihe';
-                            } else {
-                                status = 'high';
-                                statusLabel = 'Visoke zalihe';
-                            }
-                        %>
+    let qty = parseFloat(item.kolicina);
+    let status, statusLabel;
+    
+    if (qty === 0) {
+        status = 'out';
+        statusLabel = 'Nema na stanju';
+    } else if (qty < 0) {
+        status = 'danger';
+        statusLabel = 'Negativno stanje';
+    } else if (qty <= 5) {
+        status = 'low';
+        statusLabel = 'Niske zalihe';
+    } else if (qty <= 20) {
+        status = 'medium';
+        statusLabel = 'Srednje zalihe';
+    } else {
+        status = 'high';
+        statusLabel = 'Visoke zalihe';
+    }
+%>
                         <tr data-sifra="<%= item.sifra %>" data-status="<%= status %>">
                             <td><%= item.sifra %></td>
                             <td title="<%= item.naziv %>"><%= item.naziv %></td>
@@ -1079,13 +1086,6 @@
                                             data-cena-sa="<%= item.cena_sa_PDV %>"
                                             title="Izmeni">
                                         <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-warning adjust-stock-btn" 
-                                            data-id="<%= item.id %>"
-                                            data-sifra="<%= item.sifra %>"
-                                            data-kolicina="<%= item.kolicina %>"
-                                            title="Podesi količinu">
-                                        <i class="fas fa-plus-minus"></i>
                                     </button>
                                     <button class="btn btn-sm btn-danger delete-stock-btn" 
                                             data-id="<%= item.id %>"
@@ -1152,7 +1152,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="stock-quantity">Količina:</label>
-                        <input type="number" class="form-control" id="stock-quantity" step="0.01" min="0" required>
+                        <input type="number" class="form-control" id="stock-quantity" step="1" required>
                     </div>
                 </div>
 
@@ -1368,7 +1368,7 @@
             if (e.target.closest('.edit-stock-btn')) {
                 const btn = e.target.closest('.edit-stock-btn');
                 const data = {
-                    id: btn.dataset.id,
+                    id: btn.dataset.sifra,
                     sifra: btn.dataset.sifra,
                     naziv: btn.dataset.naziv,
                     jm: btn.dataset.jm,
@@ -1388,71 +1388,20 @@
                 
                 if (adjustment !== null && !isNaN(adjustment)) {
                     const newQuantity = Math.max(0, currentQty + parseFloat(adjustment));
-                    updateQuantity(btn.dataset.id, newQuantity);
+                    updateQuantity(btn.dataset.sifra, newQuantity);
                 }
             }
             
             if (e.target.closest('.delete-stock-btn')) {
                 const btn = e.target.closest('.delete-stock-btn');
                 if (confirm(`Da li ste sigurni da želite da obrišete artikal ${btn.dataset.sifra}?`)) {
-                    deleteStock(btn.dataset.id);
+                    deleteStock(btn.dataset.sifra);
                 }
             }
         });
 
-        // Form submission
-        stockForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = {
-                sifra: document.getElementById('stock-code').value,
-                naziv: document.getElementById('stock-name').value,
-                jm: document.getElementById('stock-jm').value,
-                kolicina: parseFloat(document.getElementById('stock-quantity').value),
-                cena_bez_pdv: parseFloat(document.getElementById('stock-price-bez').value),
-                cena_sa_pdv: parseFloat(document.getElementById('stock-price-sa').value)
-            };
 
-            const stockId = document.getElementById('stock-id').value;
-            
-            try {
-                let response;
-                if (stockId) {
-                    // Update existing stock
-                    response = await fetch(`/lager/${stockId}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(formData)
-                    });
-                } else {
-                    // Add new stock
-                    response = await fetch('/lager', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(formData)
-                    });
-                }
 
-                const result = await response.json();
-                
-                if (response.ok) {
-                    stockModal.classList.remove('show');
-                    showMessage('Uspešno sačuvano!', 'success');
-                    setTimeout(() => window.location.reload(), 1000);
-                } else {
-                    showMessage(result.error || 'Greška pri čuvanju', 'error');
-                }
-            } catch (error) {
-                showMessage('Greška pri komunikaciji sa serverom', 'error');
-                console.error('Error:', error);
-            }
-        });
-
-        // Update quantity function
         async function updateQuantity(id, newQuantity) {
             try {
                 const response = await fetch(`/lager/${id}/quantity`, {
@@ -1482,24 +1431,23 @@
 
         // Delete stock function
         async function deleteStock(id) {
-            try {
-                const response = await fetch(`/lager/${id}`, {
-                    method: 'DELETE'
-                });
 
-                const result = await response.json();
-                
-                if (response.ok) {
-                    showMessage('Artikal uspešno obrisan!', 'success');
-                    setTimeout(() => window.location.reload(), 1000);
-                } else {
-                    showMessage(result.error || 'Greška pri brisanju', 'error');
-                }
-            } catch (error) {
-                showMessage('Greška pri komunikaciji sa serverom', 'error');
-                console.error('Error:', error);
-            }
+    try {
+        const response = await fetch(`/lager/${id}`, { method: 'DELETE' });
+        const result = await response.json();
+
+        if (response.ok) {
+            showMessage('Artikal uspešno obrisan!', 'success');
+            setTimeout(() => window.location.reload(), 800);
+        } else {
+            showMessage(result.error || 'Greška pri brisanju', 'error');
         }
+    } catch (error) {
+        showMessage('Greška pri komunikaciji sa serverom', 'error');
+        console.error('Error deleting stock:', error);
+    }
+}
+
 
         // Message display function
         function showMessage(message, type) {
@@ -1563,6 +1511,22 @@
             sidebarIcon.classList.remove('fa-chevron-left');
             sidebarIcon.classList.add('fa-chevron-right');
         }
+        // Funkcije za automatsko računanje PDV-a
+document.getElementById('stock-price-bez').addEventListener('input', function() {
+    const cenaBez = parseFloat(this.value);
+    if (!isNaN(cenaBez)) {
+        const cenaSa = cenaBez * 1.21;
+        document.getElementById('stock-price-sa').value = cenaSa.toFixed(2);
+    }
+});
+
+document.getElementById('stock-price-sa').addEventListener('input', function() {
+    const cenaSa = parseFloat(this.value);
+    if (!isNaN(cenaSa)) {
+        const cenaBez = cenaSa / 1.21;
+        document.getElementById('stock-price-bez').value = cenaBez.toFixed(2);
+    }
+});
 
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
@@ -1586,6 +1550,115 @@
                 searchInput.focus();
             }
         });
+        // PDV calculation functionality
+document.getElementById('stock-price-bez').addEventListener('input', function() {
+    const cenaBez = parseFloat(this.value);
+    if (!isNaN(cenaBez)) {
+        const cenaSa = cenaBez * 1.21;
+        document.getElementById('stock-price-sa').value = cenaSa.toFixed(2);
+    }
+});
+
+document.getElementById('stock-price-sa').addEventListener('input', function() {
+    const cenaSa = parseFloat(this.value);
+    if (!isNaN(cenaSa)) {
+        const cenaBez = cenaSa / 1.21;
+        document.getElementById('stock-price-bez').value = cenaBez.toFixed(2);
+    }
+});
+
+// Improved form submission with better error handling
+stockForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const stockId = document.getElementById('stock-id').value;
+    const isEdit = !!stockId;
+    
+    const formData = {
+        naziv: document.getElementById('stock-name').value,
+        jm: document.getElementById('stock-jm').value,
+        kolicina: parseFloat(document.getElementById('stock-quantity').value),
+        cena_bez_pdv: parseFloat(document.getElementById('stock-price-bez').value),
+        cena_sa_pdv: parseFloat(document.getElementById('stock-price-sa').value)
+    };
+
+    // Only include sifra for new items, not for edits
+    if (!isEdit) {
+        formData.sifra = document.getElementById('stock-code').value;
+    }
+    
+    try {
+        let response;
+        let url;
+        
+        if (isEdit) {
+            // For editing, use PUT to /lager/:id
+            url = `/lager/${stockId}`;
+            response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+        } else {
+            // For new items, use POST to /lager
+            url = '/lager';
+            response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+        }
+
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            throw new Error(`Server returned non-JSON response: ${text.substring(0, 100)}`);
+        }
+
+        const result = await response.json();
+        
+        if (response.ok) {
+            stockModal.classList.remove('show');
+            showMessage('Uspešno sačuvano!', 'success');
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showMessage(result.error || `Greška ${response.status}: ${response.statusText}`, 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        if (error.message.includes('non-JSON')) {
+            showMessage('Greška servera - neispravan odgovor', 'error');
+        } else {
+            showMessage('Greška pri komunikaciji sa serverom: ' + error.message, 'error');
+        }
+    }
+});
+
+// Improved fillForm function
+function fillForm(data) {
+    document.getElementById('stock-id').value = data.id;
+    document.getElementById('stock-code').value = data.sifra;
+    document.getElementById('stock-name').value = data.naziv;
+    document.getElementById('stock-jm').value = data.jm;
+    document.getElementById('stock-quantity').value = data.kolicina;
+    document.getElementById('stock-price-bez').value = parseFloat(data.cenaBez).toFixed(2);
+    document.getElementById('stock-price-sa').value = parseFloat(data.cenaSa).toFixed(2);
+    
+    // Make code field readonly for editing, writable for new items
+    document.getElementById('stock-code').readOnly = true;
+}
+
+// Improved clearForm function
+function clearForm() {
+    stockForm.reset();
+    document.getElementById('stock-id').value = '';
+    document.getElementById('stock-code').readOnly = false; // Allow editing for new items
+}
 
         // Handle window resize
         window.addEventListener('resize', function() {

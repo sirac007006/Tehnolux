@@ -1,31 +1,9 @@
-
-HTML i JavaScript kod za magacinske filtere
-Update Magacin Filter in Document System
-New chat
-Dodavanje kolone cijena sa PDV
-Izmena prikaza tipa dokumenta u tabeli
-Tehnolux Admin Panel Code Fix
-Dodavanje šifre magacina u dokumente
-Ažuriranje cene sa PDV-om i rabatom
-Fixing Steam Bot Connection Issues
-Steam Bot Authentication and Session Issues
-Fix React Router Context Error
-Steam Bot Session Management Fixes
-Steam Guard zahtev za 15 dana
-Implementacija lokalnog keširanja za inventory
-Optimizing Inventory Data with LocalStorage
-Implementing Caching in Node.js and Frontend
-Rješavanje greške HTTP 400 kod CSGO skina
-Fixing Inventory Access Errors in Node.js
-Fix React Page State Prop Issue
-Kako spremiti fetch u varijablu
-HTML i JavaScript kod za magacinske filtere
 <!DOCTYPE html>
 <html lang="sr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tehnolux Admin Panel - Pregled dokumenata</title>
+    <title>Tehnolux Admin Panel - Lager</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -34,7 +12,6 @@ HTML i JavaScript kod za magacinske filtere
             --accent-color: #e74c3c;
             --success-color: #2ecc71;
             --warning-color: #f1c40f;
-            --info-color: #17a2b8;
             --text-color: #333;
             --light-text: #ecf0f1;
             --sidebar-width: 280px;
@@ -58,7 +35,7 @@ HTML i JavaScript kod za magacinske filtere
             overflow-x: hidden;
         }
 
-        /* Sidebar styles */
+        /* Sidebar styles - poboljšano */
         .sidebar {
             position: fixed;
             width: var(--sidebar-width);
@@ -97,14 +74,21 @@ HTML i JavaScript kod za magacinske filtere
             align-items: center;
         }
 
-        .logo-text {
-            margin-left: 10px;
+        .logo-icon {
+            margin-right: 10px;
+            font-size: 24px;
+            min-width: 24px;
         }
 
         .sidebar.collapsed .logo-text {
             display: none;
         }
 
+        .sidebar.collapsed .logo-icon {
+            margin-right: 0;
+        }
+
+        /* Menu sections - poboljšano */
         .sidebar-nav {
             flex: 1;
             overflow-y: auto;
@@ -172,6 +156,7 @@ HTML i JavaScript kod za magacinske filtere
             padding: 10px;
         }
 
+        /* Submenu styles - poboljšano */
         .submenu {
             max-height: 0;
             overflow: hidden;
@@ -197,6 +182,7 @@ HTML i JavaScript kod za magacinske filtere
             display: none;
         }
 
+        /* Toggle button - uvek dole */
         .toggle-sidebar {
             position: sticky;
             bottom: 0;
@@ -221,6 +207,7 @@ HTML i JavaScript kod za magacinske filtere
             background-color: rgba(255, 255, 255, 0.2);
         }
 
+        /* Main content area */
         .main-content {
             margin-left: var(--sidebar-width);
             transition: all var(--transition-speed);
@@ -233,6 +220,7 @@ HTML i JavaScript kod za magacinske filtere
             margin-left: var(--sidebar-collapsed);
         }
 
+        /* Header */
         .header {
             position: fixed;
             top: 0;
@@ -324,103 +312,7 @@ HTML i JavaScript kod za magacinske filtere
             background-color: #f39c12;
         }
 
-        .btn-info {
-            background-color: var(--info-color);
-            color: white;
-        }
-
-        .btn-info:hover {
-            background-color: #138496;
-        }
-
-        .mobile-menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-            cursor: pointer;
-            color: var(--text-color);
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            z-index: 1001;
-            background-color: white;
-            padding: 8px;
-            border-radius: 4px;
-        }
-
-        .filter-controls {
-            background: white;
-            padding: 2rem;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            margin-bottom: 2rem;
-        }
-
-        .filter-section {
-            margin-bottom: 2rem;
-        }
-
-        .filter-section:last-child {
-            margin-bottom: 0;
-        }
-
-        .filter-section-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: var(--primary-color);
-            border-bottom: 2px solid var(--secondary-color);
-            padding-bottom: 0.5rem;
-        }
-
-        .filter-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .filter-label {
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #555;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ddd;
-            border-radius: var(--border-radius);
-            font-size: 14px;
-            transition: border-color var(--transition-speed);
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--secondary-color);
-            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-        }
-
-        .date-filters {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            align-items: end;
-        }
-
-        .date-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
+        /* Card styles */
         .card {
             background-color: white;
             border-radius: var(--border-radius);
@@ -432,8 +324,8 @@ HTML i JavaScript kod za magacinske filtere
         .card-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
+            align-items: flex-start;
+            margin-bottom: 1rem;
             padding-bottom: 1rem;
             border-bottom: 1px solid #e6e9ed;
             flex-wrap: wrap;
@@ -441,406 +333,107 @@ HTML i JavaScript kod za magacinske filtere
         }
 
         .card-title {
-            font-size: clamp(1.1rem, 2vw, 1.3rem);
+            font-size: clamp(1rem, 2vw, 1.2rem);
             font-weight: 600;
-            color: var(--primary-color);
         }
 
+        /* Summary cards */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, var(--secondary-color), #5dade2);
+            color: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+            box-shadow: var(--box-shadow);
+        }
+
+        .summary-card.warning {
+            background: linear-gradient(135deg, var(--warning-color), #f7dc6f);
+            color: #333;
+        }
+
+        .summary-card.danger {
+            background: linear-gradient(135deg, var(--accent-color), #ec7063);
+        }
+
+        .summary-card.success {
+            background: linear-gradient(135deg, var(--success-color), #58d68d);
+        }
+
+        .summary-card h3 {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-card p {
+            font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+            opacity: 0.9;
+        }
+
+        /* Table styles - poboljšano za responzivnost */
         .table-container {
             overflow-x: auto;
             margin: 1rem -1rem -1rem -1rem;
             padding: 0 1rem 1rem 1rem;
-            border-radius: var(--border-radius);
         }
 
         .data-table {
             width: 100%;
-            min-width: 600px;
+            min-width: 1000px; 
             border-collapse: collapse;
             margin-top: 1rem;
-            background: white;
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .data-table th,
         .data-table td {
-            padding: clamp(6px, 1vw, 10px) clamp(8px, 1.2vw, 12px);
+            padding: clamp(4px, 1vw, 8px) clamp(6px, 1.2vw, 10px);
             text-align: left;
             border-bottom: 1px solid #e6e9ed;
-            font-size: clamp(10px, 1vw, 12px);
+            font-size: clamp(10px, 1.1vw, 12px);
             white-space: nowrap;
         }
+
+        /* Optimizovane širine kolona za EJS template */
+        .data-table th:nth-child(1),
+        .data-table td:nth-child(1) { width: 80px; max-width: 80px; }
+        .data-table th:nth-child(2),
+        .data-table td:nth-child(2) { width: 300px; max-width: 300px; overflow: hidden; text-overflow: ellipsis; }
+        .data-table th:nth-child(3),
+        .data-table td:nth-child(3) { width: 80px; max-width: 80px; text-align: center; }
+        .data-table th:nth-child(4),
+        .data-table td:nth-child(4) { width: 80px; max-width: 80px; text-align: center; }
+        .data-table th:nth-child(5),
+        .data-table td:nth-child(5) { width: 100px; max-width: 100px; text-align: right; }
+        .data-table th:nth-child(6),
+        .data-table td:nth-child(6) { width: 100px; max-width: 100px; text-align: right; }
+        .data-table th:nth-child(7),
+        .data-table td:nth-child(7) { width: 100px; max-width: 100px; text-align: center; }
+        .data-table th:nth-child(8),
+        .data-table td:nth-child(8) { width: 150px; max-width: 150px; padding: 4px 6px; }
 
         .data-table th {
             background-color: #f8f9fa;
             font-weight: 600;
             position: sticky;
             top: 0;
-            z-index: 10;
-            color: var(--primary-color);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: clamp(10px, 1vw, 12px);
         }
 
-        .data-table tbody tr {
-            transition: all 0.2s ease;
+        .data-table tr:last-child td {
+            border-bottom: none;
         }
 
         .data-table tbody tr:hover {
             background-color: #f8f9fa;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        .data-table tbody tr.selected {
-            background-color: #e3f2fd;
-            border-left: 4px solid var(--secondary-color);
-        }
-
-        .price-column {
-            text-align: right;
-            font-family: 'Courier New', monospace;
-            font-weight: 600;
-            color: var(--success-color);
-        }
-
-        .doc-type-column {
-            font-weight: 600;
-            color: var(--info-color);
-        }
-
-        .date-column {
-            font-family: 'Courier New', monospace;
-            color: #666;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 0.3rem;
-            justify-content: center;
-        }
-
-        .btn-sm {
-            padding: clamp(4px, 1vw, 6px) clamp(8px, 1.5vw, 10px);
-            font-size: clamp(10px, 1vw, 12px);
-            border-radius: 4px;
-        }
-
-        /* EDIT MODAL STYLES */
-        .edit-modal {
-            display: none;
-            position: fixed;
-            z-index: 3000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            overflow-y: auto;
-            padding: 20px;
-        }
-
-        .edit-modal.show {
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-        }
-
-        .edit-modal-content {
-            background-color: white;
-            border-radius: 12px;
-            padding: 2rem;
-            width: 100%;
-            max-width: 1400px;
-            margin: 40px auto;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-        }
-
-        .edit-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #e6e9ed;
-        }
-
-        .edit-modal-title {
-            font-size: 1.8rem;
-            font-weight: 600;
-            color: var(--primary-color);
-        }
-
-        .close-modal {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #666;
-            padding: 0.5rem;
-            border-radius: 50%;
-            transition: all 0.2s;
-        }
-
-        .close-modal:hover {
-            background-color: #f8f9fa;
-            color: var(--accent-color);
-        }
-
-        .edit-form-section {
-            margin-bottom: 2rem;
-        }
-
-        .edit-form-section h4 {
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-            border-left: 4px solid var(--secondary-color);
-            padding-left: 1rem;
-            font-size: 1.2rem;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-label {
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-            color: #555;
-            font-size: 13px;
-        }
-
-        .edit-artikli-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-
-        .edit-artikli-table th,
-        .edit-artikli-table td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #e6e9ed;
-            font-size: 12px;
-        }
-
-        .edit-artikli-table th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-            color: var(--primary-color);
-            text-transform: uppercase;
-            font-size: 11px;
-            letter-spacing: 0.5px;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .edit-artikli-table tbody tr:hover {
-            background-color: #f8f9fa;
-        }
-
-        .edit-artikli-table input,
-        .edit-artikli-table select {
-            width: 100%;
-            padding: 6px 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 12px;
-        }
-
-        .edit-artikli-table input:focus,
-        .edit-artikli-table select:focus {
-            outline: none;
-            border-color: var(--secondary-color);
-            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
-        }
-
-        .edit-artikli-table .numeric-input {
-            text-align: right;
-            font-family: 'Courier New', monospace;
-        }
-
-        /* Autocomplete styles */
-        .autocomplete-wrapper {
-            position: relative;
-        }
-
-        .autocomplete-results {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid #ddd;
-            border-top: none;
-            border-radius: 0 0 6px 6px;
-            max-height: 300px;
-            overflow-y: auto;
-            z-index: 1000;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-            display: none;
-        }
-
-        .autocomplete-item {
-            padding: 12px 15px;
-            cursor: pointer;
-            border-bottom: 1px solid #f0f0f0;
-            font-size: 13px;
-        }
-
-        .autocomplete-item:hover {
-            background-color: #f8f9fa;
-        }
-
-        .autocomplete-item:last-child {
-            border-bottom: none;
-        }
-
-        .autocomplete-item .item-code {
-            color: #666;
-            font-size: 12px;
-            margin-left: 8px;
-        }
-
-        .autocomplete-item .item-price {
-            color: var(--success-color);
-            font-weight: 600;
-            float: right;
-            font-size: 13px;
-        }
-
-        .autocomplete-results.show {
-            display: block;
-        }
-
-        .edit-totals {
-            margin-top: 2rem;
-            padding: 1.5rem;
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            border-left: 4px solid var(--success-color);
-        }
-
-        .edit-totals h4 {
-            margin-bottom: 1rem;
-            color: var(--primary-color);
-            border: none;
-            padding: 0;
-        }
-
-        .edit-totals-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-            font-size: 14px;
-        }
-
-        .edit-totals-row.grand {
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 2px solid #ddd;
-        }
-
-        .btn-add-row {
-            margin-top: 1rem;
-            background-color: var(--secondary-color);
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
-        }
-
-        .btn-add-row:hover {
-            background-color: #2980b9;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-
-        .btn-remove-row {
-            background-color: var(--accent-color);
-            color: white;
-            padding: 4px 8px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 11px;
-        }
-
-        .btn-remove-row:hover {
-            background-color: #c0392b;
-        }
-
-        /* NOVO: Dugme za čuvanje rabata */
-        .btn-save-rabat {
-            background-color: var(--secondary-color);
-            color: white;
-            padding: 4px 8px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 11px;
-            transition: all 0.3s;
-        }
-
-        .btn-save-rabat:hover {
-            background-color: #2980b9;
-        }
-
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-            margin-top: 2rem;
-            padding-top: 1rem;
-            border-top: 2px solid #e6e9ed;
-        }
-
-        .search-box {
-            position: relative;
-            margin-bottom: 1rem;
-        }
-
-        .search-box input {
-            padding-left: 40px;
-            border: 2px solid #e6e9ed;
-            border-radius: 25px;
-        }
-
-        .search-box input:focus {
-            border-color: var(--secondary-color);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #666;
-            font-size: 16px;
-        }
-
-        /* Modal Details */
+        /* Modal styles */
         .modal {
             display: none;
             position: fixed;
@@ -867,7 +460,6 @@ HTML i JavaScript kod za magacinske filtere
             max-width: min(700px, 95vw);
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
         .modal-header {
@@ -876,181 +468,172 @@ HTML i JavaScript kod za magacinske filtere
             align-items: center;
             margin-bottom: 1.5rem;
             padding-bottom: 1rem;
-            border-bottom: 2px solid #e6e9ed;
+            border-bottom: 1px solid #e6e9ed;
         }
 
         .modal-title {
             font-size: clamp(1.1rem, 2.2vw, 1.3rem);
             font-weight: 600;
-            color: var(--primary-color);
         }
 
-        /* Print Document */
-        .print-document {
-            display: none;
-            width: 210mm;
-            margin: 0 auto;
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            line-height: 1.3;
-            color: #000;
-            background: white;
-            padding: 20px;
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
         }
 
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            
-            .print-document, .print-document * {
-                visibility: visible;
-            }
-            
-            .print-document {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                display: block;
-                page-break-after: auto;
-            }
-            
-            .print-document {
-                page-break-inside: avoid;
-            }
-            
-            .document-header,
-            .customer-info,
-            .items-table,
-            .totals-section,
-            .signature-section {
-                page-break-inside: avoid;
-            }
-            
-            .items-table {
-                page-break-inside: avoid;
-            }
-            
-            .items-table tr {
-                page-break-inside: avoid;
-                page-break-after: auto;
-            }
-            
-            @page {
-                margin: 10mm;
-                size: A4 portrait;
-            }
-            
-            .modal,
-            .sidebar,
-            .header,
-            .main-content,
-            button,
-            #close-preview {
-                display: none !important;
-                visibility: hidden !important;
-            }
+        .close-modal:hover {
+            color: var(--accent-color);
         }
 
-        .document-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #000;
-            padding-bottom: 10px;
+        /* Form styles */
+        .form-group {
+            margin-bottom: 1rem;
         }
 
-        .company-info {
-            flex: 1;
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: clamp(12px, 1.3vw, 13px);
         }
 
-        .company-info h2 {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .document-info {
-            text-align: right;
-            flex: 1;
-        }
-
-        .customer-info {
-            margin: 20px 0;
-            border: 1px solid #000;
-            padding: 10px;
-        }
-
-        .customer-info h3 {
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-
-        .items-table {
+        .form-control {
             width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
+            padding: clamp(6px, 1.2vw, 8px) clamp(8px, 1.5vw, 10px);
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: clamp(12px, 1.3vw, 13px);
+            transition: border-color var(--transition-speed);
         }
 
-        .items-table th,
-        .items-table td {
-            border: 1px solid #000;
-            padding: 5px;
-            text-align: center;
-            font-size: 10px;
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
         }
 
-        .items-table th {
-            background-color: #f0f0f0;
-            font-weight: bold;
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
         }
 
-        .items-table .text-left {
-            text-align: left;
-        }
-
-        .items-table .text-right {
-            text-align: right;
-        }
-
-        .totals-section {
-            margin-top: 20px;
-            text-align: right;
-            font-weight: bold;
-        }
-
-        .signature-section {
-            margin-top: 40px;
+        /* Search and filter */
+        .search-filter-container {
             display: flex;
-            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
-        .signature-box {
-            width: 200px;
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 200px;
+            max-width: 300px;
+        }
+
+        .search-box input {
+            padding-left: 35px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        /* Action buttons in table */
+        .action-buttons {
+            display: flex;
+            gap: 0.3rem;
+            flex-wrap: nowrap;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        .btn-sm {
+            padding: clamp(3px, 0.9vw, 4px) clamp(5px, 1.3vw, 7px);
+            font-size: clamp(9px, 1vw, 11px);
+            flex-shrink: 0;
+            min-width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Mobile menu toggle */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-color);
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
+            background-color: white;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        /* Stock status indicators */
+        .stock-status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .stock-status.high {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .stock-status.medium {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .stock-status.low {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .stock-status.out {
+            background-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        /* Price columns */
+        .price-column {
+            text-align: right;
+            font-family: monospace;
+        }
+
+        .quantity-column {
             text-align: center;
-            border-top: 1px solid #000;
-            padding-top: 5px;
-        }
-        .sidebar-nav::-webkit-scrollbar {
-            width: 6px;
+            font-weight: 600;
         }
 
-        .sidebar-nav::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .sidebar-nav::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.3);
-            border-radius: 3px;
-        }
-
-        .sidebar-nav::-webkit-scrollbar-thumb:hover {
-            background: rgba(255,255,255,0.5);
-        }
-        /* Responsive */
+        /* Responsive design - poboljšano */
         @media (max-width: 1200px) {
-            .filter-row {
+            .data-table {
+                min-width: 900px;
+            }
+            .summary-cards {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
@@ -1070,44 +653,66 @@ HTML i JavaScript kod za magacinske filtere
             .header {
                 margin-left: var(--sidebar-collapsed);
             }
+            
+            .toggle-sidebar {
+                display: flex;
+            }
+
+            .data-table {
+                min-width: 800px;
+            }
+
+            .header-actions {
+                gap: 0.5rem;
+            }
+
+            .summary-cards {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
         @media (max-width: 768px) {
-            .edit-modal-content {
-                padding: 1rem;
-                margin: 20px auto;
-            }
-
-            .edit-artikli-table {
-                font-size: 11px;
-            }
-
-            .edit-artikli-table input,
-            .edit-artikli-table select {
-                font-size: 11px;
-                padding: 4px 6px;
-            }
-
             .form-row {
                 grid-template-columns: 1fr;
             }
+            
+            .search-filter-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
 
-            .filter-row {
+            .data-table {
+                min-width: 700px;
+            }
+
+            .card {
+                padding: 1rem;
+                margin: 0.5rem;
+            }
+
+            .summary-cards {
                 grid-template-columns: 1fr;
             }
 
-            .date-filters {
-                grid-template-columns: 1fr;
-            }.btn span {
-                display: none;
+            .card-header {
+                flex-direction: column;
+                align-items: stretch;
             }
+
+            .toggle-sidebar {
+                display: flex;
+            }
+
         }
 
         @media (max-width: 576px) {
             .sidebar {
                 transform: translateX(-100%);
                 width: 320px;
+                height: 100vh;
+                padding: 1.5rem 1rem;
                 z-index: 2500;
+                background: var(--primary-color);
             }
 
             .sidebar.mobile-open {
@@ -1120,13 +725,67 @@ HTML i JavaScript kod za magacinske filtere
                 display: block;
             }
 
+            .mobile-menu-toggle {
+                display: block;
+                position: fixed;
+                top: 8px;
+                left: 12px;
+                z-index: 2600;
+                background-color: white;
+                border: none;
+                padding: 12px;
+                border-radius: 8px;
+                font-size: 18px;
+                color: var(--primary-color);
+                transition: all 0.2s ease;
+                width: 44px;
+                height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
             .main-content,
             .header {
                 margin-left: 0;
             }
 
-            .mobile-menu-toggle {
-                display: block;
+            .header {
+                padding: 0 1rem 0 60px;
+            }
+
+            .data-table {
+                min-width: 100%;
+            }
+
+            .data-table th:nth-child(1),
+            .data-table td:nth-child(1) { width: 12%; }
+            .data-table th:nth-child(2),
+            .data-table td:nth-child(2) { 
+                width: 35%;
+                max-width: none;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .data-table th:nth-child(3),
+            .data-table td:nth-child(3) { width: 10%; }
+            .data-table th:nth-child(4),
+            .data-table td:nth-child(4) { width: 10%; }
+            .data-table th:nth-child(5),
+            .data-table td:nth-child(5) { width: 10%; font-size: 10px; }
+            .data-table th:nth-child(6),
+            .data-table td:nth-child(6) { width: 10%; font-size: 10px; }
+            .data-table th:nth-child(7),
+            .data-table td:nth-child(7) { width: 8%; }
+            .data-table th:nth-child(8),
+            .data-table td:nth-child(8) { width: 15%; padding: 2px 4px; }
+
+            .btn span {
+                display: none;
+            }
+
+            .btn-sm span {
+                display: none;
             }
 
             .sidebar-overlay {
@@ -1145,24 +804,45 @@ HTML i JavaScript kod za magacinske filtere
             }
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Animacije za smooth scroll */
+        .sidebar-nav {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.3) transparent;
         }
 
-        .card, .filter-controls {
-            animation: fadeIn 0.6s ease forwards;
+        .sidebar-nav::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.5);
+        }
+        .negative-quantity {
+            color: #e74c3c;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
+    <!-- Mobile Menu Toggle -->
     <button class="mobile-menu-toggle" id="mobile-menu-toggle">
         <i class="fas fa-bars"></i>
     </button>
 
+    <!-- Sidebar overlay za mobile -->
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
-    <aside class="sidebar" id="sidebar">
+    <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
         <div class="logo-container">
             <div class="logo">
                 <span class="logo-text">Tehnolux</span>
@@ -1170,6 +850,7 @@ HTML i JavaScript kod za magacinske filtere
         </div>
         
         <nav class="sidebar-nav">
+            <!-- Unos Dokumentacije - skriva se na uređajima manjim od 768px osim na mobile sidebar -->
             <div class="menu-section">
                 <div class="menu-title">Unos dokumentacije</div>
                 <div class="nav-item">
@@ -1180,6 +861,7 @@ HTML i JavaScript kod za magacinske filtere
                 </div>
             </div>
 
+            <!-- Pregled -->
             <div class="menu-section">
                 <div class="menu-title">Pregled</div>
                 <div class="nav-item has-submenu">
@@ -1189,7 +871,7 @@ HTML i JavaScript kod za magacinske filtere
                     </a>
                     <div class="submenu open">
                         <div class="nav-item">
-                            <a href="/lager" class="nav-link">
+                            <a href="/lager" class="nav-link active">
                                 <span class="nav-text">Lager</span>
                             </a>
                         </div>
@@ -1199,7 +881,7 @@ HTML i JavaScript kod za magacinske filtere
                             </a>
                         </div>
                         <div class="nav-item">
-                            <a href="/dokumenti" class="nav-link active">
+                            <a href="/dokumenti" class="nav-link">
                                 <span class="nav-text">Pregled dokumenata</span>
                             </a>
                         </div>
@@ -1207,6 +889,7 @@ HTML i JavaScript kod za magacinske filtere
                 </div>
             </div>
 
+            <!-- Šifrarnik -->
             <div class="menu-section">
                 <div class="menu-title">Šifrarnik</div>
                 <div class="nav-item has-submenu">
@@ -1234,6 +917,7 @@ HTML i JavaScript kod za magacinske filtere
                 </div>
             </div>
 
+            <!-- Kupci -->
             <div class="menu-section">
                 <div class="menu-title">Kupci</div>
                 <div class="nav-item has-submenu">
@@ -1242,6 +926,7 @@ HTML i JavaScript kod za magacinske filtere
                         <span class="nav-text">Upravljanje kupcima</span>
                     </a>
                     <div class="submenu">
+                        
                         <div class="nav-item">
                             <a href="/uplate" class="nav-link">
                                 <span class="nav-text">Uplate</span>
@@ -1276,1891 +961,655 @@ HTML i JavaScript kod za magacinske filtere
         </button>
     </aside>
 
+    <!-- Header -->
     <header class="header" id="header">
-        <h1 class="page-title">Pregled dokumenata</h1>
+        <h1 class="page-title">Lager - Stanje zaliha</h1>
         
         <div class="header-actions">
-            <button class="btn btn-info" id="print-btn">
-                <i class="fas fa-print"></i>
-                <span>Štampaj</span>
+            <button class="btn btn-success" id="add-stock-btn">
+                <i class="fas fa-plus"></i>
+                <span>Dodaj zalihu</span>
             </button>
-            <button class="btn btn-warning" id="export-btn">
-                <i class="fas fa-file-export"></i>
-                <span>Izvezi</span>
+            <button class="btn btn-warning" id="stock-alert-btn">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Upozorenja</span>
             </button>
-            <button class="btn btn-secondary" id="refresh-btn">
+            <button class="btn btn-secondary" onclick="window.location.reload()">
                 <i class="fas fa-sync-alt"></i>
                 <span>Osvježi</span>
             </button>
         </div>
     </header>
 
+    <!-- Main Content Area -->
     <main class="main-content" id="main-content">
-        <div class="filter-controls">
-            <div class="filter-section">
-                <div class="search-box">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" class="form-control" id="search-documents" placeholder="Pretraži dokumente po partneru, nazivu artikla ili tipu dokumenta...">
-                </div>
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+            <%
+                let totalItems = lagerArtikli.length;
+                let inStock = lagerArtikli.filter(item => parseFloat(item.kolicina) > 0).length;
+                let lowStock = lagerArtikli.filter(item => {
+                    let qty = parseFloat(item.kolicina);
+                    return qty > 0 && qty <= 5;
+                }).length;
+                let outStock = lagerArtikli.filter(item => parseFloat(item.kolicina) === 0).length;
+                let negativeStock = lagerArtikli.filter(item => parseFloat(item.kolicina) < 0).length;
+            %>
+            <div class="summary-card">
+                <h3><%= totalItems %></h3>
+                <p>Ukupno artikala</p>
             </div>
-
-            <div class="filter-section">
-                <div class="filter-section-title">
-                    <i class="fas fa-filter"></i> Osnovni filteri
-                </div>
-                <div class="filter-row">
-                    <div class="filter-group">
-                        <label class="filter-label">Partner:</label>
-                        <select class="form-control" id="partner-filter">
-                            <option value="">Svi partneri</option>
-                            <% partneri.forEach(partner => { %>
-                                <option value="<%= partner %>"><%= partner %></option>
-                            <% }); %>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label class="filter-label">Tip dokumenta:</label>
-                        <select class="form-control" id="tip-filter">
-                            <option value="">Svi tipovi</option>
-                            <% tipovi.forEach(tip => { %>
-                                <option value="<%= tip %>"><%= tip %></option>
-                            <% }); %>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label class="filter-label">Naziv artikla:</label>
-                        <select class="form-control" id="artikal-filter">
-                            <option value="">Svi artikli</option>
-                            <% artikli.forEach(artikal => { %>
-                                <option value="<%= artikal %>"><%= artikal %></option>
-                            <% }); %>
-                        </select>
-                    </div>
-                </div>
+            <div class="summary-card success">
+                <h3><%= inStock %></h3>
+                <p>Na stanju</p>
             </div>
-
-            <div class="filter-section">
-                <div class="filter-section-title">
-                    <i class="fas fa-calendar"></i> Datumski filteri
-                </div>
-                <div class="date-filters">
-                    <div class="date-group">
-                        <label class="filter-label">Period od:</label>
-                        <input type="date" class="form-control" id="date-from" value="2025-01-01">
-                    </div>
-                    <div class="date-group">
-                        <label class="filter-label">Period do:</label>
-                        <input type="date" class="form-control" id="date-to" value="2025-01-31">
-                    </div>
-                </div>
+            <div class="summary-card warning">
+                <h3><%= lowStock %></h3>
+                <p>Niske zalihe</p>
+            </div>
+            <div class="summary-card danger">
+                <h3><%= outStock %></h3>
+                <p>Nema na stanju</p>
+            </div>
+            <div class="summary-card" style="background: linear-gradient(135deg, #8e44ad, #9b59b6);">
+                <h3><%= negativeStock %></h3>
+                <p>U minusu</p>
             </div>
         </div>
 
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Lista dokumenata</h3>
-                <div style="display: flex; gap: 1rem; align-items: center;">
-                    <span id="document-count" style="color: #666; font-size: 14px;">Ukupno: <%= dokumenti.length %> dokumenata</span>
-                    <button class="btn btn-primary btn-sm" id="apply-filters">
-                        <i class="fas fa-filter"></i> Primeni filtere
-                    </button>
+                <h3 class="card-title">Pregled lager stanja</h3>
+                <div class="search-filter-container">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="form-control" id="search-stock" placeholder="Pretraži po šifri ili nazivu...">
+                    </div>
+                    <select class="form-control" id="status-filter" style="width: auto; min-width: 150px;">
+                        <option value="">Svi statusi</option>
+                        <option value="high">Visoke zalihe</option>
+                        <option value="medium">Srednje zalihe</option>
+                        <option value="low">Niske zalihe</option>
+                        <option value="out">Nema na stanju</option>
+                        <option value="negative">U minusu</option>
+                    </select>
                 </div>
             </div>
 
             <div class="table-container">
-                <table class="data-table" id="dokumenti-table">
+                <table class="data-table" id="stock-table">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Datum</th>
-                            <th>Partner</th>
-                            <th>Tip dokumenta</th>
+                            <th>Šifra</th>
                             <th>Naziv artikla</th>
-                            <th>Iznos sa PDV (€)</th>
+                            <th>JM</th>
+                            <th>Količina</th>
+                            <th>Status</th>
                             <th>Akcije</th>
                         </tr>
                     </thead>
-                    <tbody id="dokumenti-tbody">
-                        <% dokumenti.forEach((dokument, index) => { %>
-                            <tr <%= index === 0 ? 'class="selected"' : '' %>>
-                                <td><%= dokument.id %></td>
-                                <td class="date-column"><%= new Date(dokument.datum).toLocaleDateString('sr-RS') %></td>
-                                <td><%= dokument.partner %></td>
-                                <td class="doc-type-column"><%= dokument.tip_dokumenta %></td>
-                                <td title="<%= dokument.naziv_artikla %>" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                    <%= dokument.naziv_artikla %>
-                                </td>
-                                <td class="price-column">
-                                    <%= Number(dokument.iznos_sa_pdv).toLocaleString('sr-RS', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
-                                </td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn btn-sm btn-info view-document-btn" data-id="<%= dokument.id %>" title="Pregled">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-warning edit-document-btn" data-id="<%= dokument.id %>" title="Izmeni">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-primary print-document-btn" data-id="<%= dokument.id %>" title="Štampaj">
-                                            <i class="fas fa-print"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger delete-document-btn" data-id="<%= dokument.id %>" title="Obriši">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+                    <tbody id="stock-tbody">
+                        <% lagerArtikli.forEach(function(item) { 
+                            let qty = parseFloat(item.kolicina);
+                            let status, statusLabel;
+                            
+                            if (qty < 0) {
+                                status = 'negative';
+                                statusLabel = 'U minusu';
+                            } else if (qty === 0) {
+                                status = 'out';
+                                statusLabel = 'Nema na stanju';
+                            } else if (qty <= 5) {
+                                status = 'low';
+                                statusLabel = 'Niske zalihe';
+                            } else if (qty <= 20) {
+                                status = 'medium';
+                                statusLabel = 'Srednje zalihe';
+                            } else {
+                                status = 'high';
+                                statusLabel = 'Visoke zalihe';
+                            }
+                        %>
+                        <tr data-sifra="<%= item.sifra %>" data-status="<%= status %>">
+                            <td><%= item.sifra %></td>
+                            <td title="<%= item.naziv %>"><%= item.naziv %></td>
+                            <td class="quantity-column"><%= item.JM %></td>
+                            <td class="quantity-column <%= qty < 0 ? 'negative-quantity' : '' %>">
+                                <%= qty %>
+                            </td>
+                            <td><span class="stock-status <%= status %>"><%= statusLabel %></span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-primary edit-stock-btn" 
+                                            data-id="<%= item.id %>"
+                                            data-sifra="<%= item.sifra %>"
+                                            data-naziv="<%= item.naziv %>"
+                                            data-jm="<%= item.JM %>"
+                                            data-kolicina="<%= item.kolicina %>"
+                                            title="Izmeni">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-warning adjust-stock-btn" 
+                                            data-id="<%= item.id %>"
+                                            data-sifra="<%= item.sifra %>"
+                                            data-kolicina="<%= item.kolicina %>"
+                                            title="Podesi količinu">
+                                        <i class="fas fa-plus-minus"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger delete-stock-btn" 
+                                            data-id="<%= item.id %>"
+                                            data-sifra="<%= item.sifra %>"
+                                            title="Obriši">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
                         <% }); %>
+                        
+                        <% if (lagerArtikli.length === 0) { %>
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 2rem; color: #666;">
+                                <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+                                Nema artikala u lageru
+                            </td>
+                        </tr>
+                        <% } %>
                     </tbody>
                 </table>
             </div>
         </div>
     </main>
 
-    <!-- EDIT MODAL -->
-    <div class="edit-modal" id="edit-modal">
-        <div class="edit-modal-content">
-            <div class="edit-modal-header">
-                <h3 class="edit-modal-title">
-                    <i class="fas fa-edit"></i> Izmena dokumenta
-                </h3>
-                <button class="close-modal" id="close-edit-modal">
+    <!-- Modal za dodavanje/izmenu stanja -->
+    <div class="modal" id="stock-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-title">Dodaj novi artikal</h3>
+                <button class="close-modal" id="close-modal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-
-            <form id="edit-form">
-                <input type="hidden" id="edit-dokument-id">
-
-                <div class="edit-form-section">
-                    <h4><i class="fas fa-info-circle"></i> Osnovni podaci</h4>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Datum:</label>
-                            <input type="date" class="form-control" id="edit-datum" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Partner:</label>
-                            <select class="form-control" id="edit-partner" required>
-                                <% sviPartneri.forEach(p => { %>
-                                    <option value="<%= p.Naziv_partnera %>"><%= p.Naziv_partnera %></option>
-                                <% }); %>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Tip dokumenta:</label>
-                            <input type="text" class="form-control" id="edit-tip-dokumenta" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Komercijalist:</label>
-                            <select class="form-control" id="edit-komercijalist">
-                                <option value="">Bez komercijaliste</option>
-                                <% komercijalisti.forEach(k => { %>
-                                    <option value="<%= k.id %>"><%= k.ime_prezime %></option>
-                                <% }); %>
-                            </select>
-                        </div>
+            <form id="stock-form">
+                <input type="hidden" id="stock-id">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="stock-code">Šifra artikla:</label>
+                        <input type="text" class="form-control" id="stock-code" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="stock-name">Naziv artikla:</label>
+                        <input type="text" class="form-control" id="stock-name" required>
                     </div>
                 </div>
 
-                <div class="edit-form-section">
-                    <h4><i class="fas fa-list"></i> Artikli u dokumentu</h4>
-                    
-                    <div class="table-container" style="max-height: 400px; overflow-y: auto;">
-                        <table class="edit-artikli-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 40px;">Rb.</th>
-                                    <th style="width: 100px;">Šifra</th>
-                                    <th style="width: 200px;">Naziv</th>
-                                    <th style="width: 60px;">JM</th>
-                                    <th style="width: 90px;">Količina</th>
-                                    <th style="width: 100px;">Cena bez PDV</th>
-                                    <th style="width: 100px;">Cena sa PDV</th>
-                                    <th style="width: 110px;">Rabat (%) 💾</th>
-                                    <th style="width: 110px;">Ukupno bez PDV</th>
-                                    <th style="width: 110px;">Ukupno sa PDV</th>
-                                    <th style="width: 60px;">Akcija</th>
-                                </tr>
-                            </thead>
-                            <tbody id="edit-artikli-tbody">
-                            </tbody>
-                        </table>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="stock-jm">Jedinica mere:</label>
+                        <select class="form-control" id="stock-jm" required>
+                            <option value="">Izaberite JM</option>
+                            <option value="kom">kom</option>
+                            <option value="kg">kg</option>
+                            <option value="lit">lit</option>
+                            <option value="m">m</option>
+                            <option value="m2">m²</option>
+                            <option value="m3">m³</option>
+                            <option value="pak">pak</option>
+                            <option value="set">set</option>
+                        </select>
                     </div>
-
-                    <button type="button" class="btn-add-row" onclick="addEditRow()">
-                        <i class="fas fa-plus"></i> Dodaj artikal
-                    </button>
-                </div>
-
-                <div class="edit-totals">
-                    <h4><i class="fas fa-calculator"></i> Ukupno</h4>
-                    <div class="edit-totals-row">
-                        <span>Ukupna količina:</span>
-                        <span id="edit-total-kolicina">0</span>
-                    </div>
-                    <div class="edit-totals-row">
-                        <span>Ukupno bez PDV:</span>
-                        <span id="edit-total-bez-pdv">0.00 €</span>
-                    </div>
-                    <div class="edit-totals-row">
-                        <span>PDV iznos:</span>
-                        <span id="edit-total-pdv">0.00 €</span>
-                    </div>
-                    <div class="edit-totals-row grand">
-                        <span>UKUPNO SA PDV:</span>
-                        <span id="edit-total-sa-pdv">0.00 €</span>
+                    <div class="form-group">
+                        <label class="form-label" for="stock-quantity">Količina:</label>
+                        <input type="number" class="form-control" id="stock-quantity" step="0.01" required>
+                        <small style="color: #666; margin-top: 4px; display: block;">
+                            Moguće je uneti i negativne vrednosti
+                        </small>
                     </div>
                 </div>
 
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" id="cancel-edit-btn">
-                        <i class="fas fa-times"></i> Otkaži
-                    </button>
-                    <button type="button" class="btn btn-primary" id="print-from-edit-btn">
-                        <i class="fas fa-print"></i> Štampaj
-                    </button>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-secondary" id="cancel-btn">Otkaži</button>
                     <button type="submit" class="btn btn-success">
-                        <i class="fas fa-save"></i> Sačuvaj izmene
+                        <i class="fas fa-save"></i>
+                        Sačuvaj
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Document Details Modal -->
-    <div class="modal" id="document-details-modal">
+    <!-- Modal za upozorenja -->
+    <div class="modal" id="alert-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Detalji dokumenta</h3>
-                <button class="close-modal" id="close-details-modal">
+                <h3 class="modal-title">Upozorenja o zalihama</h3>
+                <button class="close-modal" id="close-alert-modal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <div id="document-details-content">
-            </div>
-            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
-                <button type="button" class="btn btn-secondary" id="close-details-btn">Zatvori</button>
-                <button type="button" class="btn btn-primary" id="print-from-details-btn">Štampaj</button>
-            </div>
-        </div>
-    </div>
+            <div id="alert-content">
+                <% 
+                    let lowStockItems = lagerArtikli.filter(item => {
+                        let qty = parseFloat(item.kolicina);
+                        return qty > 0 && qty <= 5;
+                    });
+                    let outStockItems = lagerArtikli.filter(item => parseFloat(item.kolicina) === 0);
+                    let negativeStockItems = lagerArtikli.filter(item => parseFloat(item.kolicina) < 0);
+                %>
+                
+                <h4 style="color: var(--accent-color); margin-bottom: 1rem;">
+                    <i class="fas fa-exclamation-triangle"></i> Artikli sa niskim zalihama (<%= lowStockItems.length %>)
+                </h4>
+                <div id="low-stock-list">
+                    <% if (lowStockItems.length > 0) { %>
+                        <% lowStockItems.forEach(function(item) { %>
+                            <div style="padding: 8px; border-left: 3px solid var(--warning-color); margin-bottom: 8px; background: #fff3cd;">
+                                <strong><%= item.sifra %> - <%= item.naziv %></strong><br>
+                                <small>Količina: <%= parseFloat(item.kolicina) %> <%= item.JM %></small>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <p>Nema artikala sa niskim zalihama.</p>
+                    <% } %>
+                </div>
+                
+                <h4 style="color: var(--accent-color); margin: 2rem 0 1rem 0;">
+                    <i class="fas fa-times-circle"></i> Artikli bez zaliha (<%= outStockItems.length %>)
+                </h4>
+                <div id="out-stock-list">
+                    <% if (outStockItems.length > 0) { %>
+                        <% outStockItems.forEach(function(item) { %>
+                            <div style="padding: 8px; border-left: 3px solid var(--accent-color); margin-bottom: 8px; background: #f8d7da;">
+                                <strong><%= item.sifra %> - <%= item.naziv %></strong><br>
+                                <small>Nema na stanju</small>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <p>Nema artikala bez zaliha.</p>
+                    <% } %>
+                </div>
 
-    <!-- Print Document -->
-    <div class="print-document" id="print-document">
-        <div class="document-header">
-            <div class="company-info">
-                <h2>TEHNO LUX</h2>
-                <div>Podgorica, Bulevar Pera Cetkovica 36</div>
-                <div>Tel: 020/656-411</div>
-                <div>Fax:</div>
-            </div>
-            <div class="document-info">
-                <div>PIB: 02390264</div>
-                <div>PDV: 30154-03169-8</div>
-                <div>Šif.djel.:</div>
-                <div style="margin-top: 10px;">Ž.R: <strong>530-18008-18</strong></div>
-                <div><strong>510-1062-55</strong></div>
-                <div><strong>520-30872-94</strong></div>
-            </div>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; margin: 20px 0;">
-            <div>
-                <div>Podgorica, <span id="print-date"></span> godine</div>
-                <div style="margin-top: 10px;"><strong><span id="print-document-type"></span> br. <span id="print-doc-number"></span></strong></div>
-            </div>
-            <div style="text-align: right;">
-                <div>Kupac: <span id="print-customer-code"></span></div>
-            </div>
-        </div>
-
-        <div class="customer-info">
-            <h3 id="print-customer-name"></h3>
-            <div>PIB: <span id="print-customer-pib"></span></div>
-            <div>PDV: <span id="print-customer-pdv"></span></div>
-            <div>Adresa: <span id="print-customer-address"></span></div>
-            <div>Grad: <span id="print-customer-city"></span></div>
-        </div>
-
-        <div style="margin: 20px 0;">
-            <div>Na osnovu: _________________________ fakturišemo Vam:</div>
-        </div>
-
-        <table class="items-table">
-            <thead>
-                <tr>
-                    <th>Rb</th>
-                    <th>ŠIFRA</th>
-                    <th>NAZIV PROIZVODA/USLUGE</th>
-                    <th>JM</th>
-                    <th>Količina</th>
-                    <th>Cijena bez PDV (€)</th>
-                    <th>Vrijednost bez PDV (€)</th>
-                    <th>Rabat (%)</th>
-                    <th>PDV Stopa</th>
-                    <th>Iznos PDV(€)</th>
-                    <th>Cijena sa PDV (€)</th>
-                    <th>Vrijednost sa PDV (€)</th>
-                </tr>
-            </thead>
-            <tbody id="print-items-tbody">
-            </tbody>
-        </table>
-
-        <div class="totals-section">
-            <div><strong>Vrijednost bez PDV: <span id="print-total-bez-pdv"></span> €</strong></div>
-            <div><strong>Iznos rabata: <span id="print-total-rabat"></span> €</strong></div>
-            <div style="border-top: 1px solid #000; margin-top: 5px; padding-top: 5px;">
-                <strong>Osnovica za stopu 21%: <span id="print-osnovica"></span> €</strong>
-            </div>
-            <div><strong>PDV po stopi 21%: <span id="print-pdv-iznos"></span> €</strong></div>
-            <div style="border-top: 2px solid #000; margin-top: 5px; padding-top: 5px;">
-                <strong>IZNOS ZA UPLATU €: <span id="print-total-sa-pdv"></span></strong>
-            </div>
-        </div>
-
-        <div style="margin-top: 20px;" id="print-disclaimer">
-            <div><strong>OVO NIJE PDV RAČUN!!!</strong></div>
-        </div>
-
-        <div class="signature-section">
-            <div class="signature-box">
-                <div id="print-signature-left">Otpremio,</div>
-            </div>
-            <div class="signature-box">
-                <div>Primio,</div>
+                <h4 style="color: #8e44ad; margin: 2rem 0 1rem 0;">
+                    <i class="fas fa-minus-circle"></i> Artikli u minusu (<%= negativeStockItems.length %>)
+                </h4>
+                <div id="negative-stock-list">
+                    <% if (negativeStockItems.length > 0) { %>
+                        <% negativeStockItems.forEach(function(item) { %>
+                            <div style="padding: 8px; border-left: 3px solid #8e44ad; margin-bottom: 8px; background: #e8daef;">
+                                <strong><%= item.sifra %> - <%= item.naziv %></strong><br>
+                                <small>Količina: <%= parseFloat(item.kolicina) %> <%= item.JM %></small>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <p>Nema artikala u minusu.</p>
+                    <% } %>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-    // Pass server data to JavaScript
-    const sviPartneri = <%- JSON.stringify(sviPartneri) %>;
-    const komercijalisti = <%- JSON.stringify(komercijalisti) %>;
-    const dokumentiData = <%- JSON.stringify(dokumenti) %>;
+        // DOM Elements - ostaje isti
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const mainContent = document.getElementById('main-content');
+        const header = document.getElementById('header');
+        const toggleSidebar = document.getElementById('toggle-sidebar');
+        const sidebarIcon = document.getElementById('sidebar-icon');
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        
+        // Modal elements
+        const stockModal = document.getElementById('stock-modal');
+        const alertModal = document.getElementById('alert-modal');
+        const addStockBtn = document.getElementById('add-stock-btn');
+        const stockAlertBtn = document.getElementById('stock-alert-btn');
+        const closeModal = document.getElementById('close-modal');
+        const closeAlertModal = document.getElementById('close-alert-modal');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const stockForm = document.getElementById('stock-form');
+        const modalTitle = document.getElementById('modal-title');
 
-    let currentEditingDocument = null;
-    let filteredData = [...dokumentiData];
+        // Search and filter elements
+        const searchInput = document.getElementById('search-stock');
+        const statusFilter = document.getElementById('status-filter');
 
-    // SORTIRANJE DOKUMENATA PO ID-u (opadajuci redosled - najnoviji prvi)
-    filteredData.sort((a, b) => b.id - a.id);
-
-    // Auto-complete state
-    let autocompleteResults = [];
-    let selectedAutocompleteIndex = -1;
-
-    // Sidebar toggle
-    const sidebar = document.getElementById('sidebar');
-    const mainContent = document.getElementById('main-content');
-    const header = document.getElementById('header');
-    const toggleSidebar = document.getElementById('toggle-sidebar');
-    const sidebarIcon = document.getElementById('sidebar-icon');
-    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-    const sidebarOverlay = document.getElementById('sidebar-overlay');
-
-    toggleSidebar.addEventListener('click', function() {
-        sidebar.classList.toggle('collapsed');
-        mainContent.classList.toggle('expanded');
-        header.classList.toggle('expanded');
-        
-        if (sidebar.classList.contains('collapsed')) {
-            sidebarIcon.classList.remove('fa-chevron-left');
-            sidebarIcon.classList.add('fa-chevron-right');
-        } else {
-            sidebarIcon.classList.remove('fa-chevron-right');
-            sidebarIcon.classList.add('fa-chevron-left');
-        }
-    });
-
-    // Mobile menu
-    mobileMenuToggle.addEventListener('click', function() {
-        sidebar.classList.toggle('mobile-open');
-        sidebarOverlay.classList.toggle('show');
-        
-        if (sidebar.classList.contains('mobile-open')) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
-    });
-
-    sidebarOverlay.addEventListener('click', function() {
-        sidebar.classList.remove('mobile-open');
-        sidebarOverlay.classList.remove('show');
-        document.body.style.overflow = '';
-    });
-
-    // Submenu functionality
-    document.querySelectorAll('.nav-item.has-submenu > .nav-link').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const parent = this.parentElement;
-            const submenu = parent.querySelector('.submenu');
-            
-            document.querySelectorAll('.nav-item.has-submenu').forEach(item => {
-                if (item !== parent) {
-                    item.classList.remove('open');
-                    item.querySelector('.submenu').classList.remove('open');
-                }
-            });
-            
-            parent.classList.toggle('open');
-            submenu.classList.toggle('open');
-        });
-    });
-
-    // EDIT MODAL FUNCTIONS
-    document.addEventListener('click', async (e) => {
-        if (e.target.closest('.edit-document-btn')) {
-            const id = e.target.closest('.edit-document-btn').dataset.id;
-            await openEditModal(id);
-        }
-
-        if (e.target.closest('.view-document-btn')) {
-            const id = e.target.closest('.view-document-btn').dataset.id;
-            showDocumentDetails(id);
-        }
-
-        if (e.target.closest('.print-document-btn')) {
-            const id = e.target.closest('.print-document-btn').dataset.id;
-            await generatePrintDocumentFromId(id);
-            window.print();
-        }
-
-        if (e.target.closest('.delete-document-btn')) {
-            const id = e.target.closest('.delete-document-btn').dataset.id;
-            if (confirm('Da li ste sigurni da želite da obrišete ovaj dokument?')) {
-                alert('Funkcija brisanja će biti implementirana');
-            }
-        }
-    });
-
-    async function openEditModal(id) {
-        try {
-            const response = await fetch(`/api/dokumenti/${id}`);
-            const data = await response.json();
-            
-            if (!data.success) {
-                alert('Greška pri učitavanju dokumenta');
-                return;
-            }
-            
-            currentEditingDocument = data;
-            
-            document.getElementById('edit-dokument-id').value = data.dokument.id;
-            document.getElementById('edit-datum').value = new Date(data.dokument.datum).toISOString().split('T')[0];
-            document.getElementById('edit-partner').value = data.dokument.partner;
-            document.getElementById('edit-tip-dokumenta').value = data.dokument.tip_dokumenta;
-            document.getElementById('edit-komercijalist').value = data.dokument.komercijalist_id || '';
-            
-            await populateEditArtikliTable(data.artikli, data.dokument.partner);
-            
-            document.getElementById('edit-modal').classList.add('show');
-            
-        } catch (error) {
-            console.error('Error loading document:', error);
-            alert('Greška pri učitavanju dokumenta');
-        }
-    }
-
-    // NOVA VERZIJA - Učitava STVARNE cene iz lagera + RABATE iz partner_artikal_rabat tabele
-    async function populateEditArtikliTable(artikli, partnerNaziv) {
-        const tbody = document.getElementById('edit-artikli-tbody');
-        tbody.innerHTML = '';
-        
-        // Nađi šifru partnera
-        const partner = sviPartneri.find(p => p.Naziv_partnera === partnerNaziv);
-        const partnerSifra = partner ? partner.Sifra : null;
-        
-        for (let i = 0; i < artikli.length; i++) {
-            const artikal = artikli[i];
-            
-            try {
-                // Učitaj TRENUTNE cene iz lagera
-                const lagerResponse = await fetch(`/api/lager/sifra/${artikal.sifra}`);
-                
-                let lagerCene = {
-                    cena_bez_pdv: artikal.cena_bez_pdv,
-                    cena_sa_pdv: artikal.cena_sa_pdv
-                };
-                
-                if (lagerResponse.ok) {
-                    const lagerData = await lagerResponse.json();
-                    lagerCene.cena_bez_pdv = parseFloat(lagerData.cena_bez_pdv);
-                    lagerCene.cena_sa_pdv = parseFloat(lagerData.cena_sa_pdv);
-                }
-                
-                // Učitaj rabat iz partner_artikal_rabat tabele
-                let rabat = parseFloat(artikal.rabat) || 0;
-                if (partnerSifra) {
-                    try {
-                        const rabatResponse = await fetch(`/api/rabat/${partnerSifra}/${artikal.sifra}`);
-                        const rabatData = await rabatResponse.json();
-                        if (rabatData.success) {
-                            rabat = parseFloat(rabatData.rabat) || 0;
-                            console.log(`Učitan rabat iz tabele za ${artikal.sifra}: ${rabat}%`);
-                        }
-                    } catch (rabatError) {
-                        console.warn(`Nije moguće učitati rabat za ${artikal.sifra}:`, rabatError);
-                    }
-                }
-                
-                addEditRow({
-                    ...artikal,
-                    cena_bez_pdv: lagerCene.cena_bez_pdv,
-                    cena_sa_pdv: lagerCene.cena_sa_pdv,
-                    rabat: rabat
-                }, i);
-                
-            } catch (error) {
-                console.error(`Greška pri učitavanju cena za artikal ${artikal.sifra}:`, error);
-                addEditRow(artikal, i);
-            }
-        }
-        
-        recalculateEditTotals();
-    }
-
-    function addEditRow(artikal = null, index = null) {
-        const tbody = document.getElementById('edit-artikli-tbody');
-        const rowIndex = index !== null ? index : tbody.children.length;
-        
-        const row = document.createElement('tr');
-        row.dataset.rowIndex = rowIndex;
-        
-        row.innerHTML = `
-            <td>${rowIndex + 1}</td>
-            <td>
-                <input type="text" class="artikal-sifra" value="${artikal ? artikal.sifra : ''}" placeholder="Šifra">
-            </td>
-            <td>
-                <div class="autocomplete-wrapper">
-                    <input type="text" class="artikal-naziv" value="${artikal ? artikal.naziv : ''}" placeholder="Počnite kucati naziv..." required>
-                    <div class="autocomplete-results"></div>
-                </div>
-            </td>
-            <td>
-                <input type="text" class="artikal-jm" value="${artikal ? artikal.jm : 'kom'}" required>
-            </td>
-            <td><input type="number" class="artikal-kolicina numeric-input" value="${artikal ? artikal.kolicina : 1}" step="0.01" min="0.01" required oninput="calculateEditRow(this)"></td>
-            <td><input type="number" class="artikal-cena-bez numeric-input" value="${artikal ? parseFloat(artikal.cena_bez_pdv).toFixed(2) : 0}" step="0.01" min="0" required readonly></td>
-            <td><input type="number" class="artikal-cena-sa numeric-input" value="${artikal ? parseFloat(artikal.cena_sa_pdv).toFixed(2) : 0}" step="0.01" min="0" required readonly></td>
-            <td style="display: flex; gap: 5px; align-items: center;">
-                <input type="number" class="artikal-rabat numeric-input" value="${artikal ? parseFloat(artikal.rabat).toFixed(1) : 0}" step="0.1" min="0" max="100" oninput="calculateEditRow(this)" style="flex: 1;">
-                <button type="button" class="btn-save-rabat" onclick="sacuvajRabatEdit(this)" title="Sačuvaj rabat">💾</button>
-            </td>
-            <td><input type="text" class="artikal-total-bez numeric-input" readonly></td>
-            <td><input type="text" class="artikal-total-sa numeric-input" readonly></td>
-            <td>
-                <button type="button" class="btn-remove-row" onclick="removeEditRow(this)">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
-        `;
-        tbody.appendChild(row);
-        
-        setupAutocomplete(row.querySelector('.artikal-naziv'));
-        
-        const sifraInput = row.querySelector('.artikal-sifra');
-        sifraInput.addEventListener('blur', async function() {
-            const sifra = this.value.trim();
-            if (sifra) {
-                await loadArtikalBySifraWithRabat(sifra, row);
-            }
-        });
-        
-        if (artikal) {
-            calculateEditRow(row.querySelector('.artikal-kolicina'));
-        }
-        
-        updateEditRowNumbers();
-    }
-
-    // NOVA FUNKCIJA - Učitaj artikal sa rabatom
-    async function loadArtikalBySifraWithRabat(sifra, row) {
-        try {
-            const lagerResponse = await fetch(`/api/lager/sifra/${sifra}`);
-            if (!lagerResponse.ok) {
-                console.log('Artikal sa tom šifrom nije pronađen');
-                return;
-            }
-            
-            const artikal = await lagerResponse.json();
-            
-            // Popuni podatke - ORIGINALNE cene iz lagera
-            row.querySelector('.artikal-naziv').value = artikal.naziv;
-            row.querySelector('.artikal-jm').value = artikal.jm;
-            row.querySelector('.artikal-cena-bez').value = parseFloat(artikal.cena_bez_pdv).toFixed(2);
-            row.querySelector('.artikal-cena-sa').value = parseFloat(artikal.cena_sa_pdv).toFixed(2);
-            
-            // Učitaj rabat iz tabele
-            const partnerNaziv = document.getElementById('edit-partner').value;
-            const partner = sviPartneri.find(p => p.Naziv_partnera === partnerNaziv);
-            
-            if (partner && partner.Sifra) {
-                try {
-                    const rabatResponse = await fetch(`/api/rabat/${partner.Sifra}/${sifra}`);
-                    const rabatData = await rabatResponse.json();
-                    
-                    if (rabatData.success) {
-                        row.querySelector('.artikal-rabat').value = parseFloat(rabatData.rabat).toFixed(1);
-                        console.log(`Učitan rabat iz tabele za ${sifra}: ${rabatData.rabat}%`);
-                    } else {
-                        row.querySelector('.artikal-rabat').value = '0.0';
-                    }
-                } catch (rabatError) {
-                    console.warn('Greška pri učitavanju rabata:', rabatError);
-                    row.querySelector('.artikal-rabat').value = '0.0';
-                }
-            } else {
-                row.querySelector('.artikal-rabat').value = '0.0';
-            }
-            
-            calculateEditRow(row.querySelector('.artikal-kolicina'));
-            
-        } catch (error) {
-            console.error('Greška pri učitavanju artikla:', error);
-        }
-    }
-
-    // NOVA FUNKCIJA - Sačuvaj rabat iz edit modala
-    async function sacuvajRabatEdit(btn) {
-        const row = btn.closest('tr');
-        const partnerNaziv = document.getElementById('edit-partner').value;
-        const artikalSifra = row.querySelector('.artikal-sifra').value;
-        const rabat = parseFloat(row.querySelector('.artikal-rabat').value) || 0;
-        
-        const partner = sviPartneri.find(p => p.Naziv_partnera === partnerNaziv);
-        
-        if (!partner || !partner.Sifra) {
-            alert('Partner nije pronađen!');
-            return;
-        }
-        
-        if (!artikalSifra) {
-            alert('Prvo odaberite artikal!');
-            return;
-        }
-        
-        try {
-            const response = await fetch('/api/rabat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    partnerSifra: partner.Sifra,
-                    artikalSifra: artikalSifra,
-                    rabat: rabat
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                btn.style.backgroundColor = '#2ecc71';
-                btn.textContent = '✓';
-                setTimeout(() => {
-                    btn.style.backgroundColor = '';
-                    btn.textContent = '💾';
-                }, 2000);
-                console.log(`Rabat ${rabat}% sačuvan za artikal ${artikalSifra} i partnera ${partner.Sifra}`);
-            } else {
-                alert('Greška: ' + data.message);
-            }
-        } catch (error) {
-            console.error('Greška pri čuvanju rabata:', error);
-            alert('Greška pri čuvanju rabata');
-        }
-    }
-
-    // AUTOCOMPLETE FUNKCIONALNOST
-    function setupAutocomplete(input) {
-        const wrapper = input.closest('.autocomplete-wrapper');
-        const resultsDiv = wrapper.querySelector('.autocomplete-results');
-        
-        let searchTimeout;
-        
-        input.addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            const query = this.value.trim();
-            
-            if (query.length < 2) {
-                resultsDiv.classList.remove('show');
-                return;
-            }
-            
-            searchTimeout = setTimeout(async () => {
-                try {
-                    const response = await fetch(`/api/artikli/autocomplete?query=${encodeURIComponent(query)}`);
-                    const results = await response.json();
-                    
-                    if (results.length > 0) {
-                        displayAutocompleteResults(resultsDiv, results, input);
-                    } else {
-                        resultsDiv.classList.remove('show');
-                    }
-                } catch (error) {
-                    console.error('Error fetching autocomplete results:', error);
-                }
-            }, 300);
-        });
-        
-        document.addEventListener('click', function(e) {
-            if (!wrapper.contains(e.target)) {
-                resultsDiv.classList.remove('show');
-            }
-        });
-        
-        input.addEventListener('keydown', function(e) {
-            const items = resultsDiv.querySelectorAll('.autocomplete-item');
-            
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                if (items.length > 0) {
-                    if (selectedAutocompleteIndex < items.length - 1) {
-                        selectedAutocompleteIndex++;
-                        updateAutocompleteSelection(items);
-                    }
-                }
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                if (selectedAutocompleteIndex > 0) {
-                    selectedAutocompleteIndex--;
-                    updateAutocompleteSelection(items);
-                }
-            } else if (e.key === 'Enter' && selectedAutocompleteIndex >= 0) {
-                e.preventDefault();
-                items[selectedAutocompleteIndex].click();
-            } else if (e.key === 'Escape') {
-                resultsDiv.classList.remove('show');
-            }
-        });
-    }
-
-    function displayAutocompleteResults(resultsDiv, results, input) {
-        resultsDiv.innerHTML = '';
-        selectedAutocompleteIndex = -1;
-        
-        results.forEach((item, index) => {
-            const div = document.createElement('div');
-            div.className = 'autocomplete-item';
-            div.innerHTML = `
-                <div>
-                    <strong>${item.naziv}</strong>
-                    <span class="item-code">(${item.sifra})</span>
-                    <span class="item-price">${parseFloat(item.cena_bez_pdv).toFixed(2)} €</span>
-                </div>
-            `;
-            
-            div.addEventListener('click', function() {
-                selectAutocompleteItem(input, item);
-            });
-            
-            resultsDiv.appendChild(div);
-        });
-        
-        resultsDiv.classList.add('show');
-    }
-
-    function updateAutocompleteSelection(items) {
-        items.forEach((item, index) => {
-            if (index === selectedAutocompleteIndex) {
-                item.style.backgroundColor = '#e3f2fd';
-            } else {
-                item.style.backgroundColor = '';
-            }
-        });
-    }
-
-    // Autocomplete odabir - KORISTI CENE IZ LAGERA + UČITAVA RABAT
-    async function selectAutocompleteItem(input, item) {
-        const row = input.closest('tr');
-        
-        // Popuni sva polja - CENE DIREKTNO IZ AUTOCOMPLETE (koje dolaze iz lagera)
-        row.querySelector('.artikal-sifra').value = item.sifra;
-        row.querySelector('.artikal-naziv').value = item.naziv;
-        row.querySelector('.artikal-jm').value = item.jm || 'kom';
-        row.querySelector('.artikal-cena-bez').value = parseFloat(item.cena_bez_pdv).toFixed(2);
-        row.querySelector('.artikal-cena-sa').value = parseFloat(item.cena_sa_pdv).toFixed(2);
-        
-        // Učitaj rabat iz tabele
-        const partnerNaziv = document.getElementById('edit-partner').value;
-        const partner = sviPartneri.find(p => p.Naziv_partnera === partnerNaziv);
-        
-        if (partner && partner.Sifra) {
-            try {
-                const rabatResponse = await fetch(`/api/rabat/${partner.Sifra}/${item.sifra}`);
-                const rabatData = await rabatResponse.json();
-                
-                if (rabatData.success) {
-                    row.querySelector('.artikal-rabat').value = parseFloat(rabatData.rabat).toFixed(1);
-                    console.log(`Autocomplete: Učitan rabat ${rabatData.rabat}% za ${item.naziv}`);
-                } else {
-                    row.querySelector('.artikal-rabat').value = '0.0';
-                }
-            } catch (rabatError) {
-                console.warn('Greška pri učitavanju rabata:', rabatError);
-                row.querySelector('.artikal-rabat').value = '0.0';
-            }
-        } else {
-            row.querySelector('.artikal-rabat').value = '0.0';
-        }
-        
-        const resultsDiv = input.closest('.autocomplete-wrapper').querySelector('.autocomplete-results');
-        resultsDiv.classList.remove('show');
-        
-        calculateEditRow(row.querySelector('.artikal-kolicina'));
-    }
-
-    // Izračunavanje ukupnih iznosa - KORISTI CENE IZ INPUT POLJA
-    function calculateEditRow(input) {
-        const row = input.closest('tr');
-        
-        const kolicina = parseFloat(row.querySelector('.artikal-kolicina').value) || 0;
-        const cenaBez = parseFloat(row.querySelector('.artikal-cena-bez').value) || 0;
-        const rabat = parseFloat(row.querySelector('.artikal-rabat').value) || 0;
-        
-        // UKUPNO BEZ PDV = (cena × količina) - rabat
-        const ukupnoBezPdvBefore = cenaBez * kolicina;
-        const rabatAmount = ukupnoBezPdvBefore * (rabat / 100);
-        const ukupnoBezPdv = ukupnoBezPdvBefore - rabatAmount;
-        
-        // UKUPNO SA PDV = ukupno bez PDV × 1.21
-        const ukupnoSaPdv = ukupnoBezPdv * 1.21;
-        
-        row.querySelector('.artikal-total-bez').value = ukupnoBezPdv.toFixed(2);
-        row.querySelector('.artikal-total-sa').value = ukupnoSaPdv.toFixed(2);
-        
-        recalculateEditTotals();
-    }
-
-    function recalculateEditTotals() {
-        let totalKolicina = 0;
-        let totalBezPdv = 0;
-        let totalSaPdv = 0;
-        
-        document.querySelectorAll('#edit-artikli-tbody tr').forEach(row => {
-            const kolicina = parseFloat(row.querySelector('.artikal-kolicina').value) || 0;
-            const totalBez = parseFloat(row.querySelector('.artikal-total-bez').value) || 0;
-            const totalSa = parseFloat(row.querySelector('.artikal-total-sa').value) || 0;
-            
-            totalKolicina += kolicina;
-            totalBezPdv += totalBez;
-            totalSaPdv += totalSa;
-        });
-        
-        const totalPdv = totalSaPdv - totalBezPdv;
-        
-        document.getElementById('edit-total-kolicina').textContent = totalKolicina.toFixed(2);
-        document.getElementById('edit-total-bez-pdv').textContent = totalBezPdv.toFixed(2) + ' €';
-        document.getElementById('edit-total-pdv').textContent = totalPdv.toFixed(2) + ' €';
-        document.getElementById('edit-total-sa-pdv').textContent = totalSaPdv.toFixed(2) + ' €';
-    }
-
-    function removeEditRow(btn) {
-        const tbody = document.getElementById('edit-artikli-tbody');
-        if (tbody.children.length <= 1) {
-            alert('Morate imati najmanje jedan artikal u dokumentu.');
-            return;
-        }
-        
-        btn.closest('tr').remove();
-        updateEditRowNumbers();
-        recalculateEditTotals();
-    }
-
-    function updateEditRowNumbers() {
-        document.querySelectorAll('#edit-artikli-tbody tr').forEach((row, index) => {
-            row.dataset.rowIndex = index;
-            row.cells[0].textContent = index + 1;
-        });
-    }
-
-    // Close modal
-    document.getElementById('close-edit-modal').addEventListener('click', () => {
-        document.getElementById('edit-modal').classList.remove('show');
-    });
-
-    document.getElementById('cancel-edit-btn').addEventListener('click', () => {
-        document.getElementById('edit-modal').classList.remove('show');
-    });
-
-    document.getElementById('edit-modal').addEventListener('click', (e) => {
-        if (e.target === document.getElementById('edit-modal')) {
-            document.getElementById('edit-modal').classList.remove('show');
-        }
-    });
-
-    // Štampaj iz edit modala
-    document.getElementById('print-from-edit-btn').addEventListener('click', async () => {
-        if (currentEditingDocument && currentEditingDocument.dokument) {
-            await generatePrintDocumentFromEditModal();
-            window.print();
-        }
-    });
-
-    // ŠTAMPA - Koristi cene direktno iz input polja
-    async function generatePrintDocumentFromEditModal() {
-        const dokumentId = document.getElementById('edit-dokument-id').value;
-        const datum = document.getElementById('edit-datum').value;
-        const partnerNaziv = document.getElementById('edit-partner').value;
-        const tipDokumenta = document.getElementById('edit-tip-dokumenta').value;
-        
-        const today = new Date(datum);
-        const formattedDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
-        
-        const docNumberMatch = tipDokumenta.match(/(\d+)/);
-        const docNumber = docNumberMatch ? docNumberMatch[1] : 'N/A';
-        
-        const documentType = getDocumentTypeForPrint(tipDokumenta);
-        
-        const partner = await loadPartnerByName(partnerNaziv);
-        
-        document.getElementById('print-date').textContent = formattedDate;
-        document.getElementById('print-document-type').textContent = documentType;
-        document.getElementById('print-doc-number').textContent = docNumber;
-        
-        if (partner) {
-            document.getElementById('print-customer-code').textContent = partner.Sifra || '';
-            document.getElementById('print-customer-name').textContent = partner.Naziv_partnera || partnerNaziv;
-            document.getElementById('print-customer-pib').textContent = partner.PIB || '';
-            document.getElementById('print-customer-pdv').textContent = partner.PDV || '';
-            document.getElementById('print-customer-address').textContent = partner.Adresa || '';
-            document.getElementById('print-customer-city').textContent = partner.Grad || '';
-        } else {
-            document.getElementById('print-customer-code').textContent = 'N/A';
-            document.getElementById('print-customer-name').textContent = partnerNaziv;
-            document.getElementById('print-customer-pib').textContent = '';
-            document.getElementById('print-customer-pdv').textContent = '';
-            document.getElementById('print-customer-address').textContent = '';
-            document.getElementById('print-customer-city').textContent = '';
-        }
-        
-        // Uzmi artikle DIREKTNO IZ TABELE (sa tačnim cenama I INDIVIDUALNIM RABATIMA)
-        const artikli = [];
-        document.querySelectorAll('#edit-artikli-tbody tr').forEach((row, index) => {
-            artikli.push({
-                rb: index + 1,
-                sifra: row.querySelector('.artikal-sifra').value || 'N/A',
-                naziv: row.querySelector('.artikal-naziv').value,
-                jm: row.querySelector('.artikal-jm').value,
-                kolicina: parseFloat(row.querySelector('.artikal-kolicina').value) || 0,
-                cenaBezPdv: parseFloat(row.querySelector('.artikal-cena-bez').value) || 0,
-                cenaSaPdv: parseFloat(row.querySelector('.artikal-cena-sa').value) || 0,
-                rabat: parseFloat(row.querySelector('.artikal-rabat').value) || 0,  // INDIVIDUALNI RABAT
-                pdvStopa: 21
-            });
-        });
-        
-        let itemsHTML = '';
-        let totalBezPdv = 0;
-        let totalRabat = 0;
-        let totalPdv = 0;
-        let totalSaPdv = 0;
-        
-        artikli.forEach((item) => {
-            const vrijednostBezPdv = item.cenaBezPdv * item.kolicina;
-            const rabatIznos = vrijednostBezPdv * (item.rabat / 100);
-            const vrijednostBezPdvSaRabatom = vrijednostBezPdv - rabatIznos;
-            const pdvIznos = vrijednostBezPdvSaRabatom * (item.pdvStopa / 100);
-            const vrijednostSaPdv = vrijednostBezPdvSaRabatom * 1.21;
-            
-            totalBezPdv += vrijednostBezPdvSaRabatom;
-            totalRabat += rabatIznos;
-            totalPdv += pdvIznos;
-            totalSaPdv += vrijednostSaPdv;
-            
-            itemsHTML += `
-                <tr>
-                    <td>${item.rb}</td>
-                    <td>${item.sifra}</td>
-                    <td class="text-left">${item.naziv}</td>
-                    <td>${item.jm}</td>
-                    <td>${item.kolicina}</td>
-                    <td class="text-right">${item.cenaBezPdv.toFixed(3)}</td>
-                    <td class="text-right">${vrijednostBezPdv.toFixed(2)}</td>
-                    <td class="text-right">${item.rabat.toFixed(1)}%</td>
-                    <td class="text-right">${item.pdvStopa.toFixed(0)}%</td>
-                    <td class="text-right">${pdvIznos.toFixed(2)}</td>
-                    <td class="text-right">${item.cenaSaPdv.toFixed(3)}</td>
-                    <td class="text-right">${vrijednostSaPdv.toFixed(2)}</td>
-                </tr>
-            `;
-        });
-        
-        document.getElementById('print-items-tbody').innerHTML = itemsHTML;
-        document.getElementById('print-total-bez-pdv').textContent = totalBezPdv.toFixed(2);
-        document.getElementById('print-total-rabat').textContent = totalRabat.toFixed(2);
-        document.getElementById('print-osnovica').textContent = totalBezPdv.toFixed(2);
-        document.getElementById('print-pdv-iznos').textContent = totalPdv.toFixed(2);
-        document.getElementById('print-total-sa-pdv').textContent = totalSaPdv.toFixed(2);
-        
-        document.getElementById('print-signature-left').textContent = getSignatureText(tipDokumenta);
-        document.getElementById('print-disclaimer').innerHTML = `<div><strong>${getDisclaimerText(tipDokumenta)}</strong></div>`;
-    }
-    // Štampa iz glavne tabele - po ID-u dokumenta
-async function generatePrintDocumentFromId(id) {
-    try {
-        const response = await fetch(`/api/dokumenti/${id}`);
-        const data = await response.json();
-        
-        if (!data.success) {
-            alert('Greška pri učitavanju dokumenta za štampu');
-            return;
-        }
-        
-        const dokument = data.dokument;
-        
-        // Pretvori datum
-        const today = new Date(dokument.datum);
-        const formattedDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
-        
-        const docNumberMatch = dokument.tip_dokumenta.match(/(\d+)/);
-        const docNumber = docNumberMatch ? docNumberMatch[1] : 'N/A';
-        
-        const documentType = getDocumentTypeForPrint(dokument.tip_dokumenta);
-        
-        const partner = await loadPartnerByName(dokument.partner);
-        
-        document.getElementById('print-date').textContent = formattedDate;
-        document.getElementById('print-document-type').textContent = documentType;
-        document.getElementById('print-doc-number').textContent = docNumber;
-        
-        if (partner) {
-            document.getElementById('print-customer-code').textContent = partner.Sifra || '';
-            document.getElementById('print-customer-name').textContent = partner.Naziv_partnera || dokument.partner;
-            document.getElementById('print-customer-pib').textContent = partner.PIB || '';
-            document.getElementById('print-customer-pdv').textContent = partner.PDV || '';
-            document.getElementById('print-customer-address').textContent = partner.Adresa || '';
-            document.getElementById('print-customer-city').textContent = partner.Grad || '';
-        } else {
-            document.getElementById('print-customer-code').textContent = 'N/A';
-            document.getElementById('print-customer-name').textContent = dokument.partner;
-            document.getElementById('print-customer-pib').textContent = '';
-            document.getElementById('print-customer-pdv').textContent = '';
-            document.getElementById('print-customer-address').textContent = '';
-            document.getElementById('print-customer-city').textContent = '';
-        }
-        
-        // Učitaj artikle sa STVARNIM cenama iz lagera + INDIVIDUALNIM RABATIMA
-        const artikli = [];
-        for (let i = 0; i < data.artikli.length; i++) {
-            const art = data.artikli[i];
-            
-            try {
-                const lagerResponse = await fetch(`/api/lager/sifra/${art.sifra}`);
-                let cene = {
-                    cena_bez_pdv: art.cena_bez_pdv,
-                    cena_sa_pdv: art.cena_sa_pdv
-                };
-                
-                if (lagerResponse.ok) {
-                    const lagerData = await lagerResponse.json();
-                    cene.cena_bez_pdv = parseFloat(lagerData.cena_bez_pdv);
-                    cene.cena_sa_pdv = parseFloat(lagerData.cena_sa_pdv);
-                }
-                
-                // Učitaj INDIVIDUALNI rabat iz tabele
-                let individualniRabat = 0;
-                if (partner && partner.Sifra && art.sifra !== 'N/A') {
-                    try {
-                        const rabatResponse = await fetch(`/api/rabat/${partner.Sifra}/${art.sifra}`);
-                        const rabatData = await rabatResponse.json();
-                        if (rabatData.success) {
-                            individualniRabat = parseFloat(rabatData.rabat) || 0;
-                        }
-                    } catch (rabatError) {
-                        console.warn(`Nije moguće učitati rabat za ${art.sifra}:`, rabatError);
-                    }
-                }
-                
-                artikli.push({
-                    rb: i + 1,
-                    sifra: art.sifra,
-                    naziv: art.naziv,
-                    jm: art.jm,
-                    kolicina: parseFloat(art.kolicina),
-                    cenaBezPdv: cene.cena_bez_pdv,
-                    cenaSaPdv: cene.cena_sa_pdv,
-                    rabat: individualniRabat,
-                    pdvStopa: 21
-                });
-            } catch (error) {
-                console.error(`Greška pri učitavanju cena za ${art.sifra}:`, error);
-                artikli.push({
-                    rb: i + 1,
-                    sifra: art.sifra,
-                    naziv: art.naziv,
-                    jm: art.jm,
-                    kolicina: parseFloat(art.kolicina),
-                    cenaBezPdv: parseFloat(art.cena_bez_pdv) || 0,
-                    cenaSaPdv: parseFloat(art.cena_sa_pdv) || 0,
-                    rabat: 0,
-                    pdvStopa: 21
-                });
-            }
-        }
-        
-        let itemsHTML = '';
-        let totalBezPdv = 0;
-        let totalRabat = 0;
-        let totalPdv = 0;
-        let totalSaPdv = 0;
-        
-        artikli.forEach((item) => {
-            const vrijednostBezPdv = item.cenaBezPdv * item.kolicina;
-            const rabatIznos = vrijednostBezPdv * (item.rabat / 100);
-            const vrijednostBezPdvSaRabatom = vrijednostBezPdv - rabatIznos;
-            const pdvIznos = vrijednostBezPdvSaRabatom * (item.pdvStopa / 100);
-            const vrijednostSaPdv = vrijednostBezPdvSaRabatom * 1.21;
-            
-            // Cena sa PDV NAKON primene rabata
-            const cenaSaPdvSaRabatom = item.cenaSaPdv - (item.cenaSaPdv * (item.rabat / 100));
-            
-            totalBezPdv += vrijednostBezPdvSaRabatom;
-            totalRabat += rabatIznos;
-            totalPdv += pdvIznos;
-            totalSaPdv += vrijednostSaPdv;
-            
-            itemsHTML += `
-                <tr>
-                    <td>${item.rb}</td>
-                    <td>${item.sifra}</td>
-                    <td class="text-left">${item.naziv}</td>
-                    <td>${item.jm}</td>
-                    <td>${item.kolicina}</td>
-                    <td class="text-right">${item.cenaBezPdv.toFixed(3)}</td>
-                    <td class="text-right">${vrijednostBezPdv.toFixed(2)}</td>
-                    <td class="text-right">${item.rabat.toFixed(1)}%</td>
-                    <td class="text-right">${item.pdvStopa.toFixed(0)}%</td>
-                    <td class="text-right">${pdvIznos.toFixed(2)}</td>
-                    <td class="text-right">${cenaSaPdvSaRabatom.toFixed(3)}</td>
-                    <td class="text-right">${vrijednostSaPdv.toFixed(2)}</td>
-                </tr>
-            `;
-        });
-        
-        document.getElementById('print-items-tbody').innerHTML = itemsHTML;
-        document.getElementById('print-total-bez-pdv').textContent = totalBezPdv.toFixed(2);
-        document.getElementById('print-total-rabat').textContent = totalRabat.toFixed(2);
-        document.getElementById('print-osnovica').textContent = totalBezPdv.toFixed(2);
-        document.getElementById('print-pdv-iznos').textContent = totalPdv.toFixed(2);
-        document.getElementById('print-total-sa-pdv').textContent = totalSaPdv.toFixed(2);
-        
-        document.getElementById('print-signature-left').textContent = getSignatureText(dokument.tip_dokumenta);
-        document.getElementById('print-disclaimer').innerHTML = `<div><strong>${getDisclaimerText(dokument.tip_dokumenta)}</strong></div>`;
-        
-    } catch (error) {
-        console.error('Error generating print document:', error);
-        alert('Greška pri pripremi dokumenta za štampu');
-    }
-}
-
-    // Submit form - sa INDIVIDUALNIM RABATIMA
-    document.getElementById('edit-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const submitBtn = e.target.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Čuvam...';
-        
-        try {
-            const artikli = [];
-            document.querySelectorAll('#edit-artikli-tbody tr').forEach(row => {
-                artikli.push({
-                    sifra: row.querySelector('.artikal-sifra').value || 'N/A',
-                    naziv: row.querySelector('.artikal-naziv').value,
-                    jm: row.querySelector('.artikal-jm').value,
-                    kolicina: parseFloat(row.querySelector('.artikal-kolicina').value),
-                    cena_bez_pdv: parseFloat(row.querySelector('.artikal-cena-bez').value),
-                    cena_sa_pdv: parseFloat(row.querySelector('.artikal-cena-sa').value),
-                    rabat: parseFloat(row.querySelector('.artikal-rabat').value)  // INDIVIDUALNI RABAT
-                });
-            });
-            
-            const data = {
-                datum: document.getElementById('edit-datum').value,
-                partner: document.getElementById('edit-partner').value,
-                tip_dokumenta: document.getElementById('edit-tip-dokumenta').value,
-                komercijalist_id: document.getElementById('edit-komercijalist').value || null,
-                artikli: artikli
-            };
-            
-            const dokumentId = document.getElementById('edit-dokument-id').value;
-            
-            const response = await fetch(`/api/dokumenti/${dokumentId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                alert('Dokument je uspešno ažuriran!');
-                document.getElementById('edit-modal').classList.remove('show');
-                location.reload();
-            } else {
-                alert('Greška: ' + (result.error || 'Nepoznata greška'));
-            }
-            
-        } catch (error) {
-            console.error('Error saving document:', error);
-            alert('Greška pri čuvanju dokumenta: ' + error.message);
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-save"></i> Sačuvaj izmene';
-        }
-    });
-
-    // Document details
-    function showDocumentDetails(id) {
-        const dokument = dokumentiData.find(d => d.id == id);
-        if (!dokument) return;
-        
-        const detailsHTML = `
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-                <div>
-                    <strong>ID:</strong> ${dokument.id}<br>
-                    <strong>Datum:</strong> ${new Date(dokument.datum).toLocaleDateString('sr-RS')}<br>
-                    <strong>Tip dokumenta:</strong> ${dokument.tip_dokumenta}<br>
-                    <strong>Partner:</strong> ${dokument.partner}
-                </div>
-                <div>
-                    <strong>Količina:</strong> ${parseFloat(dokument.kolicina).toFixed(2)}<br>
-                    <strong>Iznos bez PDV:</strong> ${parseFloat(dokument.iznos_bez_pdv).toFixed(2)} €<br>
-                    <strong>PDV iznos:</strong> ${parseFloat(dokument.pdv_iznos).toFixed(2)} €<br>
-                    <strong>Iznos sa PDV:</strong> ${parseFloat(dokument.iznos_sa_pdv).toFixed(2)} €<br>
-                    <strong>Rabat:</strong> ${parseFloat(dokument.rabat).toFixed(2)}%
-                </div>
-            </div>
-            <div style="margin-bottom: 1rem;">
-                <strong>Naziv artikla:</strong>
-                <div style="padding: 10px; background-color: #f8f9fa; border-radius: 4px; margin-top: 0.5rem; word-wrap: break-word; white-space: pre-wrap;">${dokument.naziv_artikla}</div>
-            </div>
-        `;
-        
-        document.getElementById('document-details-content').innerHTML = detailsHTML;
-        window.currentDocumentForPrint = dokument;
-        document.getElementById('document-details-modal').classList.add('show');
-    }
-
-    document.getElementById('close-details-modal').addEventListener('click', () => {
-        document.getElementById('document-details-modal').classList.remove('show');
-    });
-
-    document.getElementById('close-details-btn').addEventListener('click', () => {
-        document.getElementById('document-details-modal').classList.remove('show');
-    });
-
-    document.getElementById('print-from-details-btn').addEventListener('click', async () => {
-        if (window.currentDocumentForPrint) {
-            await generatePrintDocumentFromId(window.currentDocumentForPrint.id);
-            window.print();
-        }
-    });
-
-    // Helper functions
-    function getDocumentTypeForPrint(tipDokumenta) {
-        const tip = tipDokumenta.toLowerCase();
-        if (tip.includes('otpremnica')) return 'Otpremnica';
-        if (tip.includes('predracun')) return 'Predračun';
-        if (tip.includes('kalkulacija')) return 'Kalkulacija';
-        if (tip.includes('ponuda')) return 'Ponuda';
-        return 'Dokument';
-    }
-
-    function getSignatureText(tipDokumenta) {
-        const tip = tipDokumenta.toLowerCase();
-        if (tip.includes('otpremnica')) return 'Otpremio,';
-        if (tip.includes('predracun')) return 'Izradio,';
-        if (tip.includes('kalkulacija')) return 'Kalkulisao,';
-        if (tip.includes('ponuda')) return 'Ponudio,';
-        return 'Izdao,';
-    }
-
-    function getDisclaimerText(tipDokumenta) {
-        const tip = tipDokumenta.toLowerCase();
-        if (tip.includes('otpremnica')) return 'OVO NIJE PDV RAČUN!!!';
-        if (tip.includes('predracun')) return 'OVO NIJE PDV RAČUN - PREDRAČUN!!!';
-        if (tip.includes('kalkulacija')) return 'KALKULACIJA - OVO NIJE PDV RAČUN!!!';
-        if (tip.includes('ponuda')) return 'PONUDA - OVO NIJE OBAVEZUJUĆI DOKUMENT!!!';
-        return 'OVO NIJE PDV RAČUN!!!';
-    }
-
-    async function loadPartnerByName(partnerName) {
-        try {
-            const partner = sviPartneri.find(p=> 
-                (p.Naziv_partnera || p.naziv_partnera || '').toLowerCase() === partnerName.toLowerCase()
-            );
-            return partner || null;
-        } catch (error) {
-            console.error('Error loading partner:', error);
-            return null;
-        }
-    }
-
-    // Filter functions
-    function applyFilters() {
-        const searchTerm = document.getElementById('search-documents').value.toLowerCase();
-        const partner = document.getElementById('partner-filter').value;
-        const tip = document.getElementById('tip-filter').value;
-        const artikal = document.getElementById('artikal-filter').value;
-        const fromDate = document.getElementById('date-from').value;
-        const toDate = document.getElementById('date-to').value;
-        
-        filteredData = dokumentiData.filter(item => {
-            let passes = true;
-            
-            if (searchTerm) {
-                const searchableText = `${item.partner} ${item.naziv_artikla} ${item.tip_dokumenta}`.toLowerCase();
-                if (!searchableText.includes(searchTerm)) {
-                    passes = false;
-                }
-            }
-            
-            if (partner && item.partner !== partner) {
-                passes = false;
-            }
-            
-            if (tip && item.tip_dokumenta !== tip) {
-                passes = false;
-            }
-            
-            if (artikal && item.naziv_artikla !== artikal) {
-                passes = false;
-            }
-            
-            if (fromDate && toDate) {
-                const itemDate = new Date(item.datum);
-                const filterFromDate = new Date(fromDate);
-                const filterToDate = new Date(toDate);
-                
-                if (itemDate < filterFromDate || itemDate > filterToDate) {
-                    passes = false;
-                }
-            }
-            
-            return passes;
-        });
-        
-        filteredData.sort((a, b) => b.id - a.id);
-        
-        renderDokumentiTable();
-    }
-
-    function renderDokumentiTable() {
-        const tbody = document.getElementById('dokumenti-tbody');
-        tbody.innerHTML = '';
-        
-        filteredData.forEach((item, index) => {
-            const row = document.createElement('tr');
-            if (index === 0) {
-                row.classList.add('selected');
-            }
-            
-            row.innerHTML = `
-                <td>${item.id}</td>
-                <td class="date-column">${new Date(item.datum).toLocaleDateString('sr-RS')}</td>
-                <td>${item.partner}</td>
-                <td class="doc-type-column">${item.tip_dokumenta}</td>
-                <td title="${item.naziv_artikla}" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.naziv_artikla}</td>
-                <td class="price-column">${parseFloat(item.iznos_sa_pdv).toLocaleString('sr-RS', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn btn-sm btn-info view-document-btn" data-id="${item.id}" title="Pregled">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-warning edit-document-btn" data-id="${item.id}" title="Izmeni">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-primary print-document-btn" data-id="${item.id}" title="Štampaj">
-                            <i class="fas fa-print"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger delete-document-btn" data-id="${item.id}" title="Obriši">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            `;
-            
-            tbody.appendChild(row);
-        });
-
-        document.getElementById('document-count').textContent = `Ukupno: ${filteredData.length} dokumenata`;
-    }
-
-    // Event listeners
-    document.getElementById('search-documents').addEventListener('input', applyFilters);
-    document.getElementById('partner-filter').addEventListener('change', applyFilters);
-    document.getElementById('tip-filter').addEventListener('change', applyFilters);
-    document.getElementById('artikal-filter').addEventListener('change', applyFilters);
-    document.getElementById('date-from').addEventListener('change', applyFilters);
-    document.getElementById('date-to').addEventListener('change', applyFilters);
-    document.getElementById('apply-filters').addEventListener('click', applyFilters);
-
-    document.getElementById('print-btn').addEventListener('click', () => {
-        window.print();
-    });
-
-    document.getElementById('export-btn').addEventListener('click', () => {
-        const csvContent = "data:text/csv;charset=utf-8," 
-            + "ID,Datum,Partner,Tip dokumenta,Naziv artikla,Iznos sa PDV (€)\n"
-            + filteredData.map(item => 
-                `${item.id},${new Date(item.datum).toLocaleDateString('sr-RS')},${item.partner},${item.tip_dokumenta},${item.naziv_artikla},${item.iznos_sa_pdv}`
-            ).join("\n");
-        
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "dokumenti.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    });
-
-    document.getElementById('refresh-btn').addEventListener('click', () => {
-        location.reload();
-    });
-
-    window.addEventListener('resize', function() {
-        if (window.innerWidth > 576) {
-            sidebar.classList.remove('mobile-open');
-            sidebarOverlay.classList.remove('show');
-            document.body.style.overflow = '';
-        }
-    });
-
-    window.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            if (document.getElementById('edit-modal').classList.contains('show')) {
-                document.getElementById('edit-modal').classList.remove('show');
-            } else if (document.getElementById('document-details-modal').classList.contains('show')) {
-                document.getElementById('document-details-modal').classList.remove('show');
-            } else if (sidebar.classList.contains('mobile-open')) {
+        // Function to close mobile sidebar
+        function closeMobileSidebar() {
+            if (window.innerWidth <= 576) {
                 sidebar.classList.remove('mobile-open');
                 sidebarOverlay.classList.remove('show');
                 document.body.style.overflow = '';
             }
         }
-    });
 
-    console.log('Tehnolux Pregled dokumenata - SISTEM SA INDIVIDUALNIM RABATIMA INICIJALIZOVAN');
-    console.log('- Cene se učitavaju direktno iz LAGER baze');
-    console.log('- Rabati se učitavaju iz PARTNER_ARTIKAL_RABAT tabele');
-    console.log('- Svaki artikal može imati različit rabat');
-</script>
+        // Mobile menu functionality
+        mobileMenuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('mobile-open');
+            sidebarOverlay.classList.toggle('show');
+            
+            if (sidebar.classList.contains('mobile-open')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        });
+
+        // Close mobile menu when clicking overlay
+        sidebarOverlay.addEventListener('click', function() {
+            closeMobileSidebar();
+        });
+
+        // Toggle sidebar
+        toggleSidebar.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            header.classList.toggle('expanded');
+            
+            if (sidebar.classList.contains('collapsed')) {
+                sidebarIcon.classList.remove('fa-chevron-left');
+                sidebarIcon.classList.add('fa-chevron-right');
+            } else {
+                sidebarIcon.classList.remove('fa-chevron-right');
+                sidebarIcon.classList.add('fa-chevron-left');
+            }
+        });
+
+        // Submenu functionality
+        document.querySelectorAll('.nav-item.has-submenu > .nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const parent = this.parentElement;
+                const submenu = parent.querySelector('.submenu');
+                
+                document.querySelectorAll('.nav-item.has-submenu').forEach(item => {
+                    if (item !== parent) {
+                        item.classList.remove('open');
+                        item.querySelector('.submenu').classList.remove('open');
+                    }
+                });
+                
+                parent.classList.toggle('open');
+                submenu.classList.toggle('open');
+            });
+        });
+
+        // Navigation - close sidebar on submenu link click
+        document.querySelectorAll('.submenu .nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                closeMobileSidebar();
+            });
+        });
+
+        // Modal functionality
+        addStockBtn.addEventListener('click', () => {
+            clearForm();
+            modalTitle.textContent = 'Dodaj novi artikal';
+            stockModal.classList.add('show');
+        });
+
+        stockAlertBtn.addEventListener('click', () => {
+            alertModal.classList.add('show');
+        });
+
+        closeModal.addEventListener('click', () => stockModal.classList.remove('show'));
+        closeAlertModal.addEventListener('click', () => alertModal.classList.remove('show'));
+        cancelBtn.addEventListener('click', () => stockModal.classList.remove('show'));
+
+        stockModal.addEventListener('click', (e) => {
+            if (e.target === stockModal) stockModal.classList.remove('show');
+        });
+
+        alertModal.addEventListener('click', (e) => {
+            if (e.target === alertModal) alertModal.classList.remove('show');
+        });
+
+        // Form functions
+        function clearForm() {
+            stockForm.reset();
+            document.getElementById('stock-id').value = '';
+            document.getElementById('stock-code').readOnly = false;
+        }
+
+        function fillForm(data) {
+            document.getElementById('stock-id').value = data.id;
+            document.getElementById('stock-code').value = data.sifra;
+            document.getElementById('stock-name').value = data.naziv;
+            document.getElementById('stock-jm').value = data.jm;
+            document.getElementById('stock-quantity').value = data.kolicina;
+            document.getElementById('stock-code').readOnly = true; // Ne dozvoljavamo menjanje šifre kod izmene
+        }
+
+        // Table button handlers
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.edit-stock-btn')) {
+                const btn = e.target.closest('.edit-stock-btn');
+                const data = {
+                    id: btn.dataset.id,
+                    sifra: btn.dataset.sifra,
+                    naziv: btn.dataset.naziv,
+                    jm: btn.dataset.jm,
+                    kolicina: btn.dataset.kolicina
+                };
+                fillForm(data);
+                modalTitle.textContent = 'Izmeni artikal';
+                stockModal.classList.add('show');
+            }
+            
+            if (e.target.closest('.adjust-stock-btn')) {
+                const btn = e.target.closest('.adjust-stock-btn');
+                const currentQty = parseFloat(btn.dataset.kolicina);
+                const adjustment = prompt(`Trenutna količina: ${currentQty}\nUnesite promenu (+/- količina):`);
+                
+                if (adjustment !== null && !isNaN(adjustment)) {
+                    const newQuantity = currentQty + parseFloat(adjustment);
+                    updateQuantity(btn.dataset.id, newQuantity);
+                }
+            }
+            
+            if (e.target.closest('.delete-stock-btn')) {
+                const btn = e.target.closest('.delete-stock-btn');
+                if (confirm(`Da li ste sigurni da želite da obrišete artikal ${btn.dataset.sifra}?`)) {
+                    deleteStock(btn.dataset.id);
+                }
+            }
+        });
+
+        // Form submission
+        stockForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                sifra: document.getElementById('stock-code').value,
+                naziv: document.getElementById('stock-name').value,
+                jm: document.getElementById('stock-jm').value,
+                kolicina: parseFloat(document.getElementById('stock-quantity').value)
+            };
+
+            const stockId = document.getElementById('stock-id').value;
+            
+            try {
+                let response;
+                if (stockId) {
+                    // Update existing stock
+                    response = await fetch(`/lager/${stockId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                } else {
+                    // Add new stock
+                    response = await fetch('/lager', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                }
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    stockModal.classList.remove('show');
+                    showMessage('Uspešno sačuvano!', 'success');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showMessage(result.error || 'Greška pri čuvanju', 'error');
+                }
+            } catch (error) {
+                showMessage('Greška pri komunikaciji sa serverom', 'error');
+                console.error('Error:', error);
+            }
+        });
+
+        // Update quantity function
+        async function updateQuantity(id, newQuantity) {
+            try {
+                const response = await fetch(`/lager/${id}/quantity`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        kolicina: newQuantity,
+                        operation: 'set'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showMessage('Količina uspešno ažurirana!', 'success');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showMessage(result.error || 'Greška pri ažuriranju količine', 'error');
+                }
+            } catch (error) {
+                showMessage('Greška pri komunikaciji sa serverom', 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        // Delete stock function
+        async function deleteStock(id) {
+            try {
+                const response = await fetch(`/lager/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showMessage('Artikal uspešno obrisan!', 'success');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showMessage(result.error || 'Greška pri brisanju', 'error');
+                }
+            } catch (error) {
+                showMessage('Greška pri komunikaciji sa serverom', 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        // Message display function
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                padding: 1rem 1.5rem;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 3000;
+                max-width: 300px;
+                background-color: ${type === 'success' ? '#2ecc71' : '#e74c3c'};
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            `;
+            messageDiv.textContent = message;
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const term = this.value.toLowerCase();
+            const status = statusFilter.value;
+            filterTable(term, status);
+        });
+
+        statusFilter.addEventListener('change', function() {
+            const term = searchInput.value.toLowerCase();
+            const status = this.value;
+            filterTable(term, status);
+        });
+
+        function filterTable(searchTerm, statusFilter) {
+            const rows = document.querySelectorAll('#stock-tbody tr');
+            
+            rows.forEach(row => {
+                if (row.children.length === 1) return; // Skip "no data" row
+                
+                const sifra = row.children[0].textContent.toLowerCase();
+                const naziv = row.children[1].textContent.toLowerCase();
+                const status = row.dataset.status;
+                
+                const matchesSearch = !searchTerm || sifra.includes(searchTerm) || naziv.includes(searchTerm);
+                const matchesStatus = !statusFilter || status === statusFilter;
+                
+                row.style.display = matchesSearch && matchesStatus ? '' : 'none';
+            });
+        }
+
+        // Auto collapse sidebar on medium screens
+        if (window.innerWidth <= 992 && window.innerWidth > 576) {
+            sidebar.classList.add('collapsed');
+            mainContent.classList.add('expanded');
+            header.classList.add('expanded');
+            sidebarIcon.classList.remove('fa-chevron-left');
+            sidebarIcon.classList.add('fa-chevron-right');
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (stockModal.classList.contains('show')) {
+                    stockModal.classList.remove('show');
+                } else if (alertModal.classList.contains('show')) {
+                    alertModal.classList.remove('show');
+                } else if (sidebar.classList.contains('mobile-open')) {
+                    closeMobileSidebar();
+                }
+            }
+            
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                addStockBtn.click();
+            }
+            
+            if (e.ctrlKey && e.key === 'f') {
+                e.preventDefault();
+                searchInput.focus();
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 576) {
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+        });
+
+        console.log('Tehnolux Lager EJS panel initialized');
+    </script>
 </body>
 </html>
-
-SLUSAJ, treba mi da umesto filtera za artikle stavis filter za magacine u ovom fajlu, ovo su magacini, ali da i u tabeli stavis samo magacin kolonu i da ne mices artikli kolonu, nista drugo ne menjas
-evo ti i backend
-
-import express from 'express';
-import bodyParser from 'body-parser';
-import pg from "pg";
-import dotenv from 'dotenv';
-import session from 'express-session';
-import bcrypt from 'bcrypt';
-
-dotenv.config();
-const app = express();
-const port = 3000;
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static("public"));
-app.use(express.json());
-
-const db = new pg.Client({
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    database: process.env.DB_NAME,
-    ssl: { rejectUnauthorized: false },
-})
-db.connect();
-
-// bcrypt hash vrednosti za sve korisnike
-const ADMIN_HASH   = '$2b$12$GlMBYvuE3/jZuhfrZcagXOv.w3uVmwQEo5hdhqlpXtw9mOTbyfgfa'; // admin
-const SERVIS_HASH = "$2a$12$mVDJhEzXLoGc3NcBbnN7ne4gfwuAHk8X6laD/oCCX1IViJ068j2qe";
-const RADNJA_HASH  = '$2b$12$T1wLn3vutZ7VJaNsmS5q1uVqJwiT0qo1FW2DyyidxGbWSJZ20eRau'; 
-const MAGACIN_HASH = '$2b$12$8yj9bdZ/C.KdDA4S5fixreK1nfPJ4wQnX9cNIRPw6eWm3S93Is19K';
-
-
-
-
-// session setup
-app.use(session({
-  name: 'sid',
-  secret: process.env.SESSION_SECRET || 'replace_this_in_prod',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    sameSite: true,
-    // secure: true, // enable in production with HTTPS
-    maxAge: 1000 * 60 * 60 * 4 // 4 hours
-  }
-}));
-
-// Simple list of public paths that don't require auth
-const PUBLIC_PATHS = new Set([
-  '/', '/login', '/logout',
-  '/favicon.ico'
-]);
-
-// Middleware za proveru pristupa
-app.use((req, res, next) => {
-  const url = req.path;
-
-  if (PUBLIC_PATHS.has(url) || url.startsWith('/public') || url.startsWith('/api/public')) {
-    return next();
-  }
-
-  if (!req.session || !req.session.role) {
-    return res.redirect('/');
-  }
-
-  // admin role ima pun pristup
-  if (req.session.role === 'admin') return next();
-
-  // servis role ima ograničen pristup
-  if (req.session.role === 'servis') {
-    if (url === '/servis' || url.startsWith('/servis/')) return next();
-    return res.status(403).send('Pristup zabranjen za servis nalog.');
-  }
-
-  return res.status(403).send('Pristup zabranjen.');
-});
-
-// Login page
-app.get('/', (req, res) => {
-  if (req.session && req.session.role === 'admin') return res.redirect('/partneri');
-  if (req.session && req.session.role === 'servis') return res.redirect('/servis');
-  return res.render('login.ejs', { message: null });
-});
-
-// Login handler
-app.post('/login', async (req, res) => {
-  const { username, password } = req.body || {};
-
-  if (!username || !password) {
-    return res.render('login.ejs', { message: 'Korisničko ime i lozinka su obavezni.' });
-  }
-
-  try {
-    // --- ADMIN ---
-    if (username === 'admin') {
-      const match = await bcrypt.compare(password, ADMIN_HASH);
-      if (match) {
-        req.session.role = 'admin';
-        req.session.username = 'admin';
-        return res.redirect('/partneri');
-      }
-    }
-
-    // --- RADNJA ---
-    if (username === 'radnja') {
-      const match = await bcrypt.compare(password, RADNJA_HASH);
-      if (match) {
-        req.session.role = 'admin';
-        req.session.username = 'radnja';
-        return res.redirect('/partneri');
-      }
-    }
-
-    // --- MAGACIN ---
-    if (username === 'magacin') {
-      const match = await bcrypt.compare(password, MAGACIN_HASH);
-      if (match) {
-        req.session.role = 'admin';
-        req.session.username = 'magacin';
-        return res.redirect('/partneri');
-      }
-    }
-
-    // --- SERVISERI (dinamički iz baze) ---
-    const normalized = String(username).trim().toLowerCase();
-
-    const query = `
-      SELECT id, ime_servisera
-      FROM serviseri
-      WHERE LOWER(REPLACE(ime_servisera, ' ', '_')) = $1
-      LIMIT 1
-    `;
-    const result = await db.query(query, [normalized]);
-    console.log('Broj pronađenih servisera:', result.rows.length);
-if (result.rows.length > 0) {
-  const serviser = result.rows[0];
-  console.log('Pronađen serviser:', serviser.ime_servisera);
-
-  const match = await bcrypt.compare(password, SERVIS_HASH);
-  console.log('Rezultat bcrypt.compare:', match);
-
-  if (match) {
-    req.session.role = 'servis';
-    req.session.username = serviser.ime_servisera;
-    return res.redirect('/servis');
-  }
-}
-
-
-    if (result.rows.length > 0) {
-      const serviser = result.rows[0];
-       console.log('Uneta lozinka:', password);
-  console.log('Hash u kodu:', SERVIS_HASH);
-      const match = await bcrypt.compare(password, SERVIS_HASH);
-      if (match) {
-        req.session.role = 'servis';
-        req.session.username = serviser.ime_servisera;
-        return res.redirect('/servis');
-      }
-    }
-
-    // Ako ništa nije prošlo:
-    return res.render('login.ejs', { message: 'Neispravno korisničko ime ili lozinka.' });
-  } catch (err) {
-    console.error('Login error:', err);
-    return res.status(500).send('Greška na serveru prilikom prijave.');
-  }
-});
-
-
-// Logout (GET)
-app.get('/logout', (req, res) => {
-  req.session.destroy(err => {
-    res.clearCookie('sid');
-    return res.redirect('/');
-  });
-});
-
-// Logout (POST)
-app.post('/logout', (req, res) => {
-  req.session.destroy(err => {
-    res.clearCookie('sid');
-    return res.redirect('/');
-  });
-});
-// =============================================================================
-// KARTICA KUPCA ROUTES - SA SALDO KALKULACIJAMA
-// =============================================================================
-
-// GET - Kartica kupca stranica
-app.get("/karticekupca", async (req, res) => {
-  try {
-    // Fetch all partners from partneri table
-    const partneri = (await db.query(
-      'SELECT * FROM "partneri" ORDER BY "Naziv_partnera"'
-    )).rows;
-
-    res.render("karticakupca.ejs", { partneri });
-  } catch (error) {
-    console.error("Error fetching partneri for kartica kupca:", error);
-    res.status(500).send("Greška pri dohvatanju partnera.");
-  }
-});
-
-// API route za saldos svih partnera
-// API route za saldos svih partnera - ISPRAVLJENA LOGIKA
-app.get("/api/karticekupca/saldos", async (req, res) => {
-  try {
-    const { datum_od, datum_do } = req.query;
-    
-    // Pripremi WHERE klauzulu za filtriranje po datumu
-    let dateFilterOtpremnice = '';
-    let dateFilterUplate = '';
-    let queryParams = [];
-    let paramCount = 0;
-    
-    if (datum_od) {
-      paramCount++;
-      dateFilterOtpremnice += ` AND d.datum >= $${paramCount}`;
-      dateFilterUplate += ` AND u.datum >= $${paramCount}`;
-      queryParams.push(datum_od);
-    }
-    
-    if (datum_do) {
-      paramCount++;
-      dateFilterOtpremnice += ` AND d.datum <= $${paramCount}`;
-      dateFilterUplate += ` AND u.datum <= $${paramCount}`;
-      queryParams.push(datum_do);
-    }
-
-    // Dobij sume otpremnica za sve partnere
-    const otpremniceQuery = `
-      SELECT 
-        p."Sifra",
-        p."Naziv_partnera",
-        COALESCE(SUM(d.iznos_sa_pdv), 0) as ukupne_otpremnice
-      FROM "partneri" p
-      LEFT JOIN "dokumenti" d ON d.partner = p."Naziv_partnera" 
-        AND d.tip_dokumenta LIKE 'otpremnica%'${dateFilterOtpremnice}
-      GROUP BY p."Sifra", p."Naziv_partnera"
-    `;
-
-    // Dobij sume uplata za sve partnere
-    const uplateQuery = `
-      SELECT 
-        p."Sifra",
-        p."Naziv_partnera",
-        COALESCE(SUM(u.iznos), 0) as ukupne_uplate
-      FROM "partneri" p
-      LEFT JOIN "uplate" u ON u.kupac = p."Naziv_partnera" 
-        AND u.status = 'primljena'${dateFilterUplate}
-      GROUP BY p."Sifra", p."Naziv_partnera"
-    `;
-
-    const [otpremniceResult, uplateResult] = await Promise.all([
-      db.query(otpremniceQuery, queryParams),
-      db.query(uplateQuery, queryParams)
-    ]);
-
-    // Kombinuj rezultate i izračunaj saldo
-    const saldos = [];
-    const otpremniceMap = new Map();
-    const uplateMap = new Map();
-
-    otpremniceResult.rows.forEach(row => {
-      otpremniceMap.set(row.Sifra, parseFloat(row.ukupne_otpremnice) || 0);
-    });
-
-    uplateResult.rows.forEach(row => {
-      uplateMap.set(row.Sifra, parseFloat(row.ukupne_uplate) || 0);
-    });
-
-    // Kreiraj saldo za svaki partner - ISPRAVLJENA LOGIKA
-    otpremniceResult.rows.forEach(row => {
-      const otpremnice = otpremniceMap.get(row.Sifra) || 0;
-      const uplate = uplateMap.get(row.Sifra) || 0;
-      const saldo = uplate - otpremnice; // UPLATE - OTPREMNICE (pozitivno = kredit kupca)
-
-      saldos.push({
-        sifra: row.Sifra,
-        naziv: row.Naziv_partnera,
-        otpremnice: otpremnice,
-        uplate: uplate,
-        saldo: saldo
-      });
-    });
-
-    res.json({
-      success: true,
-      saldos: saldos
-    });
-
-  } catch (error) {
-    console.error("Error calculating partner saldos:", error);
-    res.json({
-      success: false,
-      message: "Greška pri kalkulaciji saldova partnera"
-    });
-  }
-});
-// API route to get partner details with otpremnice and uplate
-app.get("/api/karticekupca/partner/:id", async (req, res) => {
-  try {
-    const partnerId = req.params.id;
-    const { datum_od, datum_do } = req.query;
-
-    console.log(`Fetching partner details for ID: ${partnerId}`);
-
-    // 1️⃣ Uzimamo podatke o partneru po šifri
-    const partnerResult = await db.query(
-      'SELECT * FROM "partneri" WHERE "Sifra" = $1',
-      [partnerId]
-    );
-
-    if (partnerResult.rows.length === 0) {
-      return res.json({ success: false, message: "Partner nije pronađen" });
-    }
-
-    const partner = partnerResult.rows[0];
-    console.log(`Partner found: ${partner.Naziv_partnera}`);
-
-    // Pripremi WHERE klauzulu za filtriranje po datumu
-    let dateFilter = '';
-    let queryParams = [partner.Naziv_partnera];
-    let paramCount = 1;
-    
-    if (datum_od) {
-      paramCount++;
-      dateFilter += ` AND datum >= $${paramCount}`;
-      queryParams.push(datum_od);
-    }
-    
-    if (datum_do) {
-      paramCount++;
-      dateFilter += ` AND datum <= $${paramCount}`;
-      queryParams.push(datum_do);
-    }
-
-    // 2️⃣ Tražimo SAMO otpremnice partnera
-    const otpremniceResult = await db.query(
-      `SELECT 
-        "id",
-        "datum",
-        "partner",
-        "tip_dokumenta",
-        "naziv_artikla",
-        "kolicina",
-        "iznos_bez_pdv",
-        "iznos_sa_pdv",
-        "pdv_iznos",
-        "rabat",
-        "komercijalist_id",
-        "komercijalist_ime",
-        "magacin"
-       FROM "dokumenti"
-       WHERE "partner" = $1 
-       AND "tip_dokumenta" LIKE 'otpremnica%'${dateFilter}
-       ORDER BY "datum" DESC, "id" DESC`,
-      queryParams
-    );
-
-    console.log(`Found ${otpremniceResult.rows.length} otpremnice for partner ${partner.Naziv_partnera}`);
-
-    // 3️⃣ Tražimo uplate partnera
-    const uplateResult = await db.query(
-      `SELECT 
-        "id",
-        "datum",
-        "kupac",
-        "iznos",
-        "nacin",
-        "status",
-        "dokument",
-        "komercijalist",
-        "napomene"
-       FROM "uplate"
-       WHERE "kupac" = $1 
-       AND "status" = 'primljena'${dateFilter}
-       ORDER BY "datum" DESC, "id" DESC`,
-      queryParams
-    );
-
-    console.log(`Found ${uplateResult.rows.length} uplate for partner ${partner.Naziv_partnera}`);
-
-    const otpremnice = otpremniceResult.rows;
-    const uplate = uplateResult.rows;
-
-    // 4️⃣ Vraćamo partnera sa otpremnicama i uplatama
-    res.json({
-      success: true,
-      partner,
-      otpremnice,
-      uplate,
-    });
-  } catch (error) {
-    console.error("Error fetching partner details:", error);
-    res.json({
-      success: false,
-      message: "Greška pri dohvatanju podataka partnera",
-    });
-  }
-});
-
-// API rou

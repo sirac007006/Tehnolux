@@ -1306,14 +1306,14 @@
                         </select>
                     </div>
                     <div class="filter-group">
-                        <label class="filter-label">Naziv artikla:</label>
-                        <select class="form-control" id="artikal-filter">
-                            <option value="">Svi artikli</option>
-                            <% artikli.forEach(artikal => { %>
-                                <option value="<%= artikal %>"><%= artikal %></option>
-                            <% }); %>
-                        </select>
-                    </div>
+    <label class="filter-label">Magacin:</label>
+    <select class="form-control" id="magacin-filter">
+        <option value="">Svi magacini</option>
+        <% magacini.forEach(magacin => { %>
+            <option value="<%= magacin %>"><%= magacin %></option>
+        <% }); %>
+    </select>
+</div>
                 </div>
             </div>
 
@@ -1348,30 +1348,33 @@
             <div class="table-container">
                 <table class="data-table" id="dokumenti-table">
                     <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Datum</th>
-                            <th>Partner</th>
-                            <th>Tip dokumenta</th>
-                            <th>Naziv artikla</th>
-                            <th>Iznos sa PDV (€)</th>
-                            <th>Akcije</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dokumenti-tbody">
-                        <% dokumenti.forEach((dokument, index) => { %>
-                            <tr <%= index === 0 ? 'class="selected"' : '' %>>
-                                <td><%= dokument.id %></td>
-                                <td class="date-column"><%= new Date(dokument.datum).toLocaleDateString('sr-RS') %></td>
-                                <td><%= dokument.partner %></td>
-                                <td class="doc-type-column"><%= dokument.tip_dokumenta %></td>
-                                <td title="<%= dokument.naziv_artikla %>" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                    <%= dokument.naziv_artikla %>
-                                </td>
-                                <td class="price-column">
-                                    <%= Number(dokument.iznos_sa_pdv).toLocaleString('sr-RS', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
-                                </td>
-                                <td>
+    <tr>
+        <th>ID</th>
+        <th>Datum</th>
+        <th>Partner</th>
+        <th>Tip dokumenta</th>
+        <th>Naziv artikla</th>
+        <th>Magacin</th>  <!-- DODAJ OVO -->
+        <th>Iznos sa PDV (€)</th>
+        <th>Akcije</th>
+    </tr>
+</thead>
+
+                <tbody id="dokumenti-tbody">
+    <% dokumenti.forEach((dokument, index) => { %>
+        <tr <%= index === 0 ? 'class="selected"' : '' %>>
+            <td><%= dokument.id %></td>
+            <td class="date-column"><%= new Date(dokument.datum).toLocaleDateString('sr-RS') %></td>
+            <td><%= dokument.partner %></td>
+            <td class="doc-type-column"><%= dokument.tip_dokumenta %></td>
+            <td title="<%= dokument.naziv_artikla %>" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <%= dokument.naziv_artikla %>
+            </td>
+            <td><%= dokument.magacin || 'N/A' %></td>  <!-- DODAJ OVO -->
+            <td class="price-column">
+                <%= Number(dokument.iznos_sa_pdv).toLocaleString('sr-RS', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
+            </td>
+             <td>
                                     <div class="action-buttons">
                                         <button class="btn btn-sm btn-info view-document-btn" data-id="<%= dokument.id %>" title="Pregled">
                                             <i class="fas fa-eye"></i>
@@ -1387,9 +1390,10 @@
                                         </button>
                                     </div>
                                 </td>
-                            </tr>
-                        <% }); %>
-                    </tbody>
+        </tr>
+    <% }); %>
+</tbody>
+
                 </table>
             </div>
         </div>
@@ -1577,7 +1581,7 @@
                     <th>Vrijednost bez PDV (€)</th>
                     <th>Rabat (%)</th>
                     <th>PDV Stopa</th>
-                    <th>Iznos (€)</th>
+                    <th>Iznos PDV(€)</th>
                     <th>Cijena sa PDV (€)</th>
                     <th>Vrijednost sa PDV (€)</th>
                 </tr>
@@ -2581,72 +2585,71 @@ async function generatePrintDocumentFromId(id) {
             return null;
         }
     }
-
-    // Filter functions
-    function applyFilters() {
-        const searchTerm = document.getElementById('search-documents').value.toLowerCase();
-        const partner = document.getElementById('partner-filter').value;
-        const tip = document.getElementById('tip-filter').value;
-        const artikal = document.getElementById('artikal-filter').value;
-        const fromDate = document.getElementById('date-from').value;
-        const toDate = document.getElementById('date-to').value;
+        function applyFilters() {
+    const searchTerm = document.getElementById('search-documents').value.toLowerCase();
+    const partner = document.getElementById('partner-filter').value;
+    const tip = document.getElementById('tip-filter').value;
+    const magacin = document.getElementById('magacin-filter').value;  // PROMENJENO
+    const fromDate = document.getElementById('date-from').value;
+    const toDate = document.getElementById('date-to').value;
+    
+    filteredData = dokumentiData.filter(item => {
+        let passes = true;
         
-        filteredData = dokumentiData.filter(item => {
-            let passes = true;
-            
-            if (searchTerm) {
-                const searchableText = `${item.partner} ${item.naziv_artikla} ${item.tip_dokumenta}`.toLowerCase();
-                if (!searchableText.includes(searchTerm)) {
-                    passes = false;
-                }
-            }
-            
-            if (partner && item.partner !== partner) {
+        if (searchTerm) {
+            const searchableText = `${item.partner} ${item.naziv_artikla} ${item.tip_dokumenta} ${item.magacin || ''}`.toLowerCase();
+            if (!searchableText.includes(searchTerm)) {
                 passes = false;
             }
+        }
+        
+        if (partner && item.partner !== partner) {
+            passes = false;
+        }
+        
+        if (tip && item.tip_dokumenta !== tip) {
+            passes = false;
+        }
+        
+        if (magacin && item.magacin !== magacin) {  // PROMENJENO
+            passes = false;
+        }
+        
+        if (fromDate && toDate) {
+            const itemDate = new Date(item.datum);
+            const filterFromDate = new Date(fromDate);
+            const filterToDate = new Date(toDate);
             
-            if (tip && item.tip_dokumenta !== tip) {
+            if (itemDate < filterFromDate || itemDate > filterToDate) {
                 passes = false;
             }
-            
-            if (artikal && item.naziv_artikla !== artikal) {
-                passes = false;
-            }
-            
-            if (fromDate && toDate) {
-                const itemDate = new Date(item.datum);
-                const filterFromDate = new Date(fromDate);
-                const filterToDate = new Date(toDate);
-                
-                if (itemDate < filterFromDate || itemDate > filterToDate) {
-                    passes = false;
-                }
-            }
-            
-            return passes;
-        });
+        }
         
-        filteredData.sort((a, b) => b.id - a.id);
-        
-        renderDokumentiTable();
-    }
+        return passes;
+    });
+    
+    filteredData.sort((a, b) => b.id - a.id);
+    
+    renderDokumentiTable();
+}
 
     function renderDokumentiTable() {
-        const tbody = document.getElementById('dokumenti-tbody');
-        tbody.innerHTML = '';
-        
-        filteredData.forEach((item, index) => {
-            const row = document.createElement('tr');
-            if (index === 0) {
-                row.classList.add('selected');
-            }
-            
-            row.innerHTML = `
+    const tbody = document.getElementById('dokumenti-tbody');
+    tbody.innerHTML = '';
+    
+    filteredData.forEach((item, index) => {
+        const row = document.createElement('tr');
+        if (index === 0) {
+            row.classList.add('selected');
+        }
+
+        row.innerHTML = `
                 <td>${item.id}</td>
                 <td class="date-column">${new Date(item.datum).toLocaleDateString('sr-RS')}</td>
                 <td>${item.partner}</td>
                 <td class="doc-type-column">${item.tip_dokumenta}</td>
                 <td title="${item.naziv_artikla}" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.naziv_artikla}</td>
+                <td>${item.magacin || 'N/A'}</td>  <!-- DODAJ OVO -->
                 <td class="price-column">${parseFloat(item.iznos_sa_pdv).toLocaleString('sr-RS', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                 <td>
                     <div class="action-buttons">
@@ -2665,21 +2668,21 @@ async function generatePrintDocumentFromId(id) {
                     </div>
                 </td>
             `;
-            
-            tbody.appendChild(row);
-        });
+        
+        tbody.appendChild(row);
+    });
 
-        document.getElementById('document-count').textContent = `Ukupno: ${filteredData.length} dokumenata`;
-    }
+    document.getElementById('document-count').textContent = `Ukupno: ${filteredData.length} dokumenata`;
+}
 
-    // Event listeners
-    document.getElementById('search-documents').addEventListener('input', applyFilters);
-    document.getElementById('partner-filter').addEventListener('change', applyFilters);
-    document.getElementById('tip-filter').addEventListener('change', applyFilters);
-    document.getElementById('artikal-filter').addEventListener('change', applyFilters);
-    document.getElementById('date-from').addEventListener('change', applyFilters);
-    document.getElementById('date-to').addEventListener('change', applyFilters);
-    document.getElementById('apply-filters').addEventListener('click', applyFilters);
+    // Event listeners - ažuriraj postojeći
+document.getElementById('search-documents').addEventListener('input', applyFilters);
+document.getElementById('partner-filter').addEventListener('change', applyFilters);
+document.getElementById('tip-filter').addEventListener('change', applyFilters);
+document.getElementById('magacin-filter').addEventListener('change', applyFilters);  // PROMENJENO
+document.getElementById('date-from').addEventListener('change', applyFilters);
+document.getElementById('date-to').addEventListener('change', applyFilters);
+document.getElementById('apply-filters').addEventListener('click', applyFilters);
 
     document.getElementById('print-btn').addEventListener('click', () => {
         window.print();

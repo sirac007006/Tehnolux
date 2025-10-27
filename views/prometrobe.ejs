@@ -6,6 +6,127 @@
     <title>Tehnolux Admin Panel - Promet robe (Otpremnice)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* ... postojeći CSS ostaje isti ... */
+        
+        @media print {
+            * {
+                margin: 0 !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+            }
+            
+            body {
+                background: white !important;
+                color: black !important;
+                font-size: 12px !important;
+                line-height: 1.2 !important;
+            }
+            
+            .sidebar, .header, .filter-controls, .btn, 
+            .mobile-menu-toggle, .toggle-sidebar {
+                display: none !important;
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            
+            .card {
+                box-shadow: none !important;
+                border: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                page-break-inside: avoid;
+            }
+            
+            .print-header {
+                display: block !important;
+                text-align: center;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #000;
+            }
+            
+            .print-header h2 {
+                font-size: 16px !important;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+            
+            .print-header p {
+                font-size: 12px !important;
+                margin-bottom: 0;
+            }
+            
+            .table-container {
+                overflow: visible !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+            }
+            
+            .data-table {
+                width: 100% !important;
+                min-width: auto !important;
+                border: 2px solid #000 !important;
+                border-collapse: collapse !important;
+                font-size: 10px !important;
+                page-break-inside: auto;
+            }
+            
+            .data-table th,
+            .data-table td {
+                border: 1px solid #000 !important;
+                padding: 3px 4px !important;
+                font-size: 9px !important;
+                line-height: 1.1 !important;
+                text-align: left;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+            }
+            
+            .data-table th {
+                background-color: #f0f0f0 !important;
+                font-weight: bold !important;
+                color: black !important;
+            }
+            
+            .data-table tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+            
+            .data-table td {
+                max-width: 120px;
+                overflow: hidden;
+            }
+            
+            /* Posebno za duže tekstove u koloni Artikal */
+            .data-table td:nth-child(3) {
+                max-width: 200px;
+                font-size: 8px !important;
+            }
+            
+            /* Podešavanje za landscape orijentaciju ako je potrebno */
+            @page {
+                size: landscape;
+                margin: 0.5cm;
+            }
+            
+            /* Skrivanje nepotrebnih elemenata */
+            .modal, .sidebar-overlay {
+                display: none !important;
+            }
+        }
+
+        .print-header {
+            display: none;
+        }
+
+        /* Ostali CSS ostaju isti */
         :root {
             --primary-color: #2c3e50;
             --secondary-color: #3498db;
@@ -499,56 +620,6 @@
             border-radius: 4px;
         }
 
-        @media print {
-            .sidebar, .header, .filter-controls, .btn {
-                display: none !important;
-            }
-            
-            .main-content {
-                margin-left: 0 !important;
-                padding-top: 0 !important;
-            }
-            
-            .card {
-                box-shadow: none !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }
-            
-            .data-table {
-                border: 1px solid #000 !important;
-            }
-            
-            .data-table th,
-            .data-table td {
-                border: 1px solid #000 !important;
-                padding: 4px !important;
-                font-size: 10px !important;
-            }
-            
-            .data-table th {
-                background-color: #f0f0f0 !important;
-                font-weight: bold !important;
-            }
-            
-            body {
-                background: white !important;
-                color: black !important;
-            }
-            
-            .print-header {
-                display: block !important;
-                text-align: center;
-                margin-bottom: 20px;
-                font-size: 18px;
-                font-weight: bold;
-            }
-        }
-
-        .print-header {
-            display: none;
-        }
-
         @media (max-width: 992px) {
             .sidebar {
                 width: var(--sidebar-collapsed);
@@ -814,19 +885,25 @@
             </div>
 
             <div class="filter-row">
-                <div class="filter-group">
-                    <label class="filter-label">Partner:</label>
-                    <select class="form-control" id="partner-filter">
-                        <option value="">Svi partneri</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label class="filter-label">Komercijalist:</label>
-                    <select class="form-control" id="komercijalist-filter">
-                        <option value="">Svi komercijalisti</option>
-                    </select>
-                </div>
-            </div>
+    <div class="filter-group">
+        <label class="filter-label">Partner:</label>
+        <select class="form-control" id="partner-filter">
+            <option value="">Svi partneri</option>
+        </select>
+    </div>
+    <div class="filter-group">
+        <label class="filter-label">Komercijalist:</label>
+        <select class="form-control" id="komercijalist-filter">
+            <option value="">Svi komercijalisti</option>
+        </select>
+    </div>
+    <div class="filter-group">
+        <label class="filter-label">Magacin:</label>
+        <select class="form-control" id="magacin-filter">
+            <option value="">Svi magacini</option>
+        </select>
+    </div>
+</div>
         </div>
 
         <div class="card">
@@ -841,6 +918,7 @@
                             <th>Količina</th>
                             <th>Partner</th>
                             <th>Komercijalist</th>
+                            <th>Magacin</th> <!-- Added this line -->
                         </tr>
                     </thead>
                     <tbody id="promet-tbody">
@@ -901,6 +979,8 @@
     </div>
 
     <script>
+        // JavaScript kod ostaje isti
+        const magacinFilter = document.getElementById('magacin-filter');
         const sidebar = document.getElementById('sidebar');
         const sidebarOverlay = document.getElementById('sidebar-overlay');
         const mainContent = document.getElementById('main-content');
@@ -999,121 +1079,170 @@
         });
 
         async function loadFilters() {
-            try {
-                const partnersResponse = await fetch('/api/partneri');
-                const partners = await partnersResponse.json();
-                
-                partnerFilter.innerHTML = '<option value="">Svi partneri</option>';
-                partners.forEach(partner => {
-                    const option = document.createElement('option');
-                    option.value = partner.Naziv_partnera;
-                    option.textContent = partner.Naziv_partnera;
-                    partnerFilter.appendChild(option);
-                });
+    try {
+        const partnersResponse = await fetch('/api/partneri');
+        const partners = await partnersResponse.json();
+        
+        partnerFilter.innerHTML = '<option value="">Svi partneri</option>';
+        partners.forEach(partner => {
+            const option = document.createElement('option');
+            option.value = partner.Naziv_partnera;
+            option.textContent = partner.Naziv_partnera;
+            partnerFilter.appendChild(option);
+        });
 
-                const komercijalistiResponse = await fetch('/api/komercijalisti');
-                const komercijalisti = await komercijalistiResponse.json();
-                
-                komercijalistFilter.innerHTML = '<option value="">Svi komercijalisti</option>';
-                komercijalisti.forEach(k => {
-                    const option = document.createElement('option');
-                    option.value = k.ime_prezime;
-                    option.textContent = k.ime_prezime;
-                    komercijalistFilter.appendChild(option);
-                });
+        const komercijalistiResponse = await fetch('/api/komercijalisti');
+        const komercijalisti = await komercijalistiResponse.json();
+        
+        komercijalistFilter.innerHTML = '<option value="">Svi komercijalisti</option>';
+        komercijalisti.forEach(k => {
+            const option = document.createElement('option');
+            option.value = k.ime_prezime;
+            option.textContent = k.ime_prezime;
+            komercijalistFilter.appendChild(option);
+        });
 
-            } catch (error) {
-                console.error('Error loading filters:', error);
-            }
-        }
+        // Load magacini
+        const magaciniResponse = await fetch('/api/magacini');
+        const magacini = await magaciniResponse.json();
+        
+        magacinFilter.innerHTML = '<option value="">Svi magacini</option>';
+        magacini.forEach(magacin => {
+            const option = document.createElement('option');
+            option.value = magacin.sifra || magacin.naziv;
+            option.textContent = magacin.naziv || magacin.sifra;
+            magacinFilter.appendChild(option);
+        });
 
-        function parseDocuments(documents) {
-            const artikli = [];
+    } catch (error) {
+        console.error('Error loading filters:', error);
+    }
+}
+
+
+function parseDocuments(documents) {
+    const artikli = [];
+    
+    // Dodajte ovu proveru
+    if (!Array.isArray(documents)) {
+        console.error('parseDocuments: Expected array but got:', typeof documents, documents);
+        return artikli;
+    }
+    
+    documents.forEach(doc => {
+        if (!doc.naziv_artikla) return;
+        
+        // Proverite da li je string artikala u očekivanom formatu
+        if (typeof doc.naziv_artikla !== 'string') return;
+        
+        const artikalStrings = doc.naziv_artikla.split(', ');
+        
+        artikalStrings.forEach(artStr => {
+            // Poboljšana regex za različite formate
+            const match = artStr.match(/^(.+?)\s-\s(.+?)\s\((.+?)\s(.+?)\)$/);
             
-            documents.forEach(doc => {
-                if (!doc.naziv_artikla) return;
+            if (match) {
+                const [, sifra, naziv, kolicina, jm] = match;
+                const kolicinaNum = parseFloat(kolicina) || 0;
                 
-                const artikalStrings = doc.naziv_artikla.split(', ');
-                
-                artikalStrings.forEach(artStr => {
-                    const match = artStr.match(/^(.+?)\s-\s(.+?)\s\((.+?)\s(.+?)\)$/);
-                    
-                    if (match) {
-                        const [, sifra, naziv, kolicina, jm] = match;
-                        const kolicinaNum = parseFloat(kolicina) || 0;
-                        
-                        artikli.push({
-                            datum: doc.datum,
-                            sifra: sifra.trim(),
-                            naziv: naziv.trim(),
-                            kolicina: kolicinaNum,
-                            jm: jm.trim(),
-                            partner: doc.partner,
-                            komercijalist: doc.komercijalist_ime || 'N/A',
-                            tip_dokumenta: doc.tip_dokumenta
-                        });
-                    }
+                artikli.push({
+                    datum: doc.datum,
+                    sifra: sifra.trim(),
+                    naziv: naziv.trim(),
+                    kolicina: kolicinaNum,
+                    jm: jm.trim(),
+                    partner: doc.partner,
+                    komercijalist: doc.komercijalist_ime || doc.komercijalist || 'N/A',
+                    tip_dokumenta: doc.tip_dokumenta,
+                    magacin: doc.magacin || 'N/A'
                 });
-            });
-            
-            return artikli;
-        }
-
-        async function loadPrometData() {
-            try {
-                const params = new URLSearchParams({
-                    datum_od: dateFrom.value,
-                    datum_do: dateTo.value,
-                    partner: partnerFilter.value,
-                    komercijalist: komercijalistFilter.value
+            } else {
+                // Ako parsiranje ne uspe, dodajte osnovne podatke
+                console.warn('Could not parse artikal string:', artStr);
+                artikli.push({
+                    datum: doc.datum,
+                    sifra: 'N/A',
+                    naziv: artStr,
+                    kolicina: doc.kolicina || 0,
+                    jm: doc.jm || 'kom',
+                    partner: doc.partner,
+                    komercijalist: doc.komercijalist_ime || doc.komercijalist || 'N/A',
+                    tip_dokumenta: doc.tip_dokumenta,
+                    magacin: doc.magacin || 'N/A'
                 });
-
-                const response = await fetch(`/api/prometrobe?${params}`);
-                const data = await response.json();
-                
-                currentData = parseDocuments(data);
-                updateTable(currentData);
-            } catch (error) {
-                console.error('Error loading promet data:', error);
-                alert('Greška pri učitavanju podataka.');
             }
+        });
+    });
+    
+    return artikli;
+}
+
+async function loadPrometData() {
+    try {
+        const params = new URLSearchParams({
+            datum_od: dateFrom.value,
+            datum_do: dateTo.value,
+            partner: partnerFilter.value,
+            komercijalist: komercijalistFilter.value,
+            magacin: magacinFilter.value
+        });
+
+        const response = await fetch(`/api/prometrobe?${params}`);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
+        
+        const data = await response.json();
+        
+        console.log('API Response:', data);
+        
+        currentData = parseDocuments(data);
+        updateTable(currentData);
+    } catch (error) {
+        console.error('Error loading promet data:', error);
+        alert('Greška pri učitavanju podataka: ' + error.message);
+    }
+}
+
 
         function updateTable(data) {
-            const tbody = document.getElementById('promet-tbody');
-            tbody.innerHTML = '';
-            
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem;">Nema podataka za prikaz</td></tr>';
-                return;
-            }
-            
-            data.forEach((item, index) => {
-                const row = document.createElement('tr');
-                if (index === 0) {
-                    row.classList.add('selected');
-                }
-                row.dataset.sifra = item.sifra;
-                row.dataset.naziv = item.naziv;
-                
-                row.innerHTML = `
-                    <td>${formatDate(item.datum)}</td>
-                    <td>${item.sifra}</td>
-                    <td title="${item.naziv}">${item.naziv}</td>
-                    <td>${item.jm}</td>
-                    <td class="quantity-column">${item.kolicina.toFixed(2)}</td>
-                    <td>${item.partner || ''}</td>
-                    <td>${item.komercijalist || ''}</td>
-                `;
-                
-                row.addEventListener('click', function() {
-                    document.querySelectorAll('.data-table tbody tr').forEach(r => r.classList.remove('selected'));
-                    this.classList.add('selected');
-                });
-                
-                tbody.appendChild(row);
-            });
+    const tbody = document.getElementById('promet-tbody');
+    tbody.innerHTML = '';
+    
+    if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">Nema podataka za prikaz</td></tr>'; // Changed colspan to 8
+        return;
+    }
+    
+    data.forEach((item, index) => {
+        const row = document.createElement('tr');
+        if (index === 0) {
+            row.classList.add('selected');
         }
+        row.dataset.sifra = item.sifra;
+        row.dataset.naziv = item.naziv;
+        
+        row.innerHTML = `
+            <td>${formatDate(item.datum)}</td>
+            <td>${item.sifra}</td>
+            <td title="${item.naziv}">${item.naziv}</td>
+            <td>${item.jm}</td>
+            <td class="quantity-column">${item.kolicina.toFixed(2)}</td>
+            <td>${item.partner || ''}</td>
+            <td>${item.komercijalist || ''}</td>
+            <td>${item.magacin || ''}</td> <!-- Added magacin column -->
+        `;
+        
+        row.addEventListener('click', function() {
+            document.querySelectorAll('.data-table tbody tr').forEach(r => r.classList.remove('selected'));
+            this.classList.add('selected');
+        });
+        
+        tbody.appendChild(row);
+    });
+}
 
         function formatDate(dateString) {
             if (!dateString) return '';
@@ -1125,6 +1254,7 @@
         }
 
         applyDateFilter.addEventListener('click', loadPrometData);
+        magacinFilter.addEventListener('change', loadPrometData);
         partnerFilter.addEventListener('change', loadPrometData);
         komercijalistFilter.addEventListener('change', loadPrometData);
 
@@ -1166,48 +1296,52 @@
         });
 
         karticaBtn.addEventListener('click', function() {
-            const selectedRow = document.querySelector('.data-table tbody tr.selected');
-            if (!selectedRow) {
-                alert('Molimo izaberite red u tabeli.');
-                return;
-            }
+    const selectedRow = document.querySelector('.data-table tbody tr.selected');
+    if (!selectedRow) {
+        alert('Molimo izaberite red u tabeli.');
+        return;
+    }
 
-            const cells = selectedRow.children;
-            const karticaContent = document.getElementById('kartica-content');
-            
-            karticaContent.innerHTML = `
-                <div class="kartica-field">
-                    <div class="kartica-label">Datum:</div>
-                    <div class="kartica-value">${cells[0].textContent}</div>
-                </div>
-                <div class="kartica-field">
-                    <div class="kartica-label">Šifra:</div>
-                    <div class="kartica-value">${cells[1].textContent}</div>
-                </div>
-                <div class="kartica-field" style="grid-column: 1/-1;">
-                    <div class="kartica-label">Naziv artikla:</div>
-                    <div class="kartica-value">${cells[2].textContent}</div>
-                </div>
-                <div class="kartica-field">
-                    <div class="kartica-label">Jedinica mere:</div>
-                    <div class="kartica-value">${cells[3].textContent}</div>
-                </div>
-                <div class="kartica-field">
-                    <div class="kartica-label">Količina:</div>
-                    <div class="kartica-value">${cells[4].textContent}</div>
-                </div>
-                <div class="kartica-field">
-                    <div class="kartica-label">Partner:</div>
-                    <div class="kartica-value">${cells[5].textContent}</div>
-                </div>
-                <div class="kartica-field">
-                    <div class="kartica-label">Komercijalist:</div>
-                    <div class="kartica-value">${cells[6].textContent || 'N/A'}</div>
-                </div>
-            `;
-            
-            karticaModal.classList.add('show');
-        });
+    const cells = selectedRow.children;
+    const karticaContent = document.getElementById('kartica-content');
+    
+    karticaContent.innerHTML = `
+        <div class="kartica-field">
+            <div class="kartica-label">Datum:</div>
+            <div class="kartica-value">${cells[0].textContent}</div>
+        </div>
+        <div class="kartica-field">
+            <div class="kartica-label">Šifra:</div>
+            <div class="kartica-value">${cells[1].textContent}</div>
+        </div>
+        <div class="kartica-field" style="grid-column: 1/-1;">
+            <div class="kartica-label">Naziv artikla:</div>
+            <div class="kartica-value">${cells[2].textContent}</div>
+        </div>
+        <div class="kartica-field">
+            <div class="kartica-label">Jedinica mere:</div>
+            <div class="kartica-value">${cells[3].textContent}</div>
+        </div>
+        <div class="kartica-field">
+            <div class="kartica-label">Količina:</div>
+            <div class="kartica-value">${cells[4].textContent}</div>
+        </div>
+        <div class="kartica-field">
+            <div class="kartica-label">Partner:</div>
+            <div class="kartica-value">${cells[5].textContent}</div>
+        </div>
+        <div class="kartica-field">
+            <div class="kartica-label">Komercijalist:</div>
+            <div class="kartica-value">${cells[6].textContent || 'N/A'}</div>
+        </div>
+        <div class="kartica-field">
+            <div class="kartica-label">Magacin:</div>
+            <div class="kartica-value">${cells[7].textContent || 'N/A'}</div>
+        </div>
+    `;
+    
+    karticaModal.classList.add('show');
+});
 
         closeKarticaModal.addEventListener('click', () => {
             karticaModal.classList.remove('show');

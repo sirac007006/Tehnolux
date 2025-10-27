@@ -723,6 +723,76 @@
             color: #555;
             font-size: 0.95rem;
         }
+        .transaction-type {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.transaction-otpremnica {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.transaction-uplata {
+    background-color: #e8f5e8;
+    color: #2e7d32;
+}
+
+/* Print styles */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    
+    .modal,
+    .modal * {
+        visibility: visible;
+    }
+    
+    .modal {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: auto;
+        background: white;
+        padding: 0;
+        margin: 0;
+        box-shadow: none;
+    }
+    
+    .modal-content {
+        box-shadow: none;
+        border: 1px solid #000;
+        max-width: 100% !important;
+        max-height: none !important;
+    }
+    
+    .btn,
+    .mobile-menu-toggle,
+    .toggle-sidebar,
+    .header-actions,
+    .close-modal {
+        display: none !important;
+    }
+    
+    .card {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+    
+    .saldo-info {
+        background: #f8f9fa !important;
+        color: #000 !important;
+        border: 1px solid #000;
+    }
+}
+.nav-item.has-submenu.open .submenu {
+    max-height: 400px;
+}
     </style>
 </head>
 <body>
@@ -731,7 +801,6 @@
         <i class="fas fa-bars"></i>
     </button>
 
-    <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div class="logo-container">
             <div class="logo">
@@ -740,7 +809,7 @@
         </div>
         
         <nav class="sidebar-nav">
-            <!-- Unos Dokumentacije - skriva se na uređajima manjim od 768px osim na mobile sidebar -->
+            <!-- Unos Dokumentacije -->
             <div class="menu-section">
                 <div class="menu-title">Unos dokumentacije</div>
                 <div class="nav-item">
@@ -755,10 +824,27 @@
             <div class="menu-section">
                 <div class="menu-title">Pregled</div>
                 <div class="nav-item has-submenu">
-                    <a href="/lager" class="nav-link">
+                    <a href="#" class="nav-link">
                         <i class="fas fa-eye nav-icon"></i>
                         <span class="nav-text">Pregledi</span>
                     </a>
+                    <div class="submenu">
+                        <div class="nav-item">
+                            <a href="/lager" class="nav-link">
+                                <span class="nav-text">Lager</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/prometrobe" class="nav-link">
+                                <span class="nav-text">Promet robe</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/dokumenti" class="nav-link">
+                                <span class="nav-text">Pregled dokumenata</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -766,10 +852,27 @@
             <div class="menu-section">
                 <div class="menu-title">Šifrarnik</div>
                 <div class="nav-item has-submenu">
-                    <a href="/artikli" class="nav-link">
+                    <a href="#" class="nav-link">
                         <i class="fas fa-database nav-icon"></i>
                         <span class="nav-text">Šifarnici</span>
                     </a>
+                    <div class="submenu">
+                        <div class="nav-item">
+                            <a href="/artikli" class="nav-link">
+                                <span class="nav-text">Artikli</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/magacini" class="nav-link">
+                                <span class="nav-text">Magacini</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/komercijalisti" class="nav-link">
+                                <span class="nav-text">Komercijalisti</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -777,10 +880,27 @@
             <div class="menu-section">
                 <div class="menu-title">Kupci</div>
                 <div class="nav-item has-submenu">
-                    <a href="/karticekupca" class="nav-link">
+                    <a href="#" class="nav-link">
                         <i class="fas fa-users nav-icon"></i>
                         <span class="nav-text">Upravljanje kupcima</span>
                     </a>
+                    <div class="submenu open">
+                        <div class="nav-item">
+                            <a href="/uplate" class="nav-link">
+                                <span class="nav-text">Uplate</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/partneri" class="nav-link">
+                                <span class="nav-text">Partneri</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/karticekupca" class="nav-link active">
+                                <span class="nav-text">Kartica kupca</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="menu-section">
@@ -905,11 +1025,17 @@
     <div class="modal" id="customer-modal">
         <div class="modal-content" style="max-width: 95vw; max-height: 90vh;">
             <div class="modal-header">
-                <h3 class="modal-title" id="modal-title">Detalji partnera</h3>
-                <button class="close-modal" id="close-modal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
+    <h3 class="modal-title" id="modal-title">Detalji partnera</h3>
+    <div>
+        <button class="btn btn-primary" id="print-modal-btn">
+            <i class="fas fa-print"></i>
+            <span>Print</span>
+        </button>
+        <button class="close-modal" id="close-modal">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+</div>
             <div class="modal-body">
                 <!-- Partner Info -->
                 <div class="partner-info-card">
@@ -972,49 +1098,32 @@
                     </div>
                 </div>
 
-                <!-- Documents Table -->
-                <div style="margin-bottom: 2rem;">
-                    <h4 style="margin-bottom: 1rem; color: var(--primary-color);">Otpremnice partnera</h4>
-                    <div class="table-container">
-                        <table class="data-table" id="documents-table">
-                            <thead>
-                                <tr>
-                                    <th>Datum</th>
-                                    <th>Tip dokumenta</th>
-                                    <th>Količina</th>
-                                    <th>Iznos bez PDV</th>
-                                    <th>Iznos sa PDV</th>
-                                    <th>PDV iznos</th>
-                                </tr>
-                            </thead>
-                            <tbody id="documents-tbody">
-                                <!-- Documents will be loaded here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
 
-                <!-- Payments Table -->
-                <div>
-                    <h4 style="margin-bottom: 1rem; color: var(--primary-color);">Uplate partnera</h4>
-                    <div class="table-container">
-                        <table class="data-table" id="payments-table">
-                            <thead>
-                                <tr>
-                                    <th>Datum</th>
-                                    <th>Iznos</th>
-                                    <th>Način plaćanja</th>
-                                    <th>Status</th>
-                                    <th>Dokument</th>
-                                    <th>Napomene</th>
-                                </tr>
-                            </thead>
-                            <tbody id="payments-tbody">
-                                <!-- Payments will be loaded here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+<div>
+    <h4 style="margin-bottom: 1rem; color: var(--primary-color);">Sve transakcije</h4>
+    <div class="table-container">
+        <table class="data-table" id="transactions-table">
+            <thead>
+                <tr>
+                    <th>Datum</th>
+                    <th>Tip transakcije</th>
+                    <th>Tip dokumenta</th>
+                    <th>Količina</th>
+                    <th>Iznos bez PDV</th>
+                    <th>Iznos sa PDV</th>
+                    <th>PDV iznos</th>
+                    <th>Način plaćanja</th>
+                    <th>Status</th>
+                    <th>Dokument</th>
+                    <th>Napomene</th>
+                </tr>
+            </thead>
+            <tbody id="transactions-tbody">
+                <!-- Combined transactions will be loaded here -->
+            </tbody>
+        </table>
+    </div>
+</div>
             </div>
         </div>
     </div>
@@ -1081,7 +1190,147 @@
                 showCustomerDetails(partnerId, partnerName);
             }
         });
+        // Print modal functionality
+document.getElementById('print-modal-btn').addEventListener('click', function() {
+    printModal();
+});
+// Submenu functionality - DODAJTE OVAJ KOD
+document.querySelectorAll('.nav-item.has-submenu > .nav-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const parent = this.parentElement;
+        const submenu = parent.querySelector('.submenu');
+        
+        // Zatvori druge submenije
+        document.querySelectorAll('.nav-item.has-submenu').forEach(item => {
+            if (item !== parent) {
+                item.classList.remove('open');
+                item.querySelector('.submenu').classList.remove('open');
+            }
+        });
+        
+        parent.classList.toggle('open');
+        submenu.classList.toggle('open');
+    });
+});
 
+// Enhanced navigation - zatvori sidebar pri kliku na submenu linkove
+document.querySelectorAll('.submenu .nav-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+        // Dodaj vizuelnu povratnu informaciju
+        this.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            this.style.transform = 'scale(1)';
+        }, 100);
+        
+        // Zatvori mobile sidebar odmah
+        closeMobileSidebar();
+    });
+});
+function printModal() {
+    const modalContent = document.querySelector('.modal-content').cloneNode(true);
+    
+    // Remove buttons from print version
+    const buttons = modalContent.querySelectorAll('.btn, .close-modal');
+    buttons.forEach(btn => btn.remove());
+    
+    // Create print window
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Kartica Kupca - Print</title>
+            <style>
+                body { 
+                    font-family: Arial, sans-serif; 
+                    margin: 20px;
+                    color: #000;
+                }
+                .modal-header { 
+                    border-bottom: 2px solid #000; 
+                    margin-bottom: 20px; 
+                    padding-bottom: 10px;
+                }
+                .modal-title { 
+                    font-size: 24px; 
+                    margin: 0;
+                    color: #000;
+                }
+                .partner-info-card { 
+                    background: #f8f9fa; 
+                    padding: 15px; 
+                    border: 1px solid #000; 
+                    margin-bottom: 20px;
+                }
+                .partner-details { 
+                    display: grid; 
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+                    gap: 10px;
+                }
+                .partner-detail-item strong { 
+                    display: block; 
+                    font-weight: bold;
+                    color: #000;
+                }
+                .saldo-info { 
+                    background: #e9ecef; 
+                    padding: 15px; 
+                    border: 1px solid #000; 
+                    margin-bottom: 20px;
+                }
+                .saldo-value { 
+                    font-size: 18px; 
+                    font-weight: bold;
+                }
+                table { 
+                    width: 100%; 
+                    border-collapse: collapse; 
+                    margin-top: 10px;
+                }
+                th, td { 
+                    border: 1px solid #000; 
+                    padding: 8px; 
+                    text-align: left;
+                }
+                th { 
+                    background-color: #f8f9fa; 
+                    font-weight: bold;
+                }
+                .transaction-type { 
+                    padding: 2px 6px; 
+                    border-radius: 3px; 
+                    font-size: 11px; 
+                    font-weight: bold;
+                }
+                .transaction-otpremnica { 
+                    background-color: #e3f2fd; 
+                    color: #1976d2;
+                }
+                .transaction-uplata { 
+                    background-color: #e8f5e8; 
+                    color: #2e7d32;
+                }
+                @media print {
+                    body { margin: 0; }
+                }
+            </style>
+        </head>
+        <body>
+            ${modalContent.innerHTML}
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.focus();
+    
+    // Wait for content to load then print
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 500);
+}
         // Load partner saldos on page load
         async function loadPartnerSaldos() {
             try {
@@ -1140,125 +1389,163 @@
             document.getElementById('total-saldo').textContent = formatCurrency(totalSaldo);
         }
 
-        // Show customer details modal
-        async function showCustomerDetails(partnerId, partnerName) {
-            try {
-                const dateFrom = document.getElementById('date-from').value;
-                const dateTo = document.getElementById('date-to').value;
-                
-                const url = `/api/karticekupca/partner/${partnerId}?datum_od=${dateFrom}&datum_do=${dateTo}`;
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Fill partner info
-                    document.getElementById('partner-sifra').textContent = data.partner.Sifra || '';
-                    document.getElementById('partner-naziv').textContent = data.partner.Naziv_partnera || '';
-                    document.getElementById('partner-grad').textContent = data.partner.Grad || '';
-                    document.getElementById('partner-pib').textContent = data.partner.PIB || '';
-                    document.getElementById('partner-pdv').textContent = data.partner.PDV || '';
-                    document.getElementById('partner-adresa').textContent = data.partner.Adresa || '';
-                    document.getElementById('partner-telefon').textContent = data.partner.Telefon || '';
-                    document.getElementById('partner-fax').textContent = data.partner.Fax || '';
-                    document.getElementById('partner-email').textContent = data.partner.E_mail || '';
-                    
-                    // Calculate and display financial overview
-                    const otpremniceTotal = data.otpremnice.reduce((sum, doc) => sum + (parseFloat(doc.iznos_sa_pdv) || 0), 0);
-                    const uplateTotal = data.uplate.reduce((sum, payment) => sum + (parseFloat(payment.iznos) || 0), 0);
-                    const saldo = uplateTotal - otpremniceTotal; // UPLATE - OTPREMNICE (pozitivno = kredit kupca)
-                    
-                    document.getElementById('partner-otpremnice').textContent = formatCurrency(otpremniceTotal);
-                    document.getElementById('partner-uplate').textContent = formatCurrency(uplateTotal);
-                    document.getElementById('partner-saldo').textContent = formatCurrency(saldo);
-                    
-                    // Style saldo based on value
-                    const saldoElement = document.getElementById('partner-saldo');
-                    saldoElement.classList.remove('saldo-positive', 'saldo-negative');
-                    if (saldo > 0) {
-                        saldoElement.classList.add('saldo-positive');
-                    } else if (saldo < 0) {
-                        saldoElement.classList.add('saldo-negative');
-                    }
-                    
-                    // Fill otpremnice table
-                    const documentsTbody = document.getElementById('documents-tbody');
-                    documentsTbody.innerHTML = '';
-                    
-                    if (data.otpremnice && data.otpremnice.length > 0) {
-                        data.otpremnice.forEach(doc => {
-                            const row = document.createElement('tr');
-                            const datum = doc.datum ? new Date(doc.datum).toLocaleDateString('sr-RS') : '';
-                            const iznosBezPdv = formatCurrency(parseFloat(doc.iznos_bez_pdv) || 0);
-                            const iznosSaPdv = formatCurrency(parseFloat(doc.iznos_sa_pdv) || 0);
-                            const pdvIznos = formatCurrency(parseFloat(doc.pdv_iznos) || 0);
-                            
-                            row.innerHTML = `
-                                <td>${datum}</td>
-                                <td>${doc.tip_dokumenta || ''}</td>
-                                <td>${doc.kolicina || ''}</td>
-                                <td>${iznosBezPdv}</td>
-                                <td>${iznosSaPdv}</td>
-                                <td>${pdvIznos}</td>
-                            `;
-                            documentsTbody.appendChild(row);
-                        });
-                    } else {
-                        const row = document.createElement('tr');
-                        row.innerHTML = '<td colspan="7" style="text-align: center; color: #666;">Nema pronađenih otpremnica</td>';
-                        documentsTbody.appendChild(row);
-                    }
-                    
-                    // Fill uplate table
-                    const paymentsTbody = document.getElementById('payments-tbody');
-                    paymentsTbody.innerHTML = '';
-                    
-                    if (data.uplate && data.uplate.length > 0) {
-                        data.uplate.forEach(payment => {
-                            const row = document.createElement('tr');
-                            const datum = payment.datum ? new Date(payment.datum).toLocaleDateString('sr-RS') : '';
-                            const iznos = formatCurrency(parseFloat(payment.iznos) || 0);
-                            
-                            let statusClass = '';
-                            switch(payment.status) {
-                                case 'primljena':
-                                    statusClass = 'style="color: var(--success-color); font-weight: 600;"';
-                                    break;
-                                case 'odbijena':
-                                    statusClass = 'style="color: var(--accent-color); font-weight: 600;"';
-                                    break;
-                                case 'cekanje':
-                                    statusClass = 'style="color: var(--warning-color); font-weight: 600;"';
-                                    break;
-                            }
-                            
-                            row.innerHTML = `
-                                <td>${datum}</td>
-                                <td>${iznos}</td>
-                                <td>${payment.nacin || ''}</td>
-                                <td ${statusClass}>${payment.status || ''}</td>
-                                <td>${payment.dokument || ''}</td>
-                                <td>${payment.napomene || ''}</td>
-                            `;
-                            paymentsTbody.appendChild(row);
-                        });
-                    } else {
-                        const row = document.createElement('tr');
-                        row.innerHTML = '<td colspan="6" style="text-align: center; color: #666;">Nema pronađenih uplata</td>';
-                        paymentsTbody.appendChild(row);
-                    }
-                    
-                    // Show modal
-                    customerModal.classList.add('show');
-                } else {
-                    alert('Greška pri učitavanju podataka o partneru');
-                }
-            } catch (error) {
-                console.error('Error fetching partner details:', error);
-                alert('Greška pri učitavanju podataka o partneru');
-            }
-        }
 
-        // Close modal
+        // Show customer details modal
+async function showCustomerDetails(partnerId, partnerName) {
+    try {
+        const dateFrom = document.getElementById('date-from').value;
+        const dateTo = document.getElementById('date-to').value;
+        
+        const url = `/api/karticekupca/partner/${partnerId}?datum_od=${dateFrom}&datum_do=${dateTo}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.success) {
+            // Fill partner info
+            document.getElementById('partner-sifra').textContent = data.partner.Sifra || '';
+            document.getElementById('partner-naziv').textContent = data.partner.Naziv_partnera || '';
+            document.getElementById('partner-grad').textContent = data.partner.Grad || '';
+            document.getElementById('partner-pib').textContent = data.partner.PIB || '';
+            document.getElementById('partner-pdv').textContent = data.partner.PDV || '';
+            document.getElementById('partner-adresa').textContent = data.partner.Adresa || '';
+            document.getElementById('partner-telefon').textContent = data.partner.Telefon || '';
+            document.getElementById('partner-fax').textContent = data.partner.Fax || '';
+            document.getElementById('partner-email').textContent = data.partner.E_mail || '';
+            
+            // Calculate and display financial overview
+            const otpremniceTotal = data.otpremnice.reduce((sum, doc) => sum + (parseFloat(doc.iznos_sa_pdv) || 0), 0);
+            const uplateTotal = data.uplate.reduce((sum, payment) => sum + (parseFloat(payment.iznos) || 0), 0);
+            const saldo = uplateTotal - otpremniceTotal;
+            
+            document.getElementById('partner-otpremnice').textContent = formatCurrency(otpremniceTotal);
+            document.getElementById('partner-uplate').textContent = formatCurrency(uplateTotal);
+            document.getElementById('partner-saldo').textContent = formatCurrency(saldo);
+            
+            // Style saldo based on value
+            const saldoElement = document.getElementById('partner-saldo');
+            saldoElement.classList.remove('saldo-positive', 'saldo-negative');
+            if (saldo > 0) {
+                saldoElement.classList.add('saldo-positive');
+            } else if (saldo < 0) {
+                saldoElement.classList.add('saldo-negative');
+            }
+            
+            // Combine and sort transactions
+            const transactionsTbody = document.getElementById('transactions-tbody');
+            transactionsTbody.innerHTML = '';
+            
+            // Create combined array of all transactions
+            const allTransactions = [];
+            
+            // Add otpremnice
+            if (data.otpremnice && data.otpremnice.length > 0) {
+                data.otpremnice.forEach(doc => {
+                    allTransactions.push({
+                        type: 'otpremnica',
+                        datum: doc.datum,
+                        tip_dokumenta: doc.tip_dokumenta,
+                        kolicina: doc.kolicina,
+                        iznos_bez_pdv: doc.iznos_bez_pdv,
+                        iznos_sa_pdv: doc.iznos_sa_pdv,
+                        pdv_iznos: doc.pdv_iznos,
+                        nacin_placanja: '',
+                        status: '',
+                        dokument: '',
+                        napomene: ''
+                    });
+                });
+            }
+            
+            // Add uplate
+            if (data.uplate && data.uplate.length > 0) {
+                data.uplate.forEach(payment => {
+                    allTransactions.push({
+                        type: 'uplata',
+                        datum: payment.datum,
+                        tip_dokumenta: '',
+                        kolicina: '',
+                        iznos_bez_pdv: '',
+                        iznos_sa_pdv: '',
+                        pdv_iznos: '',
+                        nacin_placanja: payment.nacin,
+                        status: payment.status,
+                        dokument: payment.dokument,
+                        napomene: payment.napomene,
+                        iznos: payment.iznos
+                    });
+                });
+            }
+            
+            // Sort transactions by date (oldest first)
+            allTransactions.sort((a, b) => new Date(a.datum) - new Date(b.datum));
+            
+            // Populate the combined table
+            if (allTransactions.length > 0) {
+                allTransactions.forEach(transaction => {
+                    const row = document.createElement('tr');
+                    const datum = transaction.datum ? new Date(transaction.datum).toLocaleDateString('sr-RS') : '';
+                    
+                    let statusClass = '';
+                    if (transaction.type === 'uplata') {
+                        switch(transaction.status) {
+                            case 'primljena':
+                                statusClass = 'style="color: var(--success-color); font-weight: 600;"';
+                                break;
+                            case 'odbijena':
+                                statusClass = 'style="color: var(--accent-color); font-weight: 600;"';
+                                break;
+                            case 'cekanje':
+                                statusClass = 'style="color: var(--warning-color); font-weight: 600;"';
+                                break;
+                        }
+                    }
+                    
+                    // Format amounts
+                    const iznosBezPdv = transaction.type === 'otpremnica' ? 
+                        formatCurrency(parseFloat(transaction.iznos_bez_pdv) || 0) : '';
+                    const iznosSaPdv = transaction.type === 'otpremnica' ? 
+                        formatCurrency(parseFloat(transaction.iznos_sa_pdv) || 0) : 
+                        formatCurrency(parseFloat(transaction.iznos) || 0);
+                    const pdvIznos = transaction.type === 'otpremnica' ? 
+                        formatCurrency(parseFloat(transaction.pdv_iznos) || 0) : '';
+                    
+                    row.innerHTML = `
+                        <td>${datum}</td>
+                        <td>
+                            <span class="transaction-type ${transaction.type === 'otpremnica' ? 'transaction-otpremnica' : 'transaction-uplata'}">
+                                ${transaction.type === 'otpremnica' ? 'Otpremnica' : 'Uplata'}
+                            </span>
+                        </td>
+                        <td>${transaction.tip_dokumenta || ''}</td>
+                        <td>${transaction.kolicina || ''}</td>
+                        <td>${iznosBezPdv}</td>
+                        <td>${iznosSaPdv}</td>
+                        <td>${pdvIznos}</td>
+                        <td>${transaction.nacin_placanja || ''}</td>
+                        <td ${statusClass}>${transaction.status || ''}</td>
+                        <td>${transaction.dokument || ''}</td>
+                        <td>${transaction.napomene || ''}</td>
+                    `;
+                    transactionsTbody.appendChild(row);
+                });
+            } else {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="11" style="text-align: center; color: #666;">Nema pronađenih transakcija</td>';
+                transactionsTbody.appendChild(row);
+            }
+            
+            // Show modal
+            customerModal.classList.add('show');
+        } else {
+            alert('Greška pri učitavanju podataka o partneru');
+        }
+    } catch (error) {
+        console.error('Error fetching partner details:', error);
+        alert('Greška pri učitavanju podataka o partneru');
+    }
+}
+
+
         closeModal.addEventListener('click', function() {
             customerModal.classList.remove('show');
         });

@@ -19,6 +19,7 @@
             --header-height: 60px;
             --transition-speed: 0.3s;
             --border-radius: 8px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         * {
@@ -34,6 +35,7 @@
             overflow-x: hidden;
         }
 
+        /* Sidebar styles - complete from lager.ejs */
         .sidebar {
             position: fixed;
             width: var(--sidebar-width);
@@ -86,9 +88,28 @@
             margin-right: 0;
         }
 
+        /* Menu sections - complete from lager.ejs */
         .sidebar-nav {
             flex: 1;
             overflow-y: auto;
+        }
+
+        .menu-section {
+            margin-bottom: 1rem;
+        }
+
+        .menu-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 0.5rem;
+            padding: 0 1rem;
+            transition: all var(--transition-speed);
+        }
+
+        .sidebar.collapsed .menu-title {
+            display: none;
         }
 
         .nav-item {
@@ -135,6 +156,33 @@
             padding: 10px;
         }
 
+        /* Submenu styles - complete from lager.ejs */
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height var(--transition-speed);
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: var(--border-radius);
+            margin-top: 0.2rem;
+            margin-left: 1rem;
+            margin-right: 0.5rem;
+        }
+
+        .submenu.open {
+            max-height: 400px;
+        }
+
+        .submenu .nav-link {
+            padding: 8px 1rem;
+            font-size: 13px;
+            margin-left: 0;
+        }
+
+        .sidebar.collapsed .submenu {
+            display: none;
+        }
+
+        /* Toggle button - complete from lager.ejs */
         .toggle-sidebar {
             position: sticky;
             bottom: 0;
@@ -155,6 +203,11 @@
             justify-content: center;
         }
 
+        .toggle-sidebar:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Main content area */
         .main-content {
             margin-left: var(--sidebar-width);
             transition: all var(--transition-speed);
@@ -167,6 +220,7 @@
             margin-left: var(--sidebar-collapsed);
         }
 
+        /* Header */
         .header {
             position: fixed;
             top: 0;
@@ -218,9 +272,17 @@
             color: white;
         }
 
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
         .btn-success {
             background-color: var(--success-color);
             color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #27ae60;
         }
 
         .btn-danger {
@@ -228,9 +290,26 @@
             color: white;
         }
 
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
         .btn-secondary {
             background-color: #95a5a6;
             color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: #333;
+        }
+
+        .btn-warning:hover {
+            background-color: #f39c12;
         }
 
         .btn-info {
@@ -238,11 +317,12 @@
             color: white;
         }
 
+        /* Card styles */
         .card {
             background-color: white;
             border-radius: var(--border-radius);
             padding: clamp(1rem, 2vw, 1.5rem);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: var(--box-shadow);
             margin-bottom: 1.5rem;
         }
 
@@ -262,6 +342,7 @@
             font-weight: 600;
         }
 
+        /* Table styles */
         .table-container {
             overflow-x: auto;
             margin: 1rem -1rem -1rem -1rem;
@@ -295,6 +376,7 @@
             background-color: #f8f9fa;
         }
 
+        /* Modal styles */
         .modal {
             display: none;
             position: fixed;
@@ -345,6 +427,11 @@
             color: #666;
         }
 
+        .close-modal:hover {
+            color: var(--accent-color);
+        }
+
+        /* Form styles */
         .form-group {
             margin-bottom: 1rem;
         }
@@ -371,6 +458,7 @@
             box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
         }
 
+        /* Search and filter */
         .search-filter-container {
             display: flex;
             gap: 1rem;
@@ -662,22 +750,21 @@
             text-align: center;
         }
 
-        .menu-section {
-            margin-bottom: 1rem;
-        }
-
-        .menu-title {
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 0.5rem;
-            padding: 0 1rem;
-            transition: all var(--transition-speed);
-        }
-
-        .sidebar.collapsed .menu-title {
+        /* Mobile menu toggle */
+        .mobile-menu-toggle {
             display: none;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-color);
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
+            background-color: white;
+            padding: 8px;
+            border-radius: 4px;
         }
 
         .print-document {
@@ -827,18 +914,10 @@
             padding-top: 5px;
         }
 
-        @media (max-width: 768px) {
-            .document-types {
-                grid-template-columns: 1fr;
-            }
-            
-            .step-indicator {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            
-            .step:not(:last-child)::after {
-                display: none;
+        /* Responsive design - complete from lager.ejs */
+        @media (max-width: 1200px) {
+            .data-table {
+                min-width: 900px;
             }
         }
 
@@ -856,6 +935,56 @@
             .main-content,
             .header {
                 margin-left: var(--sidebar-collapsed);
+            }
+            
+            .toggle-sidebar {
+                display: flex;
+            }
+
+            .data-table {
+                min-width: 800px;
+            }
+
+            .header-actions {
+                gap: 0.5rem;
+            }
+
+            .document-types {
+                grid-template-columns: 1fr;
+            }
+            
+            .step-indicator {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .step:not(:last-child)::after {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .search-filter-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .data-table {
+                min-width: 700px;
+            }
+
+            .card {
+                padding: 1rem;
+                margin: 0.5rem;
+            }
+
+            .card-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .toggle-sidebar {
+                display: flex;
             }
         }
 
@@ -879,10 +1008,63 @@
                 display: block;
             }
 
+            .mobile-menu-toggle {
+                display: block;
+                position: fixed;
+                top: 8px;
+                left: 12px;
+                z-index: 2600;
+                background-color: white;
+                border: none;
+                padding: 12px;
+                border-radius: 8px;
+                font-size: 18px;
+                color: var(--primary-color);
+                transition: all 0.2s ease;
+                width: 44px;
+                height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
             .main-content,
             .header {
                 margin-left: 0;
             }
+
+            .header {
+                padding: 0 1rem 0 60px;
+            }
+
+            .data-table {
+                min-width: 100%;
+            }
+
+            .btn span {
+                display: none;
+            }
+
+            .sidebar-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background-color: rgba(0, 0, 0, 0.4);
+                z-index: 2000;
+                display: none;
+            }
+
+            .sidebar-overlay.show {
+                display: block;
+            }
+        }
+
+        /* Scrollbar styles - complete from lager.ejs */
+        .sidebar-nav {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.3) transparent;
         }
 
         .sidebar-nav::-webkit-scrollbar {
@@ -904,6 +1086,15 @@
     </style>
 </head>
 <body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar overlay for mobile -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Sidebar - complete structure from lager.ejs -->
     <aside class="sidebar" id="sidebar">
         <div class="logo-container">
             <div class="logo">
@@ -912,45 +1103,102 @@
         </div>
         
         <nav class="sidebar-nav">
+            <!-- Unos Dokumentacije -->
             <div class="menu-section">
                 <div class="menu-title">Unos dokumentacije</div>
                 <div class="nav-item">
-                    <a href="/pravljenjedokumenta" class="nav-link">
+                    <a href="/pravljenjedokumenta" class="nav-link active">
                         <i class="fas fa-file nav-icon"></i>
                         <span class="nav-text">Dokumenti</span>
                     </a>
                 </div>
             </div>
 
+            <!-- Pregled -->
             <div class="menu-section">
                 <div class="menu-title">Pregled</div>
                 <div class="nav-item has-submenu">
-                    <a href="/lager" class="nav-link">
+                    <a href="#" class="nav-link">
                         <i class="fas fa-eye nav-icon"></i>
                         <span class="nav-text">Pregledi</span>
                     </a>
+                    <div class="submenu">
+                        <div class="nav-item">
+                            <a href="/lager" class="nav-link">
+                                <span class="nav-text">Lager</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/prometrobe" class="nav-link">
+                                <span class="nav-text">Promet robe</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/dokumenti" class="nav-link">
+                                <span class="nav-text">Pregled dokumenata</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
 
+            <!-- Šifrarnik -->
             <div class="menu-section">
                 <div class="menu-title">Šifrarnik</div>
                 <div class="nav-item has-submenu">
-                    <a href="/artikli" class="nav-link">
+                    <a href="#" class="nav-link">
                         <i class="fas fa-database nav-icon"></i>
                         <span class="nav-text">Šifarnici</span>
                     </a>
+                    <div class="submenu">
+                        <div class="nav-item">
+                            <a href="/artikli" class="nav-link">
+                                <span class="nav-text">Artikli</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/magacini" class="nav-link">
+                                <span class="nav-text">Magacini</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/komercijalisti" class="nav-link">
+                                <span class="nav-text">Komercijalisti</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
 
+            <!-- Kupci -->
             <div class="menu-section">
                 <div class="menu-title">Kupci</div>
                 <div class="nav-item has-submenu">
-                    <a href="/karticekupca" class="nav-link">
+                    <a href="#" class="nav-link">
                         <i class="fas fa-users nav-icon"></i>
                         <span class="nav-text">Upravljanje kupcima</span>
                     </a>
+                    <div class="submenu">
+                        <div class="nav-item">
+                            <a href="/uplate" class="nav-link">
+                                <span class="nav-text">Uplate</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/partneri" class="nav-link">
+                                <span class="nav-text">Partneri</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/karticekupca" class="nav-link">
+                                <span class="nav-text">Kartica kupca</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            <!-- Servis -->
             <div class="menu-section">
                 <div class="menu-title">Servis</div>
                 <div class="nav-item">
@@ -967,6 +1215,7 @@
         </button>
     </aside>
 
+    <!-- Header -->
     <header class="header" id="header">
         <h1 class="page-title">Pravljenje Dokumenata</h1>
         
@@ -982,6 +1231,7 @@
         </div>
     </header>
 
+    <!-- Main Content Area -->
     <main class="main-content" id="main-content">
         <div class="card">
             <div class="card-header">
@@ -1005,43 +1255,44 @@
 
             <div class="table-container">
                 <table class="data-table" id="documents-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Datum</th>
-                            <th>Tip dokumenta</th>
-                            <th>Magacin</th>
-                            <th>Partner</th>
-                            <th>Komercijalist</th>
-                            <th>Artikli</th>
-                            <th>Količina</th>
-                            <th>Iznos bez PDV</th>
-                            <th>PDV</th>
-                            <th>Iznos sa PDV</th>
-                        </tr>
-                    </thead>
-                    <tbody id="documents-tbody">
-                        <% dokumenti.forEach(function(dokument) { %>
-                            <tr>
-                                <td><%= dokument.id %></td>
-                                <td><%= new Date(dokument.datum).toLocaleDateString('sr-RS') %></td>
-                                <td><%= dokument.tip_dokumenta %></td>
-                                <td><%= dokument.magacin %></td>
-                                <td><%= dokument.partner %></td>
-                                <td><%= dokument.komercijalist_id || 'N/A' %></td>
-                                <td title="<%= dokument.naziv_artikla %>"><%= dokument.naziv_artikla %></td>
-                                <td class="numeric-column"><%= dokument.kolicina %></td>
-                                <td class="price-column"><%= parseFloat(dokument.iznos_bez_pdv || 0).toFixed(2) %></td>
-                                <td class="price-column"><%= parseFloat(dokument.pdv_iznos || 0).toFixed(2) %></td>
-                                <td class="price-column"><strong><%= parseFloat(dokument.iznos_sa_pdv || 0).toFixed(2) %></strong></td>
-                            </tr>
-                        <% }); %>
-                    </tbody>
-                </table>
+    <thead>
+        <tr>
+            <th>Šifra dokumenta</th>
+            <th>Datum</th>
+            <th>Tip dokumenta</th>
+            <th>Magacin</th> <!-- Dodajte ovu kolonu -->
+            <th>Partner</th>
+            <th>Komercijalist</th>
+            <th>Artikli</th>
+            <th>Količina</th>
+            <th>Iznos bez PDV</th>
+            <th>PDV</th>
+            <th>Iznos sa PDV</th>
+        </tr>
+    </thead>
+    <tbody id="documents-tbody">
+        <% dokumenti.forEach(function(dokument) { %>
+            <tr>
+                <td><strong><%= dokument.tip_dokumenta %></strong></td>
+                <td><%= new Date(dokument.datum).toLocaleDateString('sr-RS') %></td>
+                <td><%= dokument.tip_dokumenta.split('-')[0] %></td> <!-- Prikaži samo osnovni tip -->
+                <td><%= dokument.magacin || 'N/A' %></td> <!-- Prikaži magacin -->
+                <td><%= dokument.partner %></td>
+                <td><%= dokument.komercijalist_id || 'N/A' %></td>
+                <td title="<%= dokument.naziv_artikla %>"><%= dokument.naziv_artikla %></td>
+                <td class="numeric-column"><%= dokument.kolicina %></td>
+                <td class="price-column"><%= parseFloat(dokument.iznos_bez_pdv || 0).toFixed(2) %></td>
+                <td class="price-column"><%= parseFloat(dokument.pdv_iznos || 0).toFixed(2) %></td>
+                <td class="price-column"><strong><%= parseFloat(dokument.iznos_sa_pdv || 0).toFixed(2) %></strong></td>
+            </tr>
+        <% }); %>
+    </tbody>
+</table>
             </div>
         </div>
     </main>
 
+    <!-- Modal for document creation -->
     <div class="modal" id="create-document-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1410,6 +1661,7 @@
         </div>
     </div>
 
+    <!-- Print Document -->
     <div class="print-document" id="print-document">
         <div class="document-header">
             <div class="company-info">
@@ -1463,6 +1715,7 @@
                     <th>Rabat (%)</th>
                     <th>PDV Stopa</th>
                     <th>Iznos PDV (€)</th>
+                    <th>Cijena sa PDV (€)</th> <!-- NOVA KOLONA -->
                     <th>Ukupna vrijednost (€)</th>
                 </tr>
             </thead>
@@ -1508,10 +1761,12 @@
 
         // DOM elementi
         const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
         const mainContent = document.getElementById('main-content');
         const header = document.getElementById('header');
         const toggleSidebar = document.getElementById('toggle-sidebar');
         const sidebarIcon = document.getElementById('sidebar-icon');
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
         
         const createDocumentBtn = document.getElementById('create-document-btn');
         const createDocumentModal = document.getElementById('create-document-modal');
@@ -1522,6 +1777,32 @@
         document.addEventListener('DOMContentLoaded', function() {
             attachEventListeners();
             initializeFilters();
+        });
+
+        // Function to close mobile sidebar
+        function closeMobileSidebar() {
+            if (window.innerWidth <= 576) {
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Mobile menu functionality
+        mobileMenuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('mobile-open');
+            sidebarOverlay.classList.toggle('show');
+            
+            if (sidebar.classList.contains('mobile-open')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        });
+
+        // Close mobile menu when clicking overlay
+        sidebarOverlay.addEventListener('click', function() {
+            closeMobileSidebar();
         });
 
         // TOGGLE SIDEBAR
@@ -1537,6 +1818,32 @@
                 sidebarIcon.classList.remove('fa-chevron-right');
                 sidebarIcon.classList.add('fa-chevron-left');
             }
+        });
+
+        // Submenu functionality
+        document.querySelectorAll('.nav-item.has-submenu > .nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const parent = this.parentElement;
+                const submenu = parent.querySelector('.submenu');
+                
+                document.querySelectorAll('.nav-item.has-submenu').forEach(item => {
+                    if (item !== parent) {
+                        item.classList.remove('open');
+                        item.querySelector('.submenu').classList.remove('open');
+                    }
+                });
+                
+                parent.classList.toggle('open');
+                submenu.classList.toggle('open');
+            });
+        });
+
+        // Navigation - close sidebar on submenu link click
+        document.querySelectorAll('.submenu .nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                closeMobileSidebar();
+            });
         });
 
         createDocumentBtn.addEventListener('click', function() {
@@ -2037,117 +2344,125 @@
         }
 
         async function createDocument() {
-            const createBtn = document.getElementById('create-document-final');
-            createBtn.disabled = true;
-            createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kreira se...';
+    const createBtn = document.getElementById('create-document-final');
+    createBtn.disabled = true;
+    createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kreira se...';
 
-            try {
-                const totals = calculateTotals();
+    try {
+        const totals = calculateTotals();
 
-                const partnerIdent = selectedPartner?.Sifra ?? selectedPartner?.sifra ?? selectedPartner?.id ?? null;
-                const komercijalistIdent = selectedKomercijalist?.id ?? selectedKomercijalist?.ID ?? null;
+        const partnerIdent = selectedPartner?.Sifra ?? selectedPartner?.sifra ?? selectedPartner?.id ?? null;
+        const komercijalistIdent = selectedKomercijalist?.id ?? selectedKomercijalist?.ID ?? null;
 
-                const documentData = {
-                    datum: new Date().toISOString(),
-                    tipDokumenta: selectedDocumentType,
-                    magacin: selectedMagacin,
-                    partner: partnerIdent,
-                    komercijalist_id: komercijalistIdent,
-                    artikli: Array.isArray(selectedArtikli) ? selectedArtikli : [],
-                    ukupanIznos: totals.iznosSaPdv,
-                    ukupnoBezPdv: totals.iznosBezPdv,
-                    ukupnoSaPdv: totals.iznosSaPdv,
-                    ukupanPdv: totals.pdvIznos
-                };
+        // GENERIŠI PODATKE ZA DOKUMENT - SAMO magacin, BEZ sifraMagacina i baseDocumentCode
+        const documentData = {
+            datum: new Date().toISOString(),
+            tipDokumenta: selectedDocumentType,
+            magacin: selectedMagacin, // Ovo je šifra magacina (npr. "VEL001")
+            partner: partnerIdent,
+            komercijalist_id: komercijalistIdent,
+            artikli: Array.isArray(selectedArtikli) ? selectedArtikli : [],
+            ukupanIznos: totals.iznosSaPdv,
+            ukupnoBezPdv: totals.iznosBezPdv,
+            ukupnoSaPdv: totals.iznosSaPdv,
+            ukupanPdv: totals.pdvIznos
+            // UKLONJENO: sifraMagacina i baseDocumentCode - nisu potrebni
+        };
 
-                const missing = [];
-                if (!documentData.tipDokumenta) missing.push('tip dokumenta');
-                if (!documentData.partner) missing.push('partner');
-                if (!documentData.komercijalist_id) missing.push('komercijalist');
-                if (!documentData.artikli || documentData.artikli.length === 0) missing.push('artikli');
+        const missing = [];
+        if (!documentData.tipDokumenta) missing.push('tip dokumenta');
+        if (!documentData.partner) missing.push('partner');
+        if (!documentData.komercijalist_id) missing.push('komercijalist');
+        if (!documentData.artikli || documentData.artikli.length === 0) missing.push('artikli');
+        if (!documentData.magacin) missing.push('magacin'); // Dodajte validaciju za magacin
 
-                if (missing.length > 0) {
-                    alert('Nedostaju sledeća polja: ' + missing.join(', '));
-                    createBtn.disabled = false;
-                    createBtn.innerHTML = '<i class="fas fa-save"></i> Kreiraj dokument';
-                    return;
-                }
-
-                const response = await fetch('/api/pravljenjedokumenta', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(documentData)
-                });
-
-                if (!response.ok) {
-                    const contentType = response.headers.get('content-type') || '';
-                    let errText;
-                    if (contentType.includes('application/json')) {
-                        const j = await response.json();
-                        errText = j.error || JSON.stringify(j);
-                    } else {
-                        errText = await response.text();
-                    }
-                    throw new Error(errText);
-                }
-
-                const result = await response.json();
-                
-                createdDocumentData = {
-                    ...documentData,
-                    documentNumber: result.documentNumber,
-                    id: result.id || result.documentId
-                };
-
-                document.getElementById('created-doc-number').textContent = result.documentNumber || 'N/A';
-                
-                goToStep(7);
-
-            } catch (error) {
-                console.error('Error creating document:', error);
-                alert('Greška pri kreiranju dokumenta: ' + error.message);
-            } finally {
-                createBtn.disabled = false;
-                createBtn.innerHTML = '<i class="fas fa-save"></i> Kreiraj dokument';
-            }
+        if (missing.length > 0) {
+            alert('Nedostaju sledeća polja: ' + missing.join(', '));
+            createBtn.disabled = false;
+            createBtn.innerHTML = '<i class="fas fa-save"></i> Kreiraj dokument';
+            return;
         }
+
+        const response = await fetch('/api/pravljenjedokumenta', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(documentData)
+        });
+
+        if (!response.ok) {
+            const contentType = response.headers.get('content-type') || '';
+            let errText;
+            if (contentType.includes('application/json')) {
+                const j = await response.json();
+                errText = j.error || JSON.stringify(j);
+            } else {
+                errText = await response.text();
+            }
+            throw new Error(errText);
+        }
+
+        const result = await response.json();
+        
+        // KREIRAJ KOMPLETNU ŠIFRU DOKUMENTA SA MAGACINOM
+        // Server će vratiti fullDocumentNumber (npr. "ponuda14-VEL001")
+        const fullDocumentNumber = result.fullDocumentNumber;
+
+        createdDocumentData = {
+            ...documentData,
+            documentNumber: fullDocumentNumber, // Koristite kompletnu šifru
+            id: result.id || result.documentId
+        };
+
+        // Prikaži kompletnu šifru u koraku 7
+        document.getElementById('created-doc-number').textContent = fullDocumentNumber;
+        
+        goToStep(7);
+
+    } catch (error) {
+        console.error('Error creating document:', error);
+        alert('Greška pri kreiranju dokumenta: ' + error.message);
+    } finally {
+        createBtn.disabled = false;
+        createBtn.innerHTML = '<i class="fas fa-save"></i> Kreiraj dokument';
+    }
+}
 
         // ISPRAVLJENA FUNKCIJA - tačna kalkulacija
-        function calculateTotals() {
-            let totalBezPdv = 0;
-            let totalPdv = 0;
-            let totalSaPdv = 0;
+function calculateTotals() {
+    let totalBezPdv = 0;
+    let totalPdv = 0;
+    let totalSaPdv = 0;
 
-            selectedArtikli.forEach(artikal => {
-                const kolicina = parseFloat(artikal.kolicina) || 0;
-                const cenaBezPdv = parseFloat(artikal.cena_bez_pdv) || 0;  // ORIGINALNA
-                const cenaSaPdv = parseFloat(artikal.cena_sa_pdv) || 0;    // ORIGINALNA
-                const rabat = parseFloat(artikal.rabat) || 0;
+    selectedArtikli.forEach(artikal => {
+        const kolicina = parseFloat(artikal.kolicina) || 0;
+        const cenaBezPdv = parseFloat(artikal.cena_bez_pdv) || 0;  // ORIGINALNA
+        const cenaSaPdv = parseFloat(artikal.cena_sa_pdv) || 0;    // ORIGINALNA
+        const rabat = parseFloat(artikal.rabat) || 0;
 
-                // Ukupno BEZ rabata
-                const iznosBezPdvBefore = cenaBezPdv * kolicina;
-                const iznosSaPdvBefore = cenaSaPdv * kolicina;
-                
-                // Primeni rabat
-                const rabatAmount = iznosBezPdvBefore * (rabat / 100);
-                const rabatAmountSaPdv = iznosSaPdvBefore * (rabat / 100);
-                
-                // Konačni iznosi
-                const iznosBezPdv = iznosBezPdvBefore - rabatAmount;
-                const iznosSaPdv = iznosSaPdvBefore - rabatAmountSaPdv;
-                const pdvAmount = iznosSaPdv - iznosBezPdv;
+        // Ukupno BEZ rabata
+        const iznosBezPdvBefore = cenaBezPdv * kolicina;
+        const iznosSaPdvBefore = cenaSaPdv * kolicina;
+        
+        // Primeni rabat
+        const rabatAmount = iznosBezPdvBefore * (rabat / 100);
+        const rabatAmountSaPdv = iznosSaPdvBefore * (rabat / 100);
+        
+        // Konačni iznosi
+        const iznosBezPdv = iznosBezPdvBefore - rabatAmount;
+        const iznosSaPdv = iznosSaPdvBefore - rabatAmountSaPdv;
+        const pdvAmount = iznosSaPdv - iznosBezPdv;
 
-                totalBezPdv += iznosBezPdv;
-                totalPdv += pdvAmount;
-                totalSaPdv += iznosSaPdv;
-            });
+        totalBezPdv += iznosBezPdv;
+        totalPdv += pdvAmount;
+        totalSaPdv += iznosSaPdv;
+    });
 
-            return {
-                iznosBezPdv: totalBezPdv,
-                pdvIznos: totalPdv,
-                iznosSaPdv: totalSaPdv
-            };
-        }
+    return {
+        iznosBezPdv: totalBezPdv,
+        pdvIznos: totalPdv,
+        iznosSaPdv: totalSaPdv
+    };
+}
 
         function getDocumentTypeForPrint(tipDokumenta) {
             const tip = tipDokumenta.toLowerCase();
@@ -2175,98 +2490,100 @@
             if (tip.includes('ponuda')) return 'PONUDA - OVO NIJE OBAVEZUJUĆI DOKUMENT!!!';
             return 'OVO NIJE PDV RAČUN!!!';
         }
+// ISPRAVLJENA FUNKCIJA - identične cijene sa PDV
+async function generatePrintDocumentFromCreatedData() {
+    if (!createdDocumentData) return;
 
-        // ISPRAVLJENA FUNKCIJA - štampa sa tačnom računicom
-        async function generatePrintDocumentFromCreatedData() {
-            if (!createdDocumentData) return;
+    const today = new Date();
+    const formattedDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
+    
+    const documentType = getDocumentTypeForPrint(createdDocumentData.tipDokumenta);
+    
+    document.getElementById('print-date').textContent = formattedDate;
+    document.getElementById('print-document-type').textContent = documentType;
+    document.getElementById('print-doc-number').textContent = createdDocumentData.documentNumber || 'N/A';
+    
+    if (selectedPartner) {
+        const sifra = selectedPartner.Sifra || selectedPartner.sifra || '';
+        const naziv = selectedPartner.Naziv_partnera || selectedPartner.naziv_partnera || '';
+        const pib = selectedPartner.PIB || selectedPartner.pib || '';
+        const pdv = selectedPartner.PDV || selectedPartner.pdv || '';
+        const adresa = selectedPartner.Adresa || selectedPartner.adresa || '';
+        const grad = selectedPartner.Grad || selectedPartner.grad || '';
+        
+        document.getElementById('print-customer-code').textContent = sifra;
+        document.getElementById('print-customer-name').textContent = naziv;
+        document.getElementById('print-customer-pib').textContent = pib;
+        document.getElementById('print-customer-pdv').textContent = pdv;
+        document.getElementById('print-customer-address').textContent = adresa;
+        document.getElementById('print-customer-city').textContent = grad;
+    }
+    
+    let itemsHTML = '';
+    let totalBezPdvBefore = 0;
+    let totalRabat = 0;
+    let totalBezPdv = 0;
+    let totalPdv = 0;
+    let totalSaPdv = 0;
 
-            const today = new Date();
-            const formattedDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
-            
-            const documentType = getDocumentTypeForPrint(createdDocumentData.tipDokumenta);
-            
-            document.getElementById('print-date').textContent = formattedDate;
-            document.getElementById('print-document-type').textContent = documentType;
-            document.getElementById('print-doc-number').textContent = createdDocumentData.documentNumber || 'N/A';
-            
-            if (selectedPartner) {
-                const sifra = selectedPartner.Sifra || selectedPartner.sifra || '';
-                const naziv = selectedPartner.Naziv_partnera || selectedPartner.naziv_partnera || '';
-                const pib = selectedPartner.PIB || selectedPartner.pib || '';
-                const pdv = selectedPartner.PDV || selectedPartner.pdv || '';
-                const adresa = selectedPartner.Adresa || selectedPartner.adresa || '';
-                const grad = selectedPartner.Grad || selectedPartner.grad || '';
-                
-                document.getElementById('print-customer-code').textContent = sifra;
-                document.getElementById('print-customer-name').textContent = naziv;
-                document.getElementById('print-customer-pib').textContent = pib;
-                document.getElementById('print-customer-pdv').textContent = pdv;
-                document.getElementById('print-customer-address').textContent = adresa;
-                document.getElementById('print-customer-city').textContent = grad;
-            }
-            
-            let itemsHTML = '';
-            let totalBezPdvBefore = 0;
-            let totalRabat = 0;
-            let totalBezPdv = 0;
-            let totalPdv = 0;
-            let totalSaPdv = 0;
+    selectedArtikli.forEach((item, index) => {
+        const kolicina = parseFloat(item.kolicina) || 0;
+        const cenaBezPdv = parseFloat(item.cena_bez_pdv) || 0;
+        const rabat = parseFloat(item.rabat) || 0;
+        const pdvStopa = 21;
+        
+        // Vrednosti BEZ rabata
+        const vrijednostBezPdv = cenaBezPdv * kolicina;
+        
+        // Rabat iznosi
+        const rabatIznos = vrijednostBezPdv * (rabat / 100);
+        
+        // Konačne vrednosti
+        const iznosBezPdv = vrijednostBezPdv - rabatIznos;
+        const pdvIznos = iznosBezPdv * (pdvStopa / 100);
+        const iznosSaPdv = iznosBezPdv + pdvIznos;
+        
+        // Cijena sa PDV po komadu - OVO JE KLJUČNA PROMJENA
+        // Umesto dijeljenja, računamo direktno iz originalne cijene
+        const cenaBezPdvNakonRabata = cenaBezPdv * (1 - rabat / 100);
+        const cenaSaPdvPoKomadu = cenaBezPdvNakonRabata * (1 + pdvStopa / 100);
 
-            selectedArtikli.forEach((item, index) => {
-                const kolicina = parseFloat(item.kolicina) || 0;
-                const cenaBezPdv = parseFloat(item.cena_bez_pdv) || 0;  // ORIGINALNA
-                const cenaSaPdv = parseFloat(item.cena_sa_pdv) || 0;    // ORIGINALNA
-                const rabat = parseFloat(item.rabat) || 0;
-                const pdvStopa = 21;
-                
-                // Vrednosti BEZ rabata
-                const vrijednostBezPdv = cenaBezPdv * kolicina;
-                const vrijednostSaPdv = cenaSaPdv * kolicina;
-                
-                // Rabat iznosi
-                const rabatIznos = vrijednostBezPdv * (rabat / 100);
-                const rabatIznosSaPdv = vrijednostSaPdv * (rabat / 100);
-                
-                // Konačne vrednosti
-                const iznosBezPdv = vrijednostBezPdv - rabatIznos;
-                const iznosSaPdv = vrijednostSaPdv - rabatIznosSaPdv;
-                const pdvIznos = iznosSaPdv - iznosBezPdv;
+        totalBezPdvBefore += vrijednostBezPdv;
+        totalRabat += rabatIznos;
+        totalBezPdv += iznosBezPdv;
+        totalPdv += pdvIznos;
+        totalSaPdv += iznosSaPdv;
 
-                totalBezPdvBefore += vrijednostBezPdv;
-                totalRabat += rabatIznos;
-                totalBezPdv += iznosBezPdv;
-                totalPdv += pdvIznos;
-                totalSaPdv += iznosSaPdv;
+        itemsHTML += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${item.sifra}</td>
+                <td class="text-left">${item.naziv}</td>
+                <td>${item.jm}</td>
+                <td>${kolicina.toFixed(2)}</td>
+                <td class="text-right">${cenaBezPdv.toFixed(3)}</td>
+                <td class="text-right">${vrijednostBezPdv.toFixed(2)}</td>
+                <td class="text-right">${rabat.toFixed(1)}%</td>
+                <td class="text-right">${pdvStopa}%</td>
+                <td class="text-right">${pdvIznos.toFixed(2)}</td>
+                <td class="text-right">${iznosSaPdv.toFixed(2)}</td> <!-- SADA JE IDENTIČNO -->
+                <td class="text-right">${iznosSaPdv.toFixed(2)}</td>
+            </tr>
+        `;
+    });
 
-                itemsHTML += `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td>${item.sifra}</td>
-                        <td class="text-left">${item.naziv}</td>
-                        <td>${item.jm}</td>
-                        <td>${kolicina.toFixed(2)}</td>
-                        <td class="text-right">${cenaBezPdv.toFixed(3)}</td>
-                        <td class="text-right">${vrijednostBezPdv.toFixed(2)}</td>
-                        <td class="text-right">${rabat.toFixed(1)}%</td>
-                        <td class="text-right">${pdvStopa}%</td>
-                        <td class="text-right">${pdvIznos.toFixed(2)}</td>
-                        <td class="text-right">${iznosSaPdv.toFixed(2)}</td>
-                    </tr>
-                `;
-            });
+    document.getElementById('print-items-tbody').innerHTML = itemsHTML;
+    document.getElementById('print-total-bez-pdv').textContent = totalBezPdvBefore.toFixed(2);
+    document.getElementById('print-total-rabat').textContent = totalRabat.toFixed(2);
+    document.getElementById('print-osnovica').textContent = totalBezPdv.toFixed(2);
+    document.getElementById('print-pdv-iznos').textContent = totalPdv.toFixed(2);
+    document.getElementById('print-total-sa-pdv').textContent = totalSaPdv.toFixed(2);
+    
+    document.getElementById('print-signature-left').textContent = getSignatureText(createdDocumentData.tipDokumenta);
+    document.getElementById('print-disclaimer').innerHTML = `<div><strong>${getDisclaimerText(createdDocumentData.tipDokumenta)}</strong></div>`;
+}
 
-            document.getElementById('print-items-tbody').innerHTML = itemsHTML;
-            document.getElementById('print-total-bez-pdv').textContent = totalBezPdvBefore.toFixed(2);
-            document.getElementById('print-total-rabat').textContent = totalRabat.toFixed(2);
-            document.getElementById('print-osnovica').textContent = totalBezPdv.toFixed(2);
-            document.getElementById('print-pdv-iznos').textContent = totalPdv.toFixed(2);
-            document.getElementById('print-total-sa-pdv').textContent = totalSaPdv.toFixed(2);
-            
-            document.getElementById('print-signature-left').textContent = getSignatureText(createdDocumentData.tipDokumenta);
-            document.getElementById('print-disclaimer').innerHTML = `<div><strong>${getDisclaimerText(createdDocumentData.tipDokumenta)}</strong></div>`;
-        }
-
-        async function previewPrint() {
+async function previewPrint() {
             await generatePrintDocumentFromCreatedData();
             printDocument.style.display = 'block';
             printDocument.style.position = 'fixed';
@@ -2383,12 +2700,34 @@
         });
 
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && createDocumentModal.classList.contains('show')) {
-                closeModal();
+            if (e.key === 'Escape') {
+                if (createDocumentModal.classList.contains('show')) {
+                    closeModal();
+                } else if (sidebar.classList.contains('mobile-open')) {
+                    closeMobileSidebar();
+                }
+            }
+        });
+
+        // Auto collapse sidebar on medium screens
+        if (window.innerWidth <= 992 && window.innerWidth > 576) {
+            sidebar.classList.add('collapsed');
+            mainContent.classList.add('expanded');
+            header.classList.add('expanded');
+            sidebarIcon.classList.remove('fa-chevron-left');
+            sidebarIcon.classList.add('fa-chevron-right');
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 576) {
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('show');
+                document.body.style.overflow = '';
             }
         });
         
-        console.log('Pravljenje Dokumenata initialized with correct price calculation');
+        console.log('Pravljenje Dokumenata initialized with complete sidebar from lager.ejs');
     </script>
 </body>
 </html>

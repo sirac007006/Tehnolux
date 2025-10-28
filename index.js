@@ -3178,6 +3178,8 @@ app.get('/api/prometrobe/by-partner', async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 });
+
+
 // GET - Prikaz svih dokumenata SA MOGUĆNOŠĆU IZMENE
 app.get("/dokumenti", async (req, res) => {
     try {
@@ -3187,8 +3189,19 @@ app.get("/dokumenti", async (req, res) => {
         // Uzmi jedinstvene partnere za filter
         const partneri = (await db.query('SELECT DISTINCT partner FROM dokumenti ORDER BY partner')).rows.map(row => row.partner);
         
-        // Uzmi jedinstvene tipove dokumenata za filter
-        const tipovi = (await db.query('SELECT DISTINCT tip_dokumenta FROM dokumenti ORDER BY tip_dokumenta')).rows.map(row => row.tip_dokumenta);
+        // PROMENA: Uzmi jedinstvene OSNOVNE tipove dokumenata za filter
+        const tipoviRezultat = (await db.query('SELECT DISTINCT tip_dokumenta FROM dokumenti ORDER BY tip_dokumenta')).rows;
+        
+        // Ekstraktuj samo osnovne tipove (otpremnica, ponuda, predracun, kalkulacija)
+        const osnovniTipovi = [];
+        tipoviRezultat.forEach(row => {
+            const tip = row.tip_dokumenta;
+            // Izdvoji samo tekstualni deo pre bilo kojeg broja ili crtice
+            const osnovniTip = tip.replace(/[\d-].*$/, '').trim();
+            if (osnovniTip && !osnovniTipovi.includes(osnovniTip)) {
+                osnovniTipovi.push(osnovniTip);
+            }
+        });
         
         // Uzmi jedinstvene nazive artikala za filter
         const artikli = (await db.query('SELECT DISTINCT naziv_artikla FROM dokumenti ORDER BY naziv_artikla')).rows.map(row => row.naziv_artikla);
@@ -3201,24 +3214,26 @@ app.get("/dokumenti", async (req, res) => {
         
         // Uzmi sve komercijalist (za izmenu dokumenta)
         const komercijalisti = (await db.query('SELECT * FROM komercijalisti ORDER BY ime_prezime')).rows;
+        
         // Uzmi jedinstvene magacine za filter
-const magacini = (await db.query('SELECT DISTINCT magacin FROM dokumenti WHERE magacin IS NOT NULL ORDER BY magacin')).rows.map(row => row.magacin);
+        const magacini = (await db.query('SELECT DISTINCT magacin FROM dokumenti WHERE magacin IS NOT NULL ORDER BY magacin')).rows.map(row => row.magacin);
         
         res.render("dokumenti.ejs", { 
-    dokumenti, 
-    partneri, 
-    tipovi, 
-    artikli,
-    lagerArtikli,
-    sviPartneri,
-    komercijalisti,
-    magacini  // DODAJ OVO
-});
+            dokumenti, 
+            partneri, 
+            tipovi: osnovniTipovi,  // PROMENJENO: šaljemo osnovne tipove
+            artikli,
+            lagerArtikli,
+            sviPartneri,
+            komercijalisti,
+            magacini
+        });
     } catch (error) {
         console.error("Error fetching dokumenti:", error);
         res.status(500).send("Greška pri dohvatanju dokumenata.");
     }
 });
+
 
 // GET - Uzmi pojedinačni dokument sa parsiranim artiklima (JSON)
 app.get("/api/dokumenti/:id", async (req, res) => {

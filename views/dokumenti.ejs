@@ -2585,11 +2585,12 @@ async function generatePrintDocumentFromId(id) {
             return null;
         }
     }
-        function applyFilters() {
+
+function applyFilters() {
     const searchTerm = document.getElementById('search-documents').value.toLowerCase();
     const partner = document.getElementById('partner-filter').value;
     const tip = document.getElementById('tip-filter').value;
-    const magacin = document.getElementById('magacin-filter').value;  // PROMENJENO
+    const magacin = document.getElementById('magacin-filter').value;
     const fromDate = document.getElementById('date-from').value;
     const toDate = document.getElementById('date-to').value;
     
@@ -2607,11 +2608,12 @@ async function generatePrintDocumentFromId(id) {
             passes = false;
         }
         
-        if (tip && item.tip_dokumenta !== tip) {
+        // PROMENA OVDE: Proverava da li tip dokumenta POČINJE sa izabranim osnovnim tipom
+        if (tip && !item.tip_dokumenta.toLowerCase().startsWith(tip.toLowerCase())) {
             passes = false;
         }
         
-        if (magacin && item.magacin !== magacin) {  // PROMENJENO
+        if (magacin && item.magacin !== magacin) {
             passes = false;
         }
         
@@ -2632,6 +2634,7 @@ async function generatePrintDocumentFromId(id) {
     
     renderDokumentiTable();
 }
+
 
     function renderDokumentiTable() {
     const tbody = document.getElementById('dokumenti-tbody');

@@ -1482,8 +1482,8 @@
                                 <th>Dostupno</th>
                                 <th>Količina</th>
                                 <th>Rabat (%)</th>
-                                <th>Cena bez PDV</th>
-                                <th>Cena sa PDV</th>
+                                <th>Cijena bez PDV</th>
+                                <th>Cijena sa PDV</th>
                                 <th>Ukupno bez PDV</th>
                                 <th>Ukupno sa PDV</th>
                             </tr>
@@ -1716,7 +1716,7 @@
                     <th>PDV Stopa</th>
                     <th>Iznos PDV (€)</th>
                     <th>Cijena sa PDV (€)</th> <!-- NOVA KOLONA -->
-                    <th>Ukupna vrijednost (€)</th>
+                    <th>Vrijednost sa PDV (€)</th>
                 </tr>
             </thead>
             <tbody id="print-items-tbody"></tbody>
@@ -2343,7 +2343,7 @@
             });
         }
 
-        async function createDocument() {
+async function createDocument() {
     const createBtn = document.getElementById('create-document-final');
     createBtn.disabled = true;
     createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kreira se...';
@@ -2354,11 +2354,10 @@
         const partnerIdent = selectedPartner?.Sifra ?? selectedPartner?.sifra ?? selectedPartner?.id ?? null;
         const komercijalistIdent = selectedKomercijalist?.id ?? selectedKomercijalist?.ID ?? null;
 
-        // GENERIŠI PODATKE ZA DOKUMENT - SAMO magacin, BEZ sifraMagacina i baseDocumentCode
         const documentData = {
             datum: new Date().toISOString(),
             tipDokumenta: selectedDocumentType,
-            magacin: selectedMagacin, // Ovo je šifra magacina (npr. "VEL001")
+            magacin: selectedMagacin,
             partner: partnerIdent,
             komercijalist_id: komercijalistIdent,
             artikli: Array.isArray(selectedArtikli) ? selectedArtikli : [],
@@ -2366,7 +2365,6 @@
             ukupnoBezPdv: totals.iznosBezPdv,
             ukupnoSaPdv: totals.iznosSaPdv,
             ukupanPdv: totals.pdvIznos
-            // UKLONJENO: sifraMagacina i baseDocumentCode - nisu potrebni
         };
 
         const missing = [];
@@ -2374,7 +2372,7 @@
         if (!documentData.partner) missing.push('partner');
         if (!documentData.komercijalist_id) missing.push('komercijalist');
         if (!documentData.artikli || documentData.artikli.length === 0) missing.push('artikli');
-        if (!documentData.magacin) missing.push('magacin'); // Dodajte validaciju za magacin
+        if (!documentData.magacin) missing.push('magacin');
 
         if (missing.length > 0) {
             alert('Nedostaju sledeća polja: ' + missing.join(', '));
@@ -2403,18 +2401,17 @@
 
         const result = await response.json();
         
-        // KREIRAJ KOMPLETNU ŠIFRU DOKUMENTA SA MAGACINOM
-        // Server će vratiti fullDocumentNumber (npr. "ponuda14-VEL001")
         const fullDocumentNumber = result.fullDocumentNumber;
 
         createdDocumentData = {
             ...documentData,
-            documentNumber: fullDocumentNumber, // Koristite kompletnu šifru
+            documentNumber: fullDocumentNumber,
             id: result.id || result.documentId
         };
 
-        // Prikaži kompletnu šifru u koraku 7
-        document.getElementById('created-doc-number').textContent = fullDocumentNumber;
+        // ISPRAVLJENA IZMENA - uklanja SVE tipove dokumenata
+        const displayDocNumber = fullDocumentNumber.replace(/(ponuda|predracun|otpremnica|kalkulacija)/, '');
+        document.getElementById('created-doc-number').textContent = displayDocNumber;
         
         goToStep(7);
 
@@ -2427,7 +2424,7 @@
     }
 }
 
-        // ISPRAVLJENA FUNKCIJA - tačna kalkulacija
+
 function calculateTotals() {
     let totalBezPdv = 0;
     let totalPdv = 0;
@@ -2490,7 +2487,9 @@ function calculateTotals() {
             if (tip.includes('ponuda')) return 'PONUDA - OVO NIJE OBAVEZUJUĆI DOKUMENT!!!';
             return 'OVO NIJE PDV RAČUN!!!';
         }
-// ISPRAVLJENA FUNKCIJA - identične cijene sa PDV
+
+
+
 async function generatePrintDocumentFromCreatedData() {
     if (!createdDocumentData) return;
 
@@ -2501,7 +2500,10 @@ async function generatePrintDocumentFromCreatedData() {
     
     document.getElementById('print-date').textContent = formattedDate;
     document.getElementById('print-document-type').textContent = documentType;
-    document.getElementById('print-doc-number').textContent = createdDocumentData.documentNumber || 'N/A';
+    
+    // Ispravljeno - uklanja sve tipove dokumenata
+    const printDocNumber = (createdDocumentData.documentNumber || '').replace(/(ponuda|predracun|otpremnica|kalkulacija)/, '');
+    document.getElementById('print-doc-number').textContent = printDocNumber;
     
     if (selectedPartner) {
         const sifra = selectedPartner.Sifra || selectedPartner.sifra || '';
@@ -2543,10 +2545,9 @@ async function generatePrintDocumentFromCreatedData() {
         const pdvIznos = iznosBezPdv * (pdvStopa / 100);
         const iznosSaPdv = iznosBezPdv + pdvIznos;
         
-        // Cijena sa PDV po komadu - OVO JE KLJUČNA PROMJENA
-        // Umesto dijeljenja, računamo direktno iz originalne cijene
+        // CIJENA SA PDV PO JEDINICI - OVO JE KLJUČNA PROMJENA
         const cenaBezPdvNakonRabata = cenaBezPdv * (1 - rabat / 100);
-        const cenaSaPdvPoKomadu = cenaBezPdvNakonRabata * (1 + pdvStopa / 100);
+        const cenaSaPdvPoJedinici = cenaBezPdvNakonRabata * (1 + pdvStopa / 100);
 
         totalBezPdvBefore += vrijednostBezPdv;
         totalRabat += rabatIznos;
@@ -2566,7 +2567,7 @@ async function generatePrintDocumentFromCreatedData() {
                 <td class="text-right">${rabat.toFixed(1)}%</td>
                 <td class="text-right">${pdvStopa}%</td>
                 <td class="text-right">${pdvIznos.toFixed(2)}</td>
-                <td class="text-right">${iznosSaPdv.toFixed(2)}</td> <!-- SADA JE IDENTIČNO -->
+                <td class="text-right">${cenaSaPdvPoJedinici.toFixed(2)}</td> <!-- CIJENA PO JEDINICI -->
                 <td class="text-right">${iznosSaPdv.toFixed(2)}</td>
             </tr>
         `;
@@ -2582,6 +2583,8 @@ async function generatePrintDocumentFromCreatedData() {
     document.getElementById('print-signature-left').textContent = getSignatureText(createdDocumentData.tipDokumenta);
     document.getElementById('print-disclaimer').innerHTML = `<div><strong>${getDisclaimerText(createdDocumentData.tipDokumenta)}</strong></div>`;
 }
+
+
 
 async function previewPrint() {
             await generatePrintDocumentFromCreatedData();

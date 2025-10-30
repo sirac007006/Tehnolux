@@ -1122,6 +1122,25 @@
                 display: block;
             }
         }
+        /* Loading state for delete button */
+.btn-sm:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-danger:disabled {
+    background-color: #e74c3c;
+}
+
+/* Animation for delete button */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
@@ -1711,11 +1730,17 @@
         }
 
         if (e.target.closest('.delete-document-btn')) {
-            const id = e.target.closest('.delete-document-btn').dataset.id;
-            if (confirm('Da li ste sigurni da želite da obrišete ovaj dokument?')) {
-                alert('Funkcija brisanja će biti implementirana');
-            }
-        }
+    const id = e.target.closest('.delete-document-btn').dataset.id;
+    const row = e.target.closest('tr');
+    const tipDokumenta = row.cells[3].textContent;
+    const partner = row.cells[2].textContent;
+    
+    const potvrda = confirm(`Da li ste sigurni da želite da obrišete dokument?\n\nTip: ${tipDokumenta}\nPartner: ${partner}\n\n${tipDokumenta.toLowerCase().includes('otpremnica') || tipDokumenta.toLowerCase().includes('kalkulacija') ? 'NAPOMENA: Količina će biti vraćena na lager!' : ''}`);
+    
+    if (potvrda) {
+        await deleteDocument(id, row);
+    }
+}
     });
 
     async function openEditModal(id) {
@@ -1745,6 +1770,145 @@
             alert('Greška pri učitavanju dokumenta');
         }
     }
+
+// Funkcija za brisanje dokumenta
+async function deleteDocument(id, rowElement) {
+    const btn = rowElement.querySelector('.delete-document-btn');
+    const originalHTML = btn.innerHTML;
+    
+    try {
+        // Prikazujemo loading stanje
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        btn.disabled = true;
+        
+        const response = await fetch(`/dokumenti/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Ukloni red iz tabele
+            rowElement.remove();
+            
+            // Ažuriraj broj dokumenata
+            const currentCount = parseInt(document.getElementById('document-count').textContent.match(/\d+/)[0]);
+            document.getElementById('document-count').textContent = `Ukupno: ${currentCount - 1} dokumenata`;
+            
+            // Ažuriraj filteredData i dokumentiData - koristi novi niz umesto re-dodeljivanja
+            const indexFiltered = filteredData.findIndex(item => item.id == id);
+            if (indexFiltered !== -1) {
+                filteredData.splice(indexFiltered, 1);
+            }
+            
+            const indexOriginal = dokumentiData.findIndex(item => item.id == id);
+            if (indexOriginal !== -1) {
+                dokumentiData.splice(indexOriginal, 1);
+            }
+            
+            // Prikaži poruku o uspehu
+            showNotification(result.message, 'success');
+            
+        } else {
+            throw new Error(result.error || 'Nepoznata greška');
+        }
+        
+    } catch (error) {
+        console.error('Error deleting document:', error);
+        showNotification('Greška pri brisanju dokumenta: ' + error.message, 'error');
+        
+        // Vrati dugme u prvobitno stanje
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+    }
+}
+
+
+function showNotification(message, type = 'info') {
+    // Proveri da li već postoji notifikacija
+    const existingNotification = document.querySelector('.custom-notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+    
+    const notification = document.createElement('div');
+    notification.className = `custom-notification ${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    // Dodaj stilove ako već nisu dodati
+    if (!document.querySelector('#notification-styles')) {
+        const styles = document.createElement('style');
+        styles.id = 'notification-styles';
+        styles.textContent = `
+            .custom-notification {
+                position: fixed;
+                top: 100px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                animation: slideInRight 0.3s ease-out;
+                max-width: 400px;
+            }
+            .custom-notification.success {
+                background-color: var(--success-color);
+                border-left: 4px solid #27ae60;
+            }
+            .custom-notification.error {
+                background-color: var(--accent-color);
+                border-left: 4px solid #c0392b;
+            }
+            .custom-notification.info {
+                background-color: var(--info-color);
+                border-left: 4px solid #138496;
+            }
+            .notification-content {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(styles);
+    }
+    
+    document.body.appendChild(notification);
+    
+    // Automatski ukloni notifikaciju nakon 5 sekundi
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.style.animation = 'slideOutRight 0.3s ease-in forwards';
+            setTimeout(() => notification.remove(), 300);
+        }
+    }, 5000);
+    
+    // Dodaj animaciju za izlazak
+    if (!document.querySelector('#notification-out-styles')) {
+        const outStyles = document.createElement('style');
+        outStyles.id = 'notification-out-styles';
+        outStyles.textContent = `
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(outStyles);
+    }
+}
 
     // NOVA VERZIJA - Učitava STVARNE cene iz lagera + RABATE iz partner_artikal_rabat tabele
     async function populateEditArtikliTable(artikli, partnerNaziv) {

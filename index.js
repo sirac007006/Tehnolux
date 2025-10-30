@@ -3436,15 +3436,59 @@ app.get("/dokumenti/:id", async (req, res) => {
     }
 });
 
-// DELETE - Obriši dokument
+// DELETE - Obriši dokument sa potpunom obradom
 app.delete("/dokumenti/:id", async (req, res) => {
     const id = req.params.id;
     try {
+        // Proveri da li dokument postoji
+        const dokumentResult = await db.query('SELECT * FROM dokumenti WHERE id = $1', [id]);
+        if (dokumentResult.rows.length === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                message: "Dokument nije pronađen." 
+            });
+        }
+
+        const dokument = dokumentResult.rows[0];
+        
+        // Ako je dokument otpremnica ili kalkulacija, vrati količinu na lager
+        if (dokument.tip_dokumenta.toLowerCase().includes('otpremnica') || 
+            dokument.tip_dokumenta.toLowerCase().includes('kalkulacija')) {
+            
+            // Parsiraj artikle iz dokumenta
+            const artikli = parseArtikliFromDokument(dokument);
+            
+            for (const artikal of artikli) {
+                if (artikal.sifra && artikal.sifra !== 'N/A') {
+                    // Vrati količinu na lager
+                    await db.query(
+                        'UPDATE lager SET kolicina = kolicina + $1 WHERE sifra = $2',
+                        [artikal.kolicina, artikal.sifra]
+                    );
+                    console.log(`Vraćena količina ${artikal.kolicina} za artikal ${artikal.sifra} na lager`);
+                }
+            }
+        }
+
+        // Obriši dokument
         await db.query('DELETE FROM dokumenti WHERE id = $1', [id]);
-        res.sendStatus(200);
+        
+        console.log(`Dokument obrisan: ID ${id}, Tip: ${dokument.tip_dokumenta}, Partner: ${dokument.partner}`);
+        
+        res.json({ 
+            success: true, 
+            message: "Dokument je uspešno obrisan." + 
+                (dokument.tip_dokumenta.toLowerCase().includes('otpremnica') || 
+                 dokument.tip_dokumenta.toLowerCase().includes('kalkulacija') ? 
+                 " Količina je vraćena na lager." : "")
+        });
+        
     } catch (error) {
         console.error("Error deleting dokument:", error);
-        res.status(500).send("Greška pri brisanju dokumenta.");
+        res.status(500).json({ 
+            success: false, 
+            error: "Greška pri brisanju dokumenta: " + error.message 
+        });
     }
 });
 // Dodaj dokument

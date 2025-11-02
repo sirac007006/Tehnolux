@@ -873,11 +873,11 @@
             <div class="filter-row dates">
                 <div class="filter-group">
                     <label class="filter-label">Period od:</label>
-                    <input type="date" class="form-control" id="date-from" value="">
+                    <input type="text" class="form-control" id="date-from" placeholder="dd.mm.yyyy" value="10.02.2025">
                 </div>
                 <div class="filter-group">
                     <label class="filter-label">Period do:</label>
-                    <input type="date" class="form-control" id="date-to" value="">
+                    <input type="text" class="form-control" id="date-to" placeholder="dd.mm.yyyy" value="01.11.2025">
                 </div>
                 <div class="filter-group">
                     <button class="btn btn-primary" id="apply-date-filter">Primeni</button>
@@ -1008,12 +1008,33 @@
 
         let currentData = [];
 
+        // Funkcija za konverziju srpskog formata u ISO format
+        function srpskiDatumUISO(datumSrpski) {
+            const [dan, mesec, godina] = datumSrpski.split('.');
+            return `${godina}-${mesec.padStart(2, '0')}-${dan.padStart(2, '0')}`;
+        }
+
+        // Funkcija za konverziju ISO formata u srpski format
+        function ISODatumUSrpski(datumISO) {
+            const date = new Date(datumISO);
+            const dan = String(date.getDate()).padStart(2, '0');
+            const mesec = String(date.getMonth() + 1).padStart(2, '0');
+            const godina = date.getFullYear();
+            return `${dan}.${mesec}.${godina}`;
+        }
+
+        // Postavljanje podrazumevanih vrednosti u srpskom formatu
         const today = new Date();
         const thirtyDaysAgo = new Date(today);
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         
-        dateFrom.value = thirtyDaysAgo.toISOString().split('T')[0];
-        dateTo.value = today.toISOString().split('T')[0];
+        // Ako već nisu postavljeni vrednosti u HTML-u, postavi podrazumevane
+        if (!dateFrom.value) {
+            dateFrom.value = ISODatumUSrpski(thirtyDaysAgo.toISOString());
+        }
+        if (!dateTo.value) {
+            dateTo.value = ISODatumUSrpski(today.toISOString());
+        }
 
         function closeMobileSidebar() {
             if (window.innerWidth <= 576) {
@@ -1119,11 +1140,9 @@
     }
 }
 
-
 function parseDocuments(documents) {
     const artikli = [];
     
-    // Dodajte ovu proveru
     if (!Array.isArray(documents)) {
         console.error('parseDocuments: Expected array but got:', typeof documents, documents);
         return artikli;
@@ -1132,39 +1151,62 @@ function parseDocuments(documents) {
     documents.forEach(doc => {
         if (!doc.naziv_artikla) return;
         
-        // Proverite da li je string artikala u očekivanom formatu
         if (typeof doc.naziv_artikla !== 'string') return;
         
         const artikalStrings = doc.naziv_artikla.split(', ');
         
         artikalStrings.forEach(artStr => {
-            // Poboljšana regex za različite formate
+            // Poboljšana regex za različite formate - posebno obrađujemo jedinicu mere
             const match = artStr.match(/^(.+?)\s-\s(.+?)\s\((.+?)\s(.+?)\)$/);
             
             if (match) {
                 const [, sifra, naziv, kolicina, jm] = match;
                 const kolicinaNum = parseFloat(kolicina) || 0;
                 
+                // Čišćenje jedinice mere - uzimamo samo "kom" ili "m"
+                let cleanedJm = jm.trim();
+                if (cleanedJm.includes('kom')) {
+                    cleanedJm = 'kom';
+                } else if (cleanedJm.includes('m')) {
+                    cleanedJm = 'm';
+                }
+                // Ako nije ni "kom" ni "m", ostavljamo originalnu vrednost
+                
                 artikli.push({
                     datum: doc.datum,
                     sifra: sifra.trim(),
                     naziv: naziv.trim(),
                     kolicina: kolicinaNum,
-                    jm: jm.trim(),
+                    jm: cleanedJm,
                     partner: doc.partner,
                     komercijalist: doc.komercijalist_ime || doc.komercijalist || 'N/A',
                     tip_dokumenta: doc.tip_dokumenta,
                     magacin: doc.magacin || 'N/A'
                 });
             } else {
-                // Ako parsiranje ne uspe, dodajte osnovne podatke
+                // Ako parsiranje ne uspe, pokušavamo da izdvojimo jedinicu na drugi način
                 console.warn('Could not parse artikal string:', artStr);
+                
+                let jm = 'kom'; // podrazumevana vrednost
+                let cleanedNaziv = artStr;
+                
+                // Pokušavamo da pronađemo jedinicu u stringu
+                if (artStr.includes('kom')) {
+                    jm = 'kom';
+                    // Uklanjamo "kom" iz naziva ako je tu
+                    cleanedNaziv = artStr.replace(/\s*kom\s*$/, '').trim();
+                } else if (artStr.includes('m')) {
+                    jm = 'm';
+                    // Uklanjamo "m" iz naziva ako je tu
+                    cleanedNaziv = artStr.replace(/\s*m\s*$/, '').trim();
+                }
+                
                 artikli.push({
                     datum: doc.datum,
                     sifra: 'N/A',
-                    naziv: artStr,
+                    naziv: cleanedNaziv,
                     kolicina: doc.kolicina || 0,
-                    jm: doc.jm || 'kom',
+                    jm: jm,
                     partner: doc.partner,
                     komercijalist: doc.komercijalist_ime || doc.komercijalist || 'N/A',
                     tip_dokumenta: doc.tip_dokumenta,
@@ -1177,11 +1219,13 @@ function parseDocuments(documents) {
     return artikli;
 }
 
+
 async function loadPrometData() {
     try {
+        // Konvertuj srpske datume u ISO format pre slanja na server
         const params = new URLSearchParams({
-            datum_od: dateFrom.value,
-            datum_do: dateTo.value,
+            datum_od: srpskiDatumUISO(dateFrom.value),
+            datum_do: srpskiDatumUISO(dateTo.value),
             partner: partnerFilter.value,
             komercijalist: komercijalistFilter.value,
             magacin: magacinFilter.value
@@ -1207,12 +1251,12 @@ async function loadPrometData() {
 }
 
 
-        function updateTable(data) {
+function updateTable(data) {
     const tbody = document.getElementById('promet-tbody');
     tbody.innerHTML = '';
     
     if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">Nema podataka za prikaz</td></tr>'; // Changed colspan to 8
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">Nema podataka za prikaz</td></tr>';
         return;
     }
     
@@ -1224,15 +1268,23 @@ async function loadPrometData() {
         row.dataset.sifra = item.sifra;
         row.dataset.naziv = item.naziv;
         
+        // Dodatna provera i čišćenje jedinice mere
+        let displayJm = item.jm;
+        if (displayJm.includes('kom')) {
+            displayJm = 'kom';
+        } else if (displayJm.includes('m')) {
+            displayJm = 'm';
+        }
+        
         row.innerHTML = `
             <td>${formatDate(item.datum)}</td>
             <td>${item.sifra}</td>
             <td title="${item.naziv}">${item.naziv}</td>
-            <td>${item.jm}</td>
+            <td>${displayJm}</td>
             <td class="quantity-column">${item.kolicina.toFixed(2)}</td>
             <td>${item.partner || ''}</td>
             <td>${item.komercijalist || ''}</td>
-            <td>${item.magacin || ''}</td> <!-- Added magacin column -->
+            <td>${item.magacin || ''}</td>
         `;
         
         row.addEventListener('click', function() {
@@ -1243,6 +1295,7 @@ async function loadPrometData() {
         tbody.appendChild(row);
     });
 }
+
 
         function formatDate(dateString) {
             if (!dateString) return '';
@@ -1259,6 +1312,7 @@ async function loadPrometData() {
         komercijalistFilter.addEventListener('change', loadPrometData);
 
         printBtn.addEventListener('click', function() {
+            // Koristi srpski format za štampu
             const period = `${dateFrom.value} - ${dateTo.value}`;
             const partner = partnerFilter.value || 'Svi partneri';
             document.getElementById('print-period').textContent = period;

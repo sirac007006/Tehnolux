@@ -24,6 +24,7 @@ db.connect();
 
 // bcrypt hash vrednosti za sve korisnike
 const ADMIN_HASH   = '$2b$12$GlMBYvuE3/jZuhfrZcagXOv.w3uVmwQEo5hdhqlpXtw9mOTbyfgfa'; // admin
+const ADMIN1_HASH  = '$2a$12$s7poSaYnwcVvY7226esSi.FGP15GospPS/2ctrZhoQJWBy0yWC4/a';
 const SERVIS_HASH = "$2a$12$mVDJhEzXLoGc3NcBbnN7ne4gfwuAHk8X6laD/oCCX1IViJ068j2qe";
 const RADNJA_HASH  = '$2b$12$T1wLn3vutZ7VJaNsmS5q1uVqJwiT0qo1FW2DyyidxGbWSJZ20eRau'; 
 const MAGACIN_HASH = '$2b$12$8yj9bdZ/C.KdDA4S5fixreK1nfPJ4wQnX9cNIRPw6eWm3S93Is19K';
@@ -51,7 +52,6 @@ const PUBLIC_PATHS = new Set([
   '/favicon.ico'
 ]);
 
-// Middleware za proveru pristupa
 app.use((req, res, next) => {
   const url = req.path;
 
@@ -70,6 +70,24 @@ app.use((req, res, next) => {
   if (req.session.role === 'servis') {
     if (url === '/servis' || url.startsWith('/servis/')) return next();
     return res.status(403).send('Pristup zabranjen za servis nalog.');
+  }
+
+  // radnja role - NEMA pristup uplatama i karticama kupaca
+  if (req.session.role === 'radnja') {
+    if (url.startsWith('/uplate') || url.startsWith('/api/uplate') || 
+        url.startsWith('/karticekupca') || url.startsWith('/api/karticekupca')) {
+      return res.status(403).send('Pristup zabranjen za radnja nalog.');
+    }
+    return next();
+  }
+
+  // magacin role - NEMA pristup uplatama i karticama kupaca
+  if (req.session.role === 'magacin') {
+    if (url.startsWith('/uplate') || url.startsWith('/api/uplate') || 
+        url.startsWith('/karticekupca') || url.startsWith('/api/karticekupca')) {
+      return res.status(403).send('Pristup zabranjen za magacin nalog.');
+    }
+    return next();
   }
 
   return res.status(403).send('Pristup zabranjen.');
@@ -101,11 +119,21 @@ app.post('/login', async (req, res) => {
       }
     }
 
+    // --- ADMIN1 --- NOVI ADMIN NALOG
+    if (username === 'admin1') {
+      const match = await bcrypt.compare(password, ADMIN1_HASH);
+      if (match) {
+        req.session.role = 'admin';
+        req.session.username = 'admin1';
+        return res.redirect('/partneri');
+      }
+    }
+
     // --- RADNJA ---
     if (username === 'radnja') {
       const match = await bcrypt.compare(password, RADNJA_HASH);
       if (match) {
-        req.session.role = 'admin';
+        req.session.role = 'radnja';
         req.session.username = 'radnja';
         return res.redirect('/partneri');
       }
@@ -115,7 +143,7 @@ app.post('/login', async (req, res) => {
     if (username === 'magacin') {
       const match = await bcrypt.compare(password, MAGACIN_HASH);
       if (match) {
-        req.session.role = 'admin';
+        req.session.role = 'magacin';
         req.session.username = 'magacin';
         return res.redirect('/partneri');
       }
@@ -131,27 +159,11 @@ app.post('/login', async (req, res) => {
       LIMIT 1
     `;
     const result = await db.query(query, [normalized]);
-    console.log('Broj pronađenih servisera:', result.rows.length);
-if (result.rows.length > 0) {
-  const serviser = result.rows[0];
-  console.log('Pronađen serviser:', serviser.ime_servisera);
-
-  const match = await bcrypt.compare(password, SERVIS_HASH);
-  console.log('Rezultat bcrypt.compare:', match);
-
-  if (match) {
-    req.session.role = 'servis';
-    req.session.username = serviser.ime_servisera;
-    return res.redirect('/servis');
-  }
-}
-
-
+    
     if (result.rows.length > 0) {
       const serviser = result.rows[0];
-       console.log('Uneta lozinka:', password);
-  console.log('Hash u kodu:', SERVIS_HASH);
       const match = await bcrypt.compare(password, SERVIS_HASH);
+
       if (match) {
         req.session.role = 'servis';
         req.session.username = serviser.ime_servisera;
@@ -166,6 +178,7 @@ if (result.rows.length > 0) {
     return res.status(500).send('Greška na serveru prilikom prijave.');
   }
 });
+
 
 
 // Logout (GET)
@@ -186,9 +199,8 @@ app.post('/logout', (req, res) => {
 // =============================================================================
 // KARTICA KUPCA ROUTES - SA SALDO KALKULACIJAMA
 // =============================================================================
-
-// GET - Kartica kupca stranica
 app.get("/karticekupca", async (req, res) => {
+  // Provjera pristupa je već u middleware-u
   try {
     // Fetch all partners from partneri table
     const partneri = (await db.query(
@@ -202,8 +214,6 @@ app.get("/karticekupca", async (req, res) => {
   }
 });
 
-// API route za saldos svih partnera
-// API route za saldos svih partnera - ISPRAVLJENA LOGIKA
 app.get("/api/karticekupca/saldos", async (req, res) => {
   try {
     const { datum_od, datum_do } = req.query;
@@ -298,7 +308,6 @@ app.get("/api/karticekupca/saldos", async (req, res) => {
     });
   }
 });
-// API route to get partner details with otpremnice and uplate
 app.get("/api/karticekupca/partner/:id", async (req, res) => {
   try {
     const partnerId = req.params.id;
@@ -1016,9 +1025,6 @@ app.patch("/partneri/:Sifra/discount", async (req, res) => {
     }
 });
 
-app.get("/karticekupca", async (req, res) => {
-    res.render("karticakupca.ejs");
-});
 
 app.get("/artikli", async (req, res) => {
     try {
@@ -2349,7 +2355,7 @@ app.get("/pravljenjedokumenta", async (req, res) => {
     }
 });
 
-// POST - Kreiranje dokumenta sa šifrom magacina - ISPRAVLJENA VERZIJA
+// POST - Kreiranje dokumenta sa šifrom magacina i napomenom
 app.post("/api/pravljenjedokumenta", async (req, res) => {
     try {
         await db.query('BEGIN');
@@ -2361,7 +2367,8 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
             artikli, 
             rabat, 
             ukupanIznos,
-            magacin // Ovo je šifra magacina (npr. "VEL001")
+            magacin,
+            napomena // DODATO: Polje za napomenu
         } = req.body;
         
         // Validacija
@@ -2535,25 +2542,27 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
 
         const partnerNaziv = partnerRes.rows[0].Naziv_partnera;
 
-        // Upiši u bazu
+        // Upiši u bazu SA NAPOMENOM
         const documentResult = await db.query(
             `INSERT INTO dokumenti (
                 datum, partner, tip_dokumenta, magacin, naziv_artikla, 
-                kolicina, iznos_bez_pdv, iznos_sa_pdv, pdv_iznos, rabat, komercijalist_id
+                kolicina, iznos_bez_pdv, iznos_sa_pdv, pdv_iznos, rabat, 
+                komercijalist_id, napomena
             )
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id`,
             [
                 today,
                 partnerNaziv,
-                fullDocumentNumber, // Koristite kompletnu šifru
-                magacin, // Ovo je šifra magacina
+                fullDocumentNumber,
+                magacin,
                 artikliString,
                 totalKolicina,
                 parseFloat(totalBezPdvBEZRabata) || 0,
                 parseFloat(totalSaPdv) || 0,
                 parseFloat(totalPdv) || 0,
                 prosecniRabat,
-                komercijalist_id
+                komercijalist_id,
+                napomena || null
             ]
         );
 
@@ -2561,7 +2570,7 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
         
         await db.query('COMMIT');
 
-        console.log(`Document created: ${fullDocumentNumber}, Partner: ${partnerNaziv}, Magacin: ${magacin}`);
+        console.log(`Document created: ${fullDocumentNumber}, Partner: ${partnerNaziv}, Magacin: ${magacin}, Napomena: ${napomena ? 'Da' : 'Ne'}`);
         
         res.json({ 
             success: true, 
@@ -2571,7 +2580,8 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
             message: `${tipDokumenta} je uspešno kreiran/a`,
             komercijalist: komercijalist.ime_prezime,
             processedItems: processedArtikli.length,
-            lagerUpdated: ['otpremnica', 'kalkulacija'].includes(tipDokumenta.toLowerCase())
+            lagerUpdated: ['otpremnica', 'kalkulacija'].includes(tipDokumenta.toLowerCase()),
+            napomena: napomena
         });
         
     } catch (error) {
@@ -2580,7 +2590,9 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
         res.status(500).json({ error: "Greška pri kreiranju dokumenta: " + error.message });
     } 
 });
-// GET - API za dokumente sa magacinom
+
+
+
 app.get("/api/pravljenjedokumenta/dokumenti", async (req, res) => {
     try {
         const { 
@@ -3262,7 +3274,7 @@ app.get("/api/dokumenti/:id", async (req, res) => {
     }
 });
 
-// PUT - Ažuriraj dokument sa artiklima
+// PUT - Ažuriraj dokument sa artiklima I NAPOMENOM
 app.put("/api/dokumenti/:id", async (req, res) => {
     try {
         const { id } = req.params;
@@ -3272,7 +3284,7 @@ app.put("/api/dokumenti/:id", async (req, res) => {
             tip_dokumenta,
             komercijalist_id,
             artikli, // Array artikala
-            napomene
+            napomena // DODATO
         } = req.body;
         
         // Validacija
@@ -3289,7 +3301,7 @@ app.put("/api/dokumenti/:id", async (req, res) => {
             `${a.sifra} - ${a.naziv} (${a.kolicina} ${a.jm})`
         ).join(', ');
         
-        // Kalkulacije - ISPRAVLJENA LOGIKA
+        // Kalkulacije
         let totalKolicina = 0;
         let totalBezPdv = 0;
         let totalSaPdv = 0;
@@ -3298,8 +3310,8 @@ app.put("/api/dokumenti/:id", async (req, res) => {
         
         artikli.forEach(a => {
             const kol = parseFloat(a.kolicina) || 0;
-            const cenaBezPdv = parseFloat(a.cena_bez_pdv) || 0;  // ORIGINALNA CENA
-            const cenaSaPdv = parseFloat(a.cena_sa_pdv) || 0;    // ORIGINALNA CENA sa PDV
+            const cenaBezPdv = parseFloat(a.cena_bez_pdv) || 0;
+            const cenaSaPdv = parseFloat(a.cena_sa_pdv) || 0;
             const rabat = parseFloat(a.rabat) || 0;
             
             // Ukupno BEZ rabata
@@ -3328,7 +3340,7 @@ app.put("/api/dokumenti/:id", async (req, res) => {
             ? artikli.reduce((sum, a) => sum + (parseFloat(a.rabat) || 0), 0) / artikli.length 
             : 0;
         
-        // Ažuriraj dokument
+        // Ažuriraj dokument SA NAPOMENOM
         await db.query(`
             UPDATE dokumenti SET 
                 datum = $1,
@@ -3340,8 +3352,9 @@ app.put("/api/dokumenti/:id", async (req, res) => {
                 iznos_sa_pdv = $7,
                 pdv_iznos = $8,
                 rabat = $9,
-                komercijalist_id = $10
-            WHERE id = $11
+                komercijalist_id = $10,
+                napomena = $11
+            WHERE id = $12
         `, [
             datum,
             partner,
@@ -3353,12 +3366,13 @@ app.put("/api/dokumenti/:id", async (req, res) => {
             totalPdv,
             prosecniRabat,
             komercijalist_id || null,
+            napomena || null, // DODATO
             id
         ]);
         
         await db.query('COMMIT');
         
-        console.log(`Document ${id} updated successfully with ${artikli.length} artikli`);
+        console.log(`Document ${id} updated successfully with ${artikli.length} artikli and napomena: ${napomena ? 'Da' : 'Ne'}`);
         
         res.json({ 
             success: true, 
@@ -3372,7 +3386,6 @@ app.put("/api/dokumenti/:id", async (req, res) => {
         res.status(500).json({ error: "Greška pri ažuriranju dokumenta: " + error.message });
     }
 });
-
 // Helper funkcija za parsiranje artikala iz dokumenta
 function parseArtikliFromDokument(dokument) {
     const artikli = [];
@@ -3776,30 +3789,30 @@ app.get("/magacini", (req, res) => {
 
 // UPLATE ROUTES - SA POVEZIVANJEM SA PARTNERIMA I KOMERCIJALISTIMA
 
-// GET - Uplate stranica sa podacima
 app.get("/uplate", async(req, res) => {
-    try {
-        const uplate = (await db.query(
-            'SELECT * FROM "uplate" ORDER BY "datum" DESC'
-        )).rows;
-        res.render("uplate.ejs", { uplate });
-    } catch (error) {
-        console.error("Error fetching uplate:", error);
-        res.status(500).send("Greška pri dohvatanju uplata.");
-    }
+  // Provjera pristupa je već u middleware-u
+  try {
+    const uplate = (await db.query(
+      'SELECT * FROM "uplate" ORDER BY "datum" DESC'
+    )).rows;
+    res.render("uplate.ejs", { uplate });
+  } catch (error) {
+    console.error("Error fetching uplate:", error);
+    res.status(500).send("Greška pri dohvatanju uplata.");
+  }
 });
 
-// GET - API endpoint za sve uplate (JSON response)
 app.get("/api/uplate", async(req, res) => {
-    try {
-        const uplate = (await db.query(
-            'SELECT * FROM "uplate" ORDER BY "datum" DESC'
-        )).rows;
-        res.json(uplate);
-    } catch (error) {
-        console.error("Error fetching uplate:", error);
-        res.status(500).json({ error: "Greška pri dohvatanju uplata." });
-    }
+  // Provjera pristupa je već u middleware-u
+  try {
+    const uplate = (await db.query(
+      'SELECT * FROM "uplate" ORDER BY "datum" DESC'
+    )).rows;
+    res.json(uplate);
+  } catch (error) {
+    console.error("Error fetching uplate:", error);
+    res.status(500).json({ error: "Greška pri dohvatanju uplata." });
+  }
 });
 
 // GET - Uzmi pojedinačnu uplatu po ID-u

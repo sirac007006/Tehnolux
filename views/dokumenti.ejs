@@ -1010,6 +1010,7 @@
             border-top: 1px solid #000;
             padding-top: 5px;
         }
+
         .sidebar-nav::-webkit-scrollbar {
             width: 6px;
         }
@@ -1026,6 +1027,7 @@
         .sidebar-nav::-webkit-scrollbar-thumb:hover {
             background: rgba(255,255,255,0.5);
         }
+
         /* Responsive */
         @media (max-width: 1200px) {
             .filter-row {
@@ -1076,7 +1078,9 @@
 
             .date-filters {
                 grid-template-columns: 1fr;
-            }.btn span {
+            }
+            
+            .btn span {
                 display: none;
             }
         }
@@ -1122,25 +1126,26 @@
                 display: block;
             }
         }
+
         /* Loading state for delete button */
-.btn-sm:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
+        .btn-sm:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
 
-.btn-danger:disabled {
-    background-color: #e74c3c;
-}
+        .btn-danger:disabled {
+            background-color: #e74c3c;
+        }
 
-/* Animation for delete button */
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+        /* Animation for delete button */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 
-.fa-spinner {
-    animation: spin 1s linear infinite;
-}
+        .fa-spinner {
+            animation: spin 1s linear infinite;
+        }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
@@ -1325,14 +1330,14 @@
                         </select>
                     </div>
                     <div class="filter-group">
-    <label class="filter-label">Magacin:</label>
-    <select class="form-control" id="magacin-filter">
-        <option value="">Svi magacini</option>
-        <% magacini.forEach(magacin => { %>
-            <option value="<%= magacin %>"><%= magacin %></option>
-        <% }); %>
-    </select>
-</div>
+                        <label class="filter-label">Magacin:</label>
+                        <select class="form-control" id="magacin-filter">
+                            <option value="">Svi magacini</option>
+                            <% magacini.forEach(magacin => { %>
+                                <option value="<%= magacin %>"><%= magacin %></option>
+                            <% }); %>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -1343,11 +1348,11 @@
                 <div class="date-filters">
                     <div class="date-group">
                         <label class="filter-label">Period od:</label>
-                        <input type="date" class="form-control" id="date-from" value="2025-01-01">
+                        <input type="text" class="form-control date-input" id="date-from" placeholder="dd/mm/yyyy" value="01/01/2025">
                     </div>
                     <div class="date-group">
                         <label class="filter-label">Period do:</label>
-                        <input type="date" class="form-control" id="date-to" value="2025-01-31">
+                        <input type="text" class="form-control date-input" id="date-to" placeholder="dd/mm/yyyy" value="31/01/2025">
                     </div>
                 </div>
             </div>
@@ -1367,33 +1372,32 @@
             <div class="table-container">
                 <table class="data-table" id="dokumenti-table">
                     <thead>
-    <tr>
-        <th>ID</th>
-        <th>Datum</th>
-        <th>Partner</th>
-        <th>Tip dokumenta</th>
-        <th>Naziv artikla</th>
-        <th>Magacin</th>  <!-- DODAJ OVO -->
-        <th>Iznos sa PDV (€)</th>
-        <th>Akcije</th>
-    </tr>
-</thead>
-
-                <tbody id="dokumenti-tbody">
-    <% dokumenti.forEach((dokument, index) => { %>
-        <tr <%= index === 0 ? 'class="selected"' : '' %>>
-            <td><%= dokument.id %></td>
-            <td class="date-column"><%= new Date(dokument.datum).toLocaleDateString('sr-RS') %></td>
-            <td><%= dokument.partner %></td>
-            <td class="doc-type-column"><%= dokument.tip_dokumenta %></td>
-            <td title="<%= dokument.naziv_artikla %>" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                <%= dokument.naziv_artikla %>
-            </td>
-            <td><%= dokument.magacin || 'N/A' %></td>  <!-- DODAJ OVO -->
-            <td class="price-column">
-                <%= Number(dokument.iznos_sa_pdv).toLocaleString('sr-RS', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
-            </td>
-             <td>
+                        <tr>
+                            <th>ID</th>
+                            <th>Datum</th>
+                            <th>Partner</th>
+                            <th>Tip dokumenta</th>
+                            <th>Naziv artikla</th>
+                            <th>Magacin</th>
+                            <th>Iznos sa PDV (€)</th>
+                            <th>Akcije</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dokumenti-tbody">
+                        <% dokumenti.forEach((dokument, index) => { %>
+                            <tr <%= index === 0 ? 'class="selected"' : '' %>>
+                                <td><%= dokument.id %></td>
+                                <td class="date-column"><%= new Date(dokument.datum).toLocaleDateString('sr-RS') %></td>
+                                <td><%= dokument.partner %></td>
+                                <td class="doc-type-column"><%= dokument.tip_dokumenta %></td>
+                                <td title="<%= dokument.naziv_artikla %>" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    <%= dokument.naziv_artikla %>
+                                </td>
+                                <td><%= dokument.magacin || 'N/A' %></td>
+                                <td class="price-column">
+                                    <%= Number(dokument.iznos_sa_pdv).toLocaleString('sr-RS', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
+                                </td>
+                                <td>
                                     <div class="action-buttons">
                                         <button class="btn btn-sm btn-info view-document-btn" data-id="<%= dokument.id %>" title="Pregled">
                                             <i class="fas fa-eye"></i>
@@ -1409,10 +1413,9 @@
                                         </button>
                                     </div>
                                 </td>
-        </tr>
-    <% }); %>
-</tbody>
-
+                            </tr>
+                        <% }); %>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -1460,6 +1463,17 @@
                                     <option value="<%= k.id %>"><%= k.ime_prezime %></option>
                                 <% }); %>
                             </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DODATA SEKCIJA ZA NAPOMENU -->
+                <div class="edit-form-section">
+                    <h4><i class="fas fa-sticky-note"></i> Napomena</h4>
+                    <div class="form-row">
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label class="form-label">Napomena:</label>
+                            <textarea class="form-control" id="edit-napomena" rows="3" placeholder="Unesite napomenu..."></textarea>
                         </div>
                     </div>
                 </div>
@@ -1563,9 +1577,12 @@
                 <div style="margin-top: 10px;">Ž.R: <strong>530-18008-18</strong></div>
                 <div><strong>510-1062-55</strong></div>
                 <div><strong>520-30872-94</strong></div>
+                <!-- DODAJTE KOMERCIJALISTU -->
+                <div style="margin-top: 10px; border-top: 1px solid #000; padding-top: 5px;">
+                    Komercijalist: <strong id="print-komercijalist"></strong>
+                </div>
             </div>
         </div>
-
         <div style="display: flex; justify-content: space-between; margin: 20px 0;">
             <div>
                 <div>Podgorica, <span id="print-date"></span> godine</div>
@@ -1621,6 +1638,14 @@
             </div>
         </div>
 
+        <!-- DODATA SEKCIJA ZA NAPOMENU U ŠTAMPI -->
+        <div id="print-napomena-section" style="margin-top: 20px; display: none;">
+            <div style="border: 1px solid #000; padding: 10px; background-color: #f9f9f9;">
+                <strong>Napomena:</strong>
+                <div id="print-napomena" style="margin-top: 5px; font-style: italic; word-wrap: break-word;"></div>
+            </div>
+        </div>
+
         <div style="margin-top: 20px;" id="print-disclaimer">
             <div><strong>OVO NIJE PDV RAČUN!!!</strong></div>
         </div>
@@ -1636,409 +1661,600 @@
     </div>
 
     <script>
-    // Pass server data to JavaScript
-    const sviPartneri = <%- JSON.stringify(sviPartneri) %>;
-    const komercijalisti = <%- JSON.stringify(komercijalisti) %>;
-    const dokumentiData = <%- JSON.stringify(dokumenti) %>;
+        // Pass server data to JavaScript
+        const sviPartneri = <%- JSON.stringify(sviPartneri) %>;
+        const komercijalisti = <%- JSON.stringify(komercijalisti) %>;
+        const dokumentiData = <%- JSON.stringify(dokumenti) %>;
 
-    let currentEditingDocument = null;
-    let filteredData = [...dokumentiData];
+        let currentEditingDocument = null;
+        let filteredData = [...dokumentiData];
 
-    // SORTIRANJE DOKUMENATA PO ID-u (opadajuci redosled - najnoviji prvi)
-    filteredData.sort((a, b) => b.id - a.id);
+        // SORTIRANJE DOKUMENATA PO ID-u (opadajuci redosled - najnoviji prvi)
+        filteredData.sort((a, b) => b.id - a.id);
 
-    // Auto-complete state
-    let autocompleteResults = [];
-    let selectedAutocompleteIndex = -1;
+        // Auto-complete state
+        let autocompleteResults = [];
+        let selectedAutocompleteIndex = -1;
 
-    // Sidebar toggle
-    const sidebar = document.getElementById('sidebar');
-    const mainContent = document.getElementById('main-content');
-    const header = document.getElementById('header');
-    const toggleSidebar = document.getElementById('toggle-sidebar');
-    const sidebarIcon = document.getElementById('sidebar-icon');
-    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-    const sidebarOverlay = document.getElementById('sidebar-overlay');
+        // Sidebar toggle
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+        const header = document.getElementById('header');
+        const toggleSidebar = document.getElementById('toggle-sidebar');
+        const sidebarIcon = document.getElementById('sidebar-icon');
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-    toggleSidebar.addEventListener('click', function() {
-        sidebar.classList.toggle('collapsed');
-        mainContent.classList.toggle('expanded');
-        header.classList.toggle('expanded');
-        
-        if (sidebar.classList.contains('collapsed')) {
-            sidebarIcon.classList.remove('fa-chevron-left');
-            sidebarIcon.classList.add('fa-chevron-right');
-        } else {
-            sidebarIcon.classList.remove('fa-chevron-right');
-            sidebarIcon.classList.add('fa-chevron-left');
-        }
-    });
-
-    // Mobile menu
-    mobileMenuToggle.addEventListener('click', function() {
-        sidebar.classList.toggle('mobile-open');
-        sidebarOverlay.classList.toggle('show');
-        
-        if (sidebar.classList.contains('mobile-open')) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
-    });
-
-    sidebarOverlay.addEventListener('click', function() {
-        sidebar.classList.remove('mobile-open');
-        sidebarOverlay.classList.remove('show');
-        document.body.style.overflow = '';
-    });
-
-    // Submenu functionality
-    document.querySelectorAll('.nav-item.has-submenu > .nav-link').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const parent = this.parentElement;
-            const submenu = parent.querySelector('.submenu');
+        toggleSidebar.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            header.classList.toggle('expanded');
             
-            document.querySelectorAll('.nav-item.has-submenu').forEach(item => {
-                if (item !== parent) {
-                    item.classList.remove('open');
-                    item.querySelector('.submenu').classList.remove('open');
+            if (sidebar.classList.contains('collapsed')) {
+                sidebarIcon.classList.remove('fa-chevron-left');
+                sidebarIcon.classList.add('fa-chevron-right');
+            } else {
+                sidebarIcon.classList.remove('fa-chevron-right');
+                sidebarIcon.classList.add('fa-chevron-left');
+            }
+        });
+
+        // Mobile menu
+        mobileMenuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('mobile-open');
+            sidebarOverlay.classList.toggle('show');
+            
+            if (sidebar.classList.contains('mobile-open')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        });
+
+        sidebarOverlay.addEventListener('click', function() {
+            sidebar.classList.remove('mobile-open');
+            sidebarOverlay.classList.remove('show');
+            document.body.style.overflow = '';
+        });
+
+        // Submenu functionality
+        document.querySelectorAll('.nav-item.has-submenu > .nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const parent = this.parentElement;
+                const submenu = parent.querySelector('.submenu');
+                
+                document.querySelectorAll('.nav-item.has-submenu').forEach(item => {
+                    if (item !== parent) {
+                        item.classList.remove('open');
+                        item.querySelector('.submenu').classList.remove('open');
+                    }
+                });
+                
+                parent.classList.toggle('open');
+                submenu.classList.toggle('open');
+            });
+        });
+
+        // EDIT MODAL FUNCTIONS
+        document.addEventListener('click', async (e) => {
+            if (e.target.closest('.edit-document-btn')) {
+                const id = e.target.closest('.edit-document-btn').dataset.id;
+                await openEditModal(id);
+            }
+
+            if (e.target.closest('.view-document-btn')) {
+                const id = e.target.closest('.view-document-btn').dataset.id;
+                showDocumentDetails(id);
+            }
+
+            if (e.target.closest('.print-document-btn')) {
+                const id = e.target.closest('.print-document-btn').dataset.id;
+                await generatePrintDocumentFromId(id);
+                window.print();
+            }
+
+            if (e.target.closest('.delete-document-btn')) {
+                const id = e.target.closest('.delete-document-btn').dataset.id;
+                const row = e.target.closest('tr');
+                const tipDokumenta = row.cells[3].textContent;
+                const partner = row.cells[2].textContent;
+                
+                const potvrda = confirm(`Da li ste sigurni da želite da obrišete dokument?\n\nTip: ${tipDokumenta}\nPartner: ${partner}\n\n${tipDokumenta.toLowerCase().includes('otpremnica') || tipDokumenta.toLowerCase().includes('kalkulacija') ? 'NAPOMENA: Količina će biti vraćena na lager!' : ''}`);
+                
+                if (potvrda) {
+                    await deleteDocument(id, row);
+                }
+            }
+        });
+
+        async function openEditModal(id) {
+            try {
+                const response = await fetch(`/api/dokumenti/${id}`);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    alert('Greška pri učitavanju dokumenta');
+                    return;
+                }
+                
+                currentEditingDocument = data;
+                
+                document.getElementById('edit-dokument-id').value = data.dokument.id;
+                document.getElementById('edit-datum').value = new Date(data.dokument.datum).toISOString().split('T')[0];
+                document.getElementById('edit-partner').value = data.dokument.partner;
+                document.getElementById('edit-tip-dokumenta').value = data.dokument.tip_dokumenta;
+                document.getElementById('edit-komercijalist').value = data.dokument.komercijalist_id || '';
+                document.getElementById('edit-napomena').value = data.dokument.napomena || ''; // DODATO: Učitaj napomenu
+                
+                await populateEditArtikliTable(data.artikli, data.dokument.partner);
+                
+                document.getElementById('edit-modal').classList.add('show');
+                
+            } catch (error) {
+                console.error('Error loading document:', error);
+                alert('Greška pri učitavanju dokumenta');
+            }
+        }
+
+        // Funkcija za brisanje dokumenta
+        async function deleteDocument(id, rowElement) {
+            const btn = rowElement.querySelector('.delete-document-btn');
+            const originalHTML = btn.innerHTML;
+            
+            try {
+                // Prikazujemo loading stanje
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                btn.disabled = true;
+                
+                const response = await fetch(`/dokumenti/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Ukloni red iz tabele
+                    rowElement.remove();
+                    
+                    // Ažuriraj broj dokumenata
+                    const currentCount = parseInt(document.getElementById('document-count').textContent.match(/\d+/)[0]);
+                    document.getElementById('document-count').textContent = `Ukupno: ${currentCount - 1} dokumenata`;
+                    
+                    // Ažuriraj filteredData i dokumentiData - koristi novi niz umesto re-dodeljivanja
+                    const indexFiltered = filteredData.findIndex(item => item.id == id);
+                    if (indexFiltered !== -1) {
+                        filteredData.splice(indexFiltered, 1);
+                    }
+                    
+                    const indexOriginal = dokumentiData.findIndex(item => item.id == id);
+                    if (indexOriginal !== -1) {
+                        dokumentiData.splice(indexOriginal, 1);
+                    }
+                    
+                    // Prikaži poruku o uspehu
+                    showNotification(result.message, 'success');
+                    
+                } else {
+                    throw new Error(result.error || 'Nepoznata greška');
+                }
+                
+            } catch (error) {
+                console.error('Error deleting document:', error);
+                showNotification('Greška pri brisanju dokumenta: ' + error.message, 'error');
+                
+                // Vrati dugme u prvobitno stanje
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            // Proveri da li već postoji notifikacija
+            const existingNotification = document.querySelector('.custom-notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            const notification = document.createElement('div');
+            notification.className = `custom-notification ${type}`;
+            notification.innerHTML = `
+                <div class="notification-content">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            // Dodaj stilove ako već nisu dodati
+            if (!document.querySelector('#notification-styles')) {
+                const styles = document.createElement('style');
+                styles.id = 'notification-styles';
+                styles.textContent = `
+                    .custom-notification {
+                        position: fixed;
+                        top: 100px;
+                        right: 20px;
+                        padding: 15px 20px;
+                        border-radius: 8px;
+                        color: white;
+                        font-weight: 500;
+                        z-index: 10000;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                        animation: slideInRight 0.3s ease-out;
+                        max-width: 400px;
+                    }
+                    .custom-notification.success {
+                        background-color: var(--success-color);
+                        border-left: 4px solid #27ae60;
+                    }
+                    .custom-notification.error {
+                        background-color: var(--accent-color);
+                        border-left: 4px solid #c0392b;
+                    }
+                    .custom-notification.info {
+                        background-color: var(--info-color);
+                        border-left: 4px solid #138496;
+                    }
+                    .notification-content {
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    @keyframes slideInRight {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(styles);
+            }
+            
+            document.body.appendChild(notification);
+            
+            // Automatski ukloni notifikaciju nakon 5 sekundi
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.animation = 'slideOutRight 0.3s ease-in forwards';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 5000);
+            
+            // Dodaj animaciju za izlazak
+            if (!document.querySelector('#notification-out-styles')) {
+                const outStyles = document.createElement('style');
+                outStyles.id = 'notification-out-styles';
+                outStyles.textContent = `
+                    @keyframes slideOutRight {
+                        from { transform: translateX(0); opacity: 1; }
+                        to { transform: translateX(100%); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(outStyles);
+            }
+        }
+
+        // NOVA VERZIJA - Učitava STVARNE cene iz lagera + RABATE iz partner_artikal_rabat tabele
+        async function populateEditArtikliTable(artikli, partnerNaziv) {
+            const tbody = document.getElementById('edit-artikli-tbody');
+            tbody.innerHTML = '';
+            
+            // Nađi šifru partnera
+            const partner = sviPartneri.find(p => p.Naziv_partnera === partnerNaziv);
+            const partnerSifra = partner ? partner.Sifra : null;
+            
+            for (let i = 0; i < artikli.length; i++) {
+                const artikal = artikli[i];
+                
+                try {
+                    // Učitaj TRENUTNE cene iz lagera
+                    const lagerResponse = await fetch(`/api/lager/sifra/${artikal.sifra}`);
+                    
+                    let lagerCene = {
+                        cena_bez_pdv: artikal.cena_bez_pdv,
+                        cena_sa_pdv: artikal.cena_sa_pdv
+                    };
+                    
+                    if (lagerResponse.ok) {
+                        const lagerData = await lagerResponse.json();
+                        lagerCene.cena_bez_pdv = parseFloat(lagerData.cena_bez_pdv);
+                        lagerCene.cena_sa_pdv = parseFloat(lagerData.cena_sa_pdv);
+                    }
+                    
+                    // Učitaj rabat iz partner_artikal_rabat tabele
+                    let rabat = parseFloat(artikal.rabat) || 0;
+                    if (partnerSifra) {
+                        try {
+                            const rabatResponse = await fetch(`/api/rabat/${partnerSifra}/${artikal.sifra}`);
+                            const rabatData = await rabatResponse.json();
+                            if (rabatData.success) {
+                                rabat = parseFloat(rabatData.rabat) || 0;
+                                console.log(`Učitan rabat iz tabele za ${artikal.sifra}: ${rabat}%`);
+                            }
+                        } catch (rabatError) {
+                            console.warn(`Nije moguće učitati rabat za ${artikal.sifra}:`, rabatError);
+                        }
+                    }
+                    
+                    addEditRow({
+                        ...artikal,
+                        cena_bez_pdv: lagerCene.cena_bez_pdv,
+                        cena_sa_pdv: lagerCene.cena_sa_pdv,
+                        rabat: rabat
+                    }, i);
+                    
+                } catch (error) {
+                    console.error(`Greška pri učitavanju cena za artikal ${artikal.sifra}:`, error);
+                    addEditRow(artikal, i);
+                }
+            }
+            
+            recalculateEditTotals();
+        }
+
+        function addEditRow(artikal = null, index = null) {
+            const tbody = document.getElementById('edit-artikli-tbody');
+            const rowIndex = index !== null ? index : tbody.children.length;
+            
+            const row = document.createElement('tr');
+            row.dataset.rowIndex = rowIndex;
+            
+            row.innerHTML = `
+                <td>${rowIndex + 1}</td>
+                <td>
+                    <input type="text" class="artikal-sifra" value="${artikal ? artikal.sifra : ''}" placeholder="Šifra">
+                </td>
+                <td>
+                    <div class="autocomplete-wrapper">
+                        <input type="text" class="artikal-naziv" value="${artikal ? artikal.naziv : ''}" placeholder="Počnite kucati naziv..." required>
+                        <div class="autocomplete-results"></div>
+                    </div>
+                </td>
+                <td>
+                    <input type="text" class="artikal-jm" value="kom" required readonly>
+                </td>
+                <td><input type="number" class="artikal-kolicina numeric-input" value="${artikal ? artikal.kolicina : 1}" step="0.01" min="0.01" required oninput="calculateEditRow(this)"></td>
+                <td><input type="number" class="artikal-cena-bez numeric-input" value="${artikal ? parseFloat(artikal.cena_bez_pdv).toFixed(2) : 0}" step="0.01" min="0" required readonly></td>
+                <td><input type="number" class="artikal-cena-sa numeric-input" value="${artikal ? parseFloat(artikal.cena_sa_pdv).toFixed(2) : 0}" step="0.01" min="0" required readonly></td>
+                <td style="display: flex; gap: 5px; align-items: center;">
+                    <input type="number" class="artikal-rabat numeric-input" value="${artikal ? parseFloat(artikal.rabat).toFixed(1) : 0}" step="0.1" min="0" max="100" oninput="calculateEditRow(this)" style="flex: 1;">
+                    <button type="button" class="btn-save-rabat" onclick="sacuvajRabatEdit(this)" title="Sačuvaj rabat">💾</button>
+                </td>
+                <td><input type="text" class="artikal-total-bez numeric-input" readonly></td>
+                <td><input type="text" class="artikal-total-sa numeric-input" readonly></td>
+                <td>
+                    <button type="button" class="btn-remove-row" onclick="removeEditRow(this)">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+            
+            setupAutocomplete(row.querySelector('.artikal-naziv'));
+            
+            const sifraInput = row.querySelector('.artikal-sifra');
+            sifraInput.addEventListener('blur', async function() {
+                const sifra = this.value.trim();
+                if (sifra) {
+                    await loadArtikalBySifraWithRabat(sifra, row);
                 }
             });
             
-            parent.classList.toggle('open');
-            submenu.classList.toggle('open');
-        });
-    });
-
-    // EDIT MODAL FUNCTIONS
-    document.addEventListener('click', async (e) => {
-        if (e.target.closest('.edit-document-btn')) {
-            const id = e.target.closest('.edit-document-btn').dataset.id;
-            await openEditModal(id);
+            if (artikal) {
+                calculateEditRow(row.querySelector('.artikal-kolicina'));
+            }
+            
+            updateEditRowNumbers();
         }
 
-        if (e.target.closest('.view-document-btn')) {
-            const id = e.target.closest('.view-document-btn').dataset.id;
-            showDocumentDetails(id);
-        }
-
-        if (e.target.closest('.print-document-btn')) {
-            const id = e.target.closest('.print-document-btn').dataset.id;
-            await generatePrintDocumentFromId(id);
-            window.print();
-        }
-
-        if (e.target.closest('.delete-document-btn')) {
-    const id = e.target.closest('.delete-document-btn').dataset.id;
-    const row = e.target.closest('tr');
-    const tipDokumenta = row.cells[3].textContent;
-    const partner = row.cells[2].textContent;
-    
-    const potvrda = confirm(`Da li ste sigurni da želite da obrišete dokument?\n\nTip: ${tipDokumenta}\nPartner: ${partner}\n\n${tipDokumenta.toLowerCase().includes('otpremnica') || tipDokumenta.toLowerCase().includes('kalkulacija') ? 'NAPOMENA: Količina će biti vraćena na lager!' : ''}`);
-    
-    if (potvrda) {
-        await deleteDocument(id, row);
-    }
-}
-    });
-
-    async function openEditModal(id) {
-        try {
-            const response = await fetch(`/api/dokumenti/${id}`);
-            const data = await response.json();
-            
-            if (!data.success) {
-                alert('Greška pri učitavanju dokumenta');
-                return;
-            }
-            
-            currentEditingDocument = data;
-            
-            document.getElementById('edit-dokument-id').value = data.dokument.id;
-            document.getElementById('edit-datum').value = new Date(data.dokument.datum).toISOString().split('T')[0];
-            document.getElementById('edit-partner').value = data.dokument.partner;
-            document.getElementById('edit-tip-dokumenta').value = data.dokument.tip_dokumenta;
-            document.getElementById('edit-komercijalist').value = data.dokument.komercijalist_id || '';
-            
-            await populateEditArtikliTable(data.artikli, data.dokument.partner);
-            
-            document.getElementById('edit-modal').classList.add('show');
-            
-        } catch (error) {
-            console.error('Error loading document:', error);
-            alert('Greška pri učitavanju dokumenta');
-        }
-    }
-
-// Funkcija za brisanje dokumenta
-async function deleteDocument(id, rowElement) {
-    const btn = rowElement.querySelector('.delete-document-btn');
-    const originalHTML = btn.innerHTML;
-    
-    try {
-        // Prikazujemo loading stanje
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        btn.disabled = true;
-        
-        const response = await fetch(`/dokumenti/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            // Ukloni red iz tabele
-            rowElement.remove();
-            
-            // Ažuriraj broj dokumenata
-            const currentCount = parseInt(document.getElementById('document-count').textContent.match(/\d+/)[0]);
-            document.getElementById('document-count').textContent = `Ukupno: ${currentCount - 1} dokumenata`;
-            
-            // Ažuriraj filteredData i dokumentiData - koristi novi niz umesto re-dodeljivanja
-            const indexFiltered = filteredData.findIndex(item => item.id == id);
-            if (indexFiltered !== -1) {
-                filteredData.splice(indexFiltered, 1);
-            }
-            
-            const indexOriginal = dokumentiData.findIndex(item => item.id == id);
-            if (indexOriginal !== -1) {
-                dokumentiData.splice(indexOriginal, 1);
-            }
-            
-            // Prikaži poruku o uspehu
-            showNotification(result.message, 'success');
-            
-        } else {
-            throw new Error(result.error || 'Nepoznata greška');
-        }
-        
-    } catch (error) {
-        console.error('Error deleting document:', error);
-        showNotification('Greška pri brisanju dokumenta: ' + error.message, 'error');
-        
-        // Vrati dugme u prvobitno stanje
-        btn.innerHTML = originalHTML;
-        btn.disabled = false;
-    }
-}
-
-
-function showNotification(message, type = 'info') {
-    // Proveri da li već postoji notifikacija
-    const existingNotification = document.querySelector('.custom-notification');
-    if (existingNotification) {
-        existingNotification.remove();
-    }
-    
-    const notification = document.createElement('div');
-    notification.className = `custom-notification ${type}`;
-    notification.innerHTML = `
-        <div class="notification-content">
-            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
-            <span>${message}</span>
-        </div>
-    `;
-    
-    // Dodaj stilove ako već nisu dodati
-    if (!document.querySelector('#notification-styles')) {
-        const styles = document.createElement('style');
-        styles.id = 'notification-styles';
-        styles.textContent = `
-            .custom-notification {
-                position: fixed;
-                top: 100px;
-                right: 20px;
-                padding: 15px 20px;
-                border-radius: 8px;
-                color: white;
-                font-weight: 500;
-                z-index: 10000;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                animation: slideInRight 0.3s ease-out;
-                max-width: 400px;
-            }
-            .custom-notification.success {
-                background-color: var(--success-color);
-                border-left: 4px solid #27ae60;
-            }
-            .custom-notification.error {
-                background-color: var(--accent-color);
-                border-left: 4px solid #c0392b;
-            }
-            .custom-notification.info {
-                background-color: var(--info-color);
-                border-left: 4px solid #138496;
-            }
-            .notification-content {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-            @keyframes slideInRight {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-        `;
-        document.head.appendChild(styles);
-    }
-    
-    document.body.appendChild(notification);
-    
-    // Automatski ukloni notifikaciju nakon 5 sekundi
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.style.animation = 'slideOutRight 0.3s ease-in forwards';
-            setTimeout(() => notification.remove(), 300);
-        }
-    }, 5000);
-    
-    // Dodaj animaciju za izlazak
-    if (!document.querySelector('#notification-out-styles')) {
-        const outStyles = document.createElement('style');
-        outStyles.id = 'notification-out-styles';
-        outStyles.textContent = `
-            @keyframes slideOutRight {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(100%); opacity: 0; }
-            }
-        `;
-        document.head.appendChild(outStyles);
-    }
-}
-
-    // NOVA VERZIJA - Učitava STVARNE cene iz lagera + RABATE iz partner_artikal_rabat tabele
-    async function populateEditArtikliTable(artikli, partnerNaziv) {
-        const tbody = document.getElementById('edit-artikli-tbody');
-        tbody.innerHTML = '';
-        
-        // Nađi šifru partnera
-        const partner = sviPartneri.find(p => p.Naziv_partnera === partnerNaziv);
-        const partnerSifra = partner ? partner.Sifra : null;
-        
-        for (let i = 0; i < artikli.length; i++) {
-            const artikal = artikli[i];
-            
+        // NOVA FUNKCIJA - Učitaj artikal sa rabatom
+        async function loadArtikalBySifraWithRabat(sifra, row) {
             try {
-                // Učitaj TRENUTNE cene iz lagera
-                const lagerResponse = await fetch(`/api/lager/sifra/${artikal.sifra}`);
-                
-                let lagerCene = {
-                    cena_bez_pdv: artikal.cena_bez_pdv,
-                    cena_sa_pdv: artikal.cena_sa_pdv
-                };
-                
-                if (lagerResponse.ok) {
-                    const lagerData = await lagerResponse.json();
-                    lagerCene.cena_bez_pdv = parseFloat(lagerData.cena_bez_pdv);
-                    lagerCene.cena_sa_pdv = parseFloat(lagerData.cena_sa_pdv);
+                const lagerResponse = await fetch(`/api/lager/sifra/${sifra}`);
+                if (!lagerResponse.ok) {
+                    console.log('Artikal sa tom šifrom nije pronađen');
+                    return;
                 }
                 
-                // Učitaj rabat iz partner_artikal_rabat tabele
-                let rabat = parseFloat(artikal.rabat) || 0;
-                if (partnerSifra) {
+                const artikal = await lagerResponse.json();
+                
+                // Popuni podatke - ORIGINALNE cene iz lagera
+                row.querySelector('.artikal-naziv').value = artikal.naziv;
+                row.querySelector('.artikal-jm').value = 'kom';
+                row.querySelector('.artikal-cena-bez').value = parseFloat(artikal.cena_bez_pdv).toFixed(2);
+                row.querySelector('.artikal-cena-sa').value = parseFloat(artikal.cena_sa_pdv).toFixed(2);
+                
+                // Učitaj rabat iz tabele
+                const partnerNaziv = document.getElementById('edit-partner').value;
+                const partner = sviPartneri.find(p => p.Naziv_partnera === partnerNaziv);
+                
+                if (partner && partner.Sifra) {
                     try {
-                        const rabatResponse = await fetch(`/api/rabat/${partnerSifra}/${artikal.sifra}`);
+                        const rabatResponse = await fetch(`/api/rabat/${partner.Sifra}/${sifra}`);
                         const rabatData = await rabatResponse.json();
+                        
                         if (rabatData.success) {
-                            rabat = parseFloat(rabatData.rabat) || 0;
-                            console.log(`Učitan rabat iz tabele za ${artikal.sifra}: ${rabat}%`);
+                            row.querySelector('.artikal-rabat').value = parseFloat(rabatData.rabat).toFixed(1);
+                            console.log(`Učitan rabat iz tabele za ${sifra}: ${rabatData.rabat}%`);
+                        } else {
+                            row.querySelector('.artikal-rabat').value = '0.0';
                         }
                     } catch (rabatError) {
-                        console.warn(`Nije moguće učitati rabat za ${artikal.sifra}:`, rabatError);
+                        console.warn('Greška pri učitavanju rabata:', rabatError);
+                        row.querySelector('.artikal-rabat').value = '0.0';
                     }
+                } else {
+                    row.querySelector('.artikal-rabat').value = '0.0';
                 }
                 
-                addEditRow({
-                    ...artikal,
-                    cena_bez_pdv: lagerCene.cena_bez_pdv,
-                    cena_sa_pdv: lagerCene.cena_sa_pdv,
-                    rabat: rabat
-                }, i);
+                calculateEditRow(row.querySelector('.artikal-kolicina'));
                 
             } catch (error) {
-                console.error(`Greška pri učitavanju cena za artikal ${artikal.sifra}:`, error);
-                addEditRow(artikal, i);
+                console.error('Greška pri učitavanju artikla:', error);
             }
         }
-        
-        recalculateEditTotals();
-    }
 
-    function addEditRow(artikal = null, index = null) {
-        const tbody = document.getElementById('edit-artikli-tbody');
-        const rowIndex = index !== null ? index : tbody.children.length;
-        
-        const row = document.createElement('tr');
-        row.dataset.rowIndex = rowIndex;
-        
-        row.innerHTML = `
-            <td>${rowIndex + 1}</td>
-            <td>
-                <input type="text" class="artikal-sifra" value="${artikal ? artikal.sifra : ''}" placeholder="Šifra">
-            </td>
-            <td>
-                <div class="autocomplete-wrapper">
-                    <input type="text" class="artikal-naziv" value="${artikal ? artikal.naziv : ''}" placeholder="Počnite kucati naziv..." required>
-                    <div class="autocomplete-results"></div>
-                </div>
-            </td>
-            <td>
-                <input type="text" class="artikal-jm" value="${artikal ? artikal.jm : 'kom'}" required>
-            </td>
-            <td><input type="number" class="artikal-kolicina numeric-input" value="${artikal ? artikal.kolicina : 1}" step="0.01" min="0.01" required oninput="calculateEditRow(this)"></td>
-            <td><input type="number" class="artikal-cena-bez numeric-input" value="${artikal ? parseFloat(artikal.cena_bez_pdv).toFixed(2) : 0}" step="0.01" min="0" required readonly></td>
-            <td><input type="number" class="artikal-cena-sa numeric-input" value="${artikal ? parseFloat(artikal.cena_sa_pdv).toFixed(2) : 0}" step="0.01" min="0" required readonly></td>
-            <td style="display: flex; gap: 5px; align-items: center;">
-                <input type="number" class="artikal-rabat numeric-input" value="${artikal ? parseFloat(artikal.rabat).toFixed(1) : 0}" step="0.1" min="0" max="100" oninput="calculateEditRow(this)" style="flex: 1;">
-                <button type="button" class="btn-save-rabat" onclick="sacuvajRabatEdit(this)" title="Sačuvaj rabat">💾</button>
-            </td>
-            <td><input type="text" class="artikal-total-bez numeric-input" readonly></td>
-            <td><input type="text" class="artikal-total-sa numeric-input" readonly></td>
-            <td>
-                <button type="button" class="btn-remove-row" onclick="removeEditRow(this)">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
-        `;
-        tbody.appendChild(row);
-        
-        setupAutocomplete(row.querySelector('.artikal-naziv'));
-        
-        const sifraInput = row.querySelector('.artikal-sifra');
-        sifraInput.addEventListener('blur', async function() {
-            const sifra = this.value.trim();
-            if (sifra) {
-                await loadArtikalBySifraWithRabat(sifra, row);
-            }
-        });
-        
-        if (artikal) {
-            calculateEditRow(row.querySelector('.artikal-kolicina'));
-        }
-        
-        updateEditRowNumbers();
-    }
-
-    // NOVA FUNKCIJA - Učitaj artikal sa rabatom
-    async function loadArtikalBySifraWithRabat(sifra, row) {
-        try {
-            const lagerResponse = await fetch(`/api/lager/sifra/${sifra}`);
-            if (!lagerResponse.ok) {
-                console.log('Artikal sa tom šifrom nije pronađen');
+        // NOVA FUNKCIJA - Sačuvaj rabat iz edit modala
+        async function sacuvajRabatEdit(btn) {
+            const row = btn.closest('tr');
+            const partnerNaziv = document.getElementById('edit-partner').value;
+            const artikalSifra = row.querySelector('.artikal-sifra').value;
+            const rabat = parseFloat(row.querySelector('.artikal-rabat').value) || 0;
+            
+            const partner = sviPartneri.find(p => p.Naziv_partnera === partnerNaziv);
+            
+            if (!partner || !partner.Sifra) {
+                alert('Partner nije pronađen!');
                 return;
             }
             
-            const artikal = await lagerResponse.json();
+            if (!artikalSifra) {
+                alert('Prvo odaberite artikal!');
+                return;
+            }
             
-            // Popuni podatke - ORIGINALNE cene iz lagera
-            row.querySelector('.artikal-naziv').value = artikal.naziv;
-            row.querySelector('.artikal-jm').value = artikal.jm;
-            row.querySelector('.artikal-cena-bez').value = parseFloat(artikal.cena_bez_pdv).toFixed(2);
-            row.querySelector('.artikal-cena-sa').value = parseFloat(artikal.cena_sa_pdv).toFixed(2);
+            try {
+                const response = await fetch('/api/rabat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        partnerSifra: partner.Sifra,
+                        artikalSifra: artikalSifra,
+                        rabat: rabat
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    btn.style.backgroundColor = '#2ecc71';
+                    btn.textContent = '✓';
+                    setTimeout(() => {
+                        btn.style.backgroundColor = '';
+                        btn.textContent = '💾';
+                    }, 2000);
+                    console.log(`Rabat ${rabat}% sačuvan za artikal ${artikalSifra} i partnera ${partner.Sifra}`);
+                } else {
+                    alert('Greška: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Greška pri čuvanju rabata:', error);
+                alert('Greška pri čuvanju rabata');
+            }
+        }
+
+        // AUTOCOMPLETE FUNKCIONALNOST
+        function setupAutocomplete(input) {
+            const wrapper = input.closest('.autocomplete-wrapper');
+            const resultsDiv = wrapper.querySelector('.autocomplete-results');
+            
+            let searchTimeout;
+            
+            input.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                const query = this.value.trim();
+                
+                if (query.length < 2) {
+                    resultsDiv.classList.remove('show');
+                    return;
+                }
+                
+                searchTimeout = setTimeout(async () => {
+                    try {
+                        const response = await fetch(`/api/artikli/autocomplete?query=${encodeURIComponent(query)}`);
+                        const results = await response.json();
+                        
+                        if (results.length > 0) {
+                            displayAutocompleteResults(resultsDiv, results, input);
+                        } else {
+                            resultsDiv.classList.remove('show');
+                        }
+                    } catch (error) {
+                        console.error('Error fetching autocomplete results:', error);
+                    }
+                }, 300);
+            });
+            
+            document.addEventListener('click', function(e) {
+                if (!wrapper.contains(e.target)) {
+                    resultsDiv.classList.remove('show');
+                }
+            });
+            
+            input.addEventListener('keydown', function(e) {
+                const items = resultsDiv.querySelectorAll('.autocomplete-item');
+                
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (items.length > 0) {
+                        if (selectedAutocompleteIndex < items.length - 1) {
+                            selectedAutocompleteIndex++;
+                            updateAutocompleteSelection(items);
+                        }
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (selectedAutocompleteIndex > 0) {
+                        selectedAutocompleteIndex--;
+                        updateAutocompleteSelection(items);
+                    }
+                } else if (e.key === 'Enter' && selectedAutocompleteIndex >= 0) {
+                    e.preventDefault();
+                    items[selectedAutocompleteIndex].click();
+                } else if (e.key === 'Escape') {
+                    resultsDiv.classList.remove('show');
+                }
+            });
+        }
+
+        function displayAutocompleteResults(resultsDiv, results, input) {
+            resultsDiv.innerHTML = '';
+            selectedAutocompleteIndex = -1;
+            
+            results.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'autocomplete-item';
+                div.innerHTML = `
+                    <div>
+                        <strong>${item.naziv}</strong>
+                        <span class="item-code">(${item.sifra})</span>
+                        <span class="item-price">${parseFloat(item.cena_bez_pdv).toFixed(2)} €</span>
+                    </div>
+                `;
+                
+                div.addEventListener('click', function() {
+                    selectAutocompleteItem(input, item);
+                });
+                
+                resultsDiv.appendChild(div);
+            });
+            
+            resultsDiv.classList.add('show');
+        }
+
+        function updateAutocompleteSelection(items) {
+            items.forEach((item, index) => {
+                if (index === selectedAutocompleteIndex) {
+                    item.style.backgroundColor = '#e3f2fd';
+                } else {
+                    item.style.backgroundColor = '';
+                }
+            });
+        }
+
+        // Autocomplete odabir - KORISTI CENE IZ LAGERA + UČITAVA RABAT
+        async function selectAutocompleteItem(input, item) {
+            const row = input.closest('tr');
+            
+            // Popuni sva polja - CENE DIREKTNO IZ AUTOCOMPLETE (koje dolaze iz lagera)
+            row.querySelector('.artikal-sifra').value = item.sifra;
+            row.querySelector('.artikal-naziv').value = item.naziv;
+            row.querySelector('.artikal-jm').value = 'kom';
+            row.querySelector('.artikal-cena-bez').value = parseFloat(item.cena_bez_pdv).toFixed(2);
+            row.querySelector('.artikal-cena-sa').value = parseFloat(item.cena_sa_pdv).toFixed(2);
             
             // Učitaj rabat iz tabele
             const partnerNaziv = document.getElementById('edit-partner').value;
@@ -2046,12 +2262,12 @@ function showNotification(message, type = 'info') {
             
             if (partner && partner.Sifra) {
                 try {
-                    const rabatResponse = await fetch(`/api/rabat/${partner.Sifra}/${sifra}`);
+                    const rabatResponse = await fetch(`/api/rabat/${partner.Sifra}/${item.sifra}`);
                     const rabatData = await rabatResponse.json();
                     
                     if (rabatData.success) {
                         row.querySelector('.artikal-rabat').value = parseFloat(rabatData.rabat).toFixed(1);
-                        console.log(`Učitan rabat iz tabele za ${sifra}: ${rabatData.rabat}%`);
+                        console.log(`Autocomplete: Učitan rabat ${rabatData.rabat}% za ${item.naziv}`);
                     } else {
                         row.querySelector('.artikal-rabat').value = '0.0';
                     }
@@ -2063,844 +2279,850 @@ function showNotification(message, type = 'info') {
                 row.querySelector('.artikal-rabat').value = '0.0';
             }
             
-            calculateEditRow(row.querySelector('.artikal-kolicina'));
+            const resultsDiv = input.closest('.autocomplete-wrapper').querySelector('.autocomplete-results');
+            resultsDiv.classList.remove('show');
             
-        } catch (error) {
-            console.error('Greška pri učitavanju artikla:', error);
+            calculateEditRow(row.querySelector('.artikal-kolicina'));
         }
-    }
 
-    // NOVA FUNKCIJA - Sačuvaj rabat iz edit modala
-    async function sacuvajRabatEdit(btn) {
-        const row = btn.closest('tr');
-        const partnerNaziv = document.getElementById('edit-partner').value;
-        const artikalSifra = row.querySelector('.artikal-sifra').value;
-        const rabat = parseFloat(row.querySelector('.artikal-rabat').value) || 0;
-        
-        const partner = sviPartneri.find(p => p.Naziv_partnera === partnerNaziv);
-        
-        if (!partner || !partner.Sifra) {
-            alert('Partner nije pronađen!');
-            return;
+        // Izračunavanje ukupnih iznosa - KORISTI CENE IZ INPUT POLJA
+        function calculateEditRow(input) {
+            const row = input.closest('tr');
+            
+            const kolicina = parseFloat(row.querySelector('.artikal-kolicina').value) || 0;
+            const cenaBez = parseFloat(row.querySelector('.artikal-cena-bez').value) || 0;
+            const rabat = parseFloat(row.querySelector('.artikal-rabat').value) || 0;
+            
+            // UKUPNO BEZ PDV = (cena × količina) - rabat
+            const ukupnoBezPdvBefore = cenaBez * kolicina;
+            const rabatAmount = ukupnoBezPdvBefore * (rabat / 100);
+            const ukupnoBezPdv = ukupnoBezPdvBefore - rabatAmount;
+            
+            // UKUPNO SA PDV = ukupno bez PDV × 1.21
+            const ukupnoSaPdv = ukupnoBezPdv * 1.21;
+            
+            row.querySelector('.artikal-total-bez').value = ukupnoBezPdv.toFixed(2);
+            row.querySelector('.artikal-total-sa').value = ukupnoSaPdv.toFixed(2);
+            
+            recalculateEditTotals();
         }
-        
-        if (!artikalSifra) {
-            alert('Prvo odaberite artikal!');
-            return;
-        }
-        
-        try {
-            const response = await fetch('/api/rabat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    partnerSifra: partner.Sifra,
-                    artikalSifra: artikalSifra,
-                    rabat: rabat
-                })
+
+        function recalculateEditTotals() {
+            let totalKolicina = 0;
+            let totalBezPdv = 0;
+            let totalSaPdv = 0;
+            
+            document.querySelectorAll('#edit-artikli-tbody tr').forEach(row => {
+                const kolicina = parseFloat(row.querySelector('.artikal-kolicina').value) || 0;
+                const totalBez = parseFloat(row.querySelector('.artikal-total-bez').value) || 0;
+                const totalSa = parseFloat(row.querySelector('.artikal-total-sa').value) || 0;
+                
+                totalKolicina += kolicina;
+                totalBezPdv += totalBez;
+                totalSaPdv += totalSa;
             });
             
-            const data = await response.json();
+            const totalPdv = totalSaPdv - totalBezPdv;
             
-            if (data.success) {
-                btn.style.backgroundColor = '#2ecc71';
-                btn.textContent = '✓';
-                setTimeout(() => {
-                    btn.style.backgroundColor = '';
-                    btn.textContent = '💾';
-                }, 2000);
-                console.log(`Rabat ${rabat}% sačuvan za artikal ${artikalSifra} i partnera ${partner.Sifra}`);
-            } else {
-                alert('Greška: ' + data.message);
-            }
-        } catch (error) {
-            console.error('Greška pri čuvanju rabata:', error);
-            alert('Greška pri čuvanju rabata');
+            document.getElementById('edit-total-kolicina').textContent = totalKolicina.toFixed(2);
+            document.getElementById('edit-total-bez-pdv').textContent = totalBezPdv.toFixed(2) + ' €';
+            document.getElementById('edit-total-pdv').textContent = totalPdv.toFixed(2) + ' €';
+            document.getElementById('edit-total-sa-pdv').textContent = totalSaPdv.toFixed(2) + ' €';
         }
-    }
 
-    // AUTOCOMPLETE FUNKCIONALNOST
-    function setupAutocomplete(input) {
-        const wrapper = input.closest('.autocomplete-wrapper');
-        const resultsDiv = wrapper.querySelector('.autocomplete-results');
-        
-        let searchTimeout;
-        
-        input.addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            const query = this.value.trim();
-            
-            if (query.length < 2) {
-                resultsDiv.classList.remove('show');
+        function removeEditRow(btn) {
+            const tbody = document.getElementById('edit-artikli-tbody');
+            if (tbody.children.length <= 1) {
+                alert('Morate imati najmanje jedan artikal u dokumentu.');
                 return;
             }
             
-            searchTimeout = setTimeout(async () => {
-                try {
-                    const response = await fetch(`/api/artikli/autocomplete?query=${encodeURIComponent(query)}`);
-                    const results = await response.json();
-                    
-                    if (results.length > 0) {
-                        displayAutocompleteResults(resultsDiv, results, input);
-                    } else {
-                        resultsDiv.classList.remove('show');
-                    }
-                } catch (error) {
-                    console.error('Error fetching autocomplete results:', error);
-                }
-            }, 300);
-        });
-        
-        document.addEventListener('click', function(e) {
-            if (!wrapper.contains(e.target)) {
-                resultsDiv.classList.remove('show');
-            }
-        });
-        
-        input.addEventListener('keydown', function(e) {
-            const items = resultsDiv.querySelectorAll('.autocomplete-item');
-            
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                if (items.length > 0) {
-                    if (selectedAutocompleteIndex < items.length - 1) {
-                        selectedAutocompleteIndex++;
-                        updateAutocompleteSelection(items);
-                    }
-                }
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                if (selectedAutocompleteIndex > 0) {
-                    selectedAutocompleteIndex--;
-                    updateAutocompleteSelection(items);
-                }
-            } else if (e.key === 'Enter' && selectedAutocompleteIndex >= 0) {
-                e.preventDefault();
-                items[selectedAutocompleteIndex].click();
-            } else if (e.key === 'Escape') {
-                resultsDiv.classList.remove('show');
-            }
-        });
-    }
+            btn.closest('tr').remove();
+            updateEditRowNumbers();
+            recalculateEditTotals();
+        }
 
-    function displayAutocompleteResults(resultsDiv, results, input) {
-        resultsDiv.innerHTML = '';
-        selectedAutocompleteIndex = -1;
-        
-        results.forEach((item, index) => {
-            const div = document.createElement('div');
-            div.className = 'autocomplete-item';
-            div.innerHTML = `
-                <div>
-                    <strong>${item.naziv}</strong>
-                    <span class="item-code">(${item.sifra})</span>
-                    <span class="item-price">${parseFloat(item.cena_bez_pdv).toFixed(2)} €</span>
-                </div>
-            `;
-            
-            div.addEventListener('click', function() {
-                selectAutocompleteItem(input, item);
+        function updateEditRowNumbers() {
+            document.querySelectorAll('#edit-artikli-tbody tr').forEach((row, index) => {
+                row.dataset.rowIndex = index;
+                row.cells[0].textContent = index + 1;
             });
-            
-            resultsDiv.appendChild(div);
-        });
-        
-        resultsDiv.classList.add('show');
-    }
-
-    function updateAutocompleteSelection(items) {
-        items.forEach((item, index) => {
-            if (index === selectedAutocompleteIndex) {
-                item.style.backgroundColor = '#e3f2fd';
-            } else {
-                item.style.backgroundColor = '';
-            }
-        });
-    }
-
-    // Autocomplete odabir - KORISTI CENE IZ LAGERA + UČITAVA RABAT
-    async function selectAutocompleteItem(input, item) {
-        const row = input.closest('tr');
-        
-        // Popuni sva polja - CENE DIREKTNO IZ AUTOCOMPLETE (koje dolaze iz lagera)
-        row.querySelector('.artikal-sifra').value = item.sifra;
-        row.querySelector('.artikal-naziv').value = item.naziv;
-        row.querySelector('.artikal-jm').value = item.jm || 'kom';
-        row.querySelector('.artikal-cena-bez').value = parseFloat(item.cena_bez_pdv).toFixed(2);
-        row.querySelector('.artikal-cena-sa').value = parseFloat(item.cena_sa_pdv).toFixed(2);
-        
-        // Učitaj rabat iz tabele
-        const partnerNaziv = document.getElementById('edit-partner').value;
-        const partner = sviPartneri.find(p => p.Naziv_partnera === partnerNaziv);
-        
-        if (partner && partner.Sifra) {
-            try {
-                const rabatResponse = await fetch(`/api/rabat/${partner.Sifra}/${item.sifra}`);
-                const rabatData = await rabatResponse.json();
-                
-                if (rabatData.success) {
-                    row.querySelector('.artikal-rabat').value = parseFloat(rabatData.rabat).toFixed(1);
-                    console.log(`Autocomplete: Učitan rabat ${rabatData.rabat}% za ${item.naziv}`);
-                } else {
-                    row.querySelector('.artikal-rabat').value = '0.0';
-                }
-            } catch (rabatError) {
-                console.warn('Greška pri učitavanju rabata:', rabatError);
-                row.querySelector('.artikal-rabat').value = '0.0';
-            }
-        } else {
-            row.querySelector('.artikal-rabat').value = '0.0';
         }
-        
-        const resultsDiv = input.closest('.autocomplete-wrapper').querySelector('.autocomplete-results');
-        resultsDiv.classList.remove('show');
-        
-        calculateEditRow(row.querySelector('.artikal-kolicina'));
-    }
 
-    // Izračunavanje ukupnih iznosa - KORISTI CENE IZ INPUT POLJA
-    function calculateEditRow(input) {
-        const row = input.closest('tr');
-        
-        const kolicina = parseFloat(row.querySelector('.artikal-kolicina').value) || 0;
-        const cenaBez = parseFloat(row.querySelector('.artikal-cena-bez').value) || 0;
-        const rabat = parseFloat(row.querySelector('.artikal-rabat').value) || 0;
-        
-        // UKUPNO BEZ PDV = (cena × količina) - rabat
-        const ukupnoBezPdvBefore = cenaBez * kolicina;
-        const rabatAmount = ukupnoBezPdvBefore * (rabat / 100);
-        const ukupnoBezPdv = ukupnoBezPdvBefore - rabatAmount;
-        
-        // UKUPNO SA PDV = ukupno bez PDV × 1.21
-        const ukupnoSaPdv = ukupnoBezPdv * 1.21;
-        
-        row.querySelector('.artikal-total-bez').value = ukupnoBezPdv.toFixed(2);
-        row.querySelector('.artikal-total-sa').value = ukupnoSaPdv.toFixed(2);
-        
-        recalculateEditTotals();
-    }
-
-    function recalculateEditTotals() {
-        let totalKolicina = 0;
-        let totalBezPdv = 0;
-        let totalSaPdv = 0;
-        
-        document.querySelectorAll('#edit-artikli-tbody tr').forEach(row => {
-            const kolicina = parseFloat(row.querySelector('.artikal-kolicina').value) || 0;
-            const totalBez = parseFloat(row.querySelector('.artikal-total-bez').value) || 0;
-            const totalSa = parseFloat(row.querySelector('.artikal-total-sa').value) || 0;
-            
-            totalKolicina += kolicina;
-            totalBezPdv += totalBez;
-            totalSaPdv += totalSa;
-        });
-        
-        const totalPdv = totalSaPdv - totalBezPdv;
-        
-        document.getElementById('edit-total-kolicina').textContent = totalKolicina.toFixed(2);
-        document.getElementById('edit-total-bez-pdv').textContent = totalBezPdv.toFixed(2) + ' €';
-        document.getElementById('edit-total-pdv').textContent = totalPdv.toFixed(2) + ' €';
-        document.getElementById('edit-total-sa-pdv').textContent = totalSaPdv.toFixed(2) + ' €';
-    }
-
-    function removeEditRow(btn) {
-        const tbody = document.getElementById('edit-artikli-tbody');
-        if (tbody.children.length <= 1) {
-            alert('Morate imati najmanje jedan artikal u dokumentu.');
-            return;
-        }
-        
-        btn.closest('tr').remove();
-        updateEditRowNumbers();
-        recalculateEditTotals();
-    }
-
-    function updateEditRowNumbers() {
-        document.querySelectorAll('#edit-artikli-tbody tr').forEach((row, index) => {
-            row.dataset.rowIndex = index;
-            row.cells[0].textContent = index + 1;
-        });
-    }
-
-    // Close modal
-    document.getElementById('close-edit-modal').addEventListener('click', () => {
-        document.getElementById('edit-modal').classList.remove('show');
-    });
-
-    document.getElementById('cancel-edit-btn').addEventListener('click', () => {
-        document.getElementById('edit-modal').classList.remove('show');
-    });
-
-    document.getElementById('edit-modal').addEventListener('click', (e) => {
-        if (e.target === document.getElementById('edit-modal')) {
+        // Close modal
+        document.getElementById('close-edit-modal').addEventListener('click', () => {
             document.getElementById('edit-modal').classList.remove('show');
-        }
-    });
+        });
 
-    // Štampaj iz edit modala
-    document.getElementById('print-from-edit-btn').addEventListener('click', async () => {
-        if (currentEditingDocument && currentEditingDocument.dokument) {
-            await generatePrintDocumentFromEditModal();
-            window.print();
-        }
-    });
+        document.getElementById('cancel-edit-btn').addEventListener('click', () => {
+            document.getElementById('edit-modal').classList.remove('show');
+        });
 
-    // ŠTAMPA - Koristi cene direktno iz input polja
-    async function generatePrintDocumentFromEditModal() {
-        const dokumentId = document.getElementById('edit-dokument-id').value;
-        const datum = document.getElementById('edit-datum').value;
-        const partnerNaziv = document.getElementById('edit-partner').value;
-        const tipDokumenta = document.getElementById('edit-tip-dokumenta').value;
-        
-        const today = new Date(datum);
-        const formattedDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
-        
-        const docNumberMatch = tipDokumenta.match(/(\d+)/);
-        const docNumber = docNumberMatch ? docNumberMatch[1] : 'N/A';
-        
-        const documentType = getDocumentTypeForPrint(tipDokumenta);
-        
-        const partner = await loadPartnerByName(partnerNaziv);
-        
-        document.getElementById('print-date').textContent = formattedDate;
-        document.getElementById('print-document-type').textContent = documentType;
-        document.getElementById('print-doc-number').textContent = docNumber;
-        
-        if (partner) {
-            document.getElementById('print-customer-code').textContent = partner.Sifra || '';
-            document.getElementById('print-customer-name').textContent = partner.Naziv_partnera || partnerNaziv;
-            document.getElementById('print-customer-pib').textContent = partner.PIB || '';
-            document.getElementById('print-customer-pdv').textContent = partner.PDV || '';
-            document.getElementById('print-customer-address').textContent = partner.Adresa || '';
-            document.getElementById('print-customer-city').textContent = partner.Grad || '';
-        } else {
-            document.getElementById('print-customer-code').textContent = 'N/A';
-            document.getElementById('print-customer-name').textContent = partnerNaziv;
-            document.getElementById('print-customer-pib').textContent = '';
-            document.getElementById('print-customer-pdv').textContent = '';
-            document.getElementById('print-customer-address').textContent = '';
-            document.getElementById('print-customer-city').textContent = '';
-        }
-        
-        // Uzmi artikle DIREKTNO IZ TABELE (sa tačnim cenama I INDIVIDUALNIM RABATIMA)
-        const artikli = [];
-        document.querySelectorAll('#edit-artikli-tbody tr').forEach((row, index) => {
-            artikli.push({
-                rb: index + 1,
-                sifra: row.querySelector('.artikal-sifra').value || 'N/A',
-                naziv: row.querySelector('.artikal-naziv').value,
-                jm: row.querySelector('.artikal-jm').value,
-                kolicina: parseFloat(row.querySelector('.artikal-kolicina').value) || 0,
-                cenaBezPdv: parseFloat(row.querySelector('.artikal-cena-bez').value) || 0,
-                cenaSaPdv: parseFloat(row.querySelector('.artikal-cena-sa').value) || 0,
-                rabat: parseFloat(row.querySelector('.artikal-rabat').value) || 0,  // INDIVIDUALNI RABAT
-                pdvStopa: 21
+        document.getElementById('edit-modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('edit-modal')) {
+                document.getElementById('edit-modal').classList.remove('show');
+            }
+        });
+
+        // Štampaj iz edit modala
+        document.getElementById('print-from-edit-btn').addEventListener('click', async () => {
+            if (currentEditingDocument && currentEditingDocument.dokument) {
+                await generatePrintDocumentFromEditModal();
+                window.print();
+            }
+        });
+
+        // ŠTAMPA - Koristi cene direktno iz input polja
+        async function generatePrintDocumentFromEditModal() {
+            const dokumentId = document.getElementById('edit-dokument-id').value;
+            const datum = document.getElementById('edit-datum').value;
+            const partnerNaziv = document.getElementById('edit-partner').value;
+            const tipDokumenta = document.getElementById('edit-tip-dokumenta').value;
+            const napomena = document.getElementById('edit-napomena').value; // DODATO
+            
+            const today = new Date(datum);
+            // ISPRAVLJENO: Srpski format datuma (dan/mjesec/godina)
+            const formattedDate = `${today.getDate()}.${today.getMonth() + 1}.${today.getFullYear()}`;
+            
+            // ISPRAVLJENO: Ekstrakcija broja dokumenta
+            let docNumberRaw = tipDokumenta;
+            
+            // Ukloni "br." i sve pre njega, zadrži samo deo nakon "br."
+            const brMatch = docNumberRaw.match(/br\.\s*(.+)$/i);
+            let docNumber = brMatch ? brMatch[1].trim() : docNumberRaw;
+
+            // Ako nije pronađen "br.", pokušaj da izdvojiš samo brojčani deo
+            if (!brMatch) {
+                // Ukloni reči kao što su "Otpremnica", "Ponuda", "Kalkulacija", "Predračun" itd.
+                docNumber = docNumberRaw.replace(/(Otpremnica|Ponuda|Kalkulacija|Predračun)\s*/gi, '').trim();
+            }
+
+            // Ukloni eventualno preostalo "br." ako je ostalo
+            docNumber = docNumber.replace(/br\.\s*/gi, '').trim();
+            
+            const documentType = getDocumentTypeForPrint(tipDokumenta);
+            
+            const partner = await loadPartnerByName(partnerNaziv);
+            
+            document.getElementById('print-date').textContent = formattedDate;
+            document.getElementById('print-document-type').textContent = documentType;
+            document.getElementById('print-doc-number').textContent = docNumber;
+            
+            // PRIKAŽI ILI SAKRIJ NAPOMENU
+            const napomenaSection = document.getElementById('print-napomena-section');
+            const napomenaElement = document.getElementById('print-napomena');
+            
+            if (napomena) {
+                napomenaElement.textContent = napomena;
+                napomenaSection.style.display = 'block';
+            } else {
+                napomenaSection.style.display = 'none';
+            }
+            
+            if (partner) {
+                document.getElementById('print-customer-code').textContent = partner.Sifra || '';
+                document.getElementById('print-customer-name').textContent = partner.Naziv_partnera || partnerNaziv;
+                document.getElementById('print-customer-pib').textContent = partner.PIB || '';
+                document.getElementById('print-customer-pdv').textContent = partner.PDV || '';
+                document.getElementById('print-customer-address').textContent = partner.Adresa || '';
+                document.getElementById('print-customer-city').textContent = partner.Grad || '';
+            } else {
+                document.getElementById('print-customer-code').textContent = 'N/A';
+                document.getElementById('print-customer-name').textContent = partnerNaziv;
+                document.getElementById('print-customer-pib').textContent = '';
+                document.getElementById('print-customer-pdv').textContent = '';
+                document.getElementById('print-customer-address').textContent = '';
+                document.getElementById('print-customer-city').textContent = '';
+            }
+            
+            // Uzmi artikle DIREKTNO IZ TABELE (sa tačnim cenama I INDIVIDUALNIM RABATIMA)
+            const artikli = [];
+            document.querySelectorAll('#edit-artikli-tbody tr').forEach((row, index) => {
+                // ISPRAVLJENO: Uklanja nove redove iz naziva artikla
+                let nazivArtikla = row.querySelector('.artikal-naziv').value;
+                nazivArtikla = nazivArtikla.replace(/\n/g, ' ').trim();
+                
+                artikli.push({
+                    rb: index + 1,
+                    sifra: row.querySelector('.artikal-sifra').value || 'N/A',
+                    naziv: nazivArtikla,
+                    jm: 'kom',
+                    kolicina: parseFloat(row.querySelector('.artikal-kolicina').value) || 0,
+                    cenaBezPdv: parseFloat(row.querySelector('.artikal-cena-bez').value) || 0,
+                    cenaSaPdv: parseFloat(row.querySelector('.artikal-cena-sa').value) || 0,
+                    rabat: parseFloat(row.querySelector('.artikal-rabat').value) || 0,  // INDIVIDUALNI RABAT
+                    pdvStopa: 21
+                });
             });
-        });
-        
-        let itemsHTML = '';
-        let totalBezPdv = 0;
-        let totalRabat = 0;
-        let totalPdv = 0;
-        let totalSaPdv = 0;
-        
-        artikli.forEach((item) => {
-            const vrijednostBezPdv = item.cenaBezPdv * item.kolicina;
-            const rabatIznos = vrijednostBezPdv * (item.rabat / 100);
-            const vrijednostBezPdvSaRabatom = vrijednostBezPdv - rabatIznos;
-            const pdvIznos = vrijednostBezPdvSaRabatom * (item.pdvStopa / 100);
-            const vrijednostSaPdv = vrijednostBezPdvSaRabatom * 1.21;
             
-            totalBezPdv += vrijednostBezPdvSaRabatom;
-            totalRabat += rabatIznos;
-            totalPdv += pdvIznos;
-            totalSaPdv += vrijednostSaPdv;
+            let itemsHTML = '';
+            let totalBezPdv = 0;
+            let totalRabat = 0;
+            let totalPdv = 0;
+            let totalSaPdv = 0;
             
-            itemsHTML += `
-                <tr>
-                    <td>${item.rb}</td>
-                    <td>${item.sifra}</td>
-                    <td class="text-left">${item.naziv}</td>
-                    <td>${item.jm}</td>
-                    <td>${item.kolicina}</td>
-                    <td class="text-right">${item.cenaBezPdv.toFixed(3)}</td>
-                    <td class="text-right">${vrijednostBezPdv.toFixed(2)}</td>
-                    <td class="text-right">${item.rabat.toFixed(1)}%</td>
-                    <td class="text-right">${item.pdvStopa.toFixed(0)}%</td>
-                    <td class="text-right">${pdvIznos.toFixed(2)}</td>
-                    <td class="text-right">${item.cenaSaPdv.toFixed(3)}</td>
-                    <td class="text-right">${vrijednostSaPdv.toFixed(2)}</td>
-                </tr>
-            `;
-        });
-        
-        document.getElementById('print-items-tbody').innerHTML = itemsHTML;
-        document.getElementById('print-total-bez-pdv').textContent = totalBezPdv.toFixed(2);
-        document.getElementById('print-total-rabat').textContent = totalRabat.toFixed(2);
-        document.getElementById('print-osnovica').textContent = totalBezPdv.toFixed(2);
-        document.getElementById('print-pdv-iznos').textContent = totalPdv.toFixed(2);
-        document.getElementById('print-total-sa-pdv').textContent = totalSaPdv.toFixed(2);
-        
-        document.getElementById('print-signature-left').textContent = getSignatureText(tipDokumenta);
-        document.getElementById('print-disclaimer').innerHTML = `<div><strong>${getDisclaimerText(tipDokumenta)}</strong></div>`;
-    }
-    // Štampa iz glavne tabele - po ID-u dokumenta
-async function generatePrintDocumentFromId(id) {
-    try {
-        const response = await fetch(`/api/dokumenti/${id}`);
-        const data = await response.json();
-        
-        if (!data.success) {
-            alert('Greška pri učitavanju dokumenta za štampu');
-            return;
+            artikli.forEach((item) => {
+                const vrijednostBezPdv = item.cenaBezPdv * item.kolicina;
+                const rabatIznos = vrijednostBezPdv * (item.rabat / 100);
+                const vrijednostBezPdvSaRabatom = vrijednostBezPdv - rabatIznos;
+                const pdvIznos = vrijednostBezPdvSaRabatom * (item.pdvStopa / 100);
+                const vrijednostSaPdv = vrijednostBezPdvSaRabatom * 1.21;
+                
+                totalBezPdv += vrijednostBezPdvSaRabatom;
+                totalRabat += rabatIznos;
+                totalPdv += pdvIznos;
+                totalSaPdv += vrijednostSaPdv;
+                
+                itemsHTML += `
+                    <tr>
+                        <td>${item.rb}</td>
+                        <td>${item.sifra}</td>
+                        <td class="text-left">${item.naziv}</td>
+                        <td>${item.jm}</td>
+                        <td>${item.kolicina}</td>
+                        <td class="text-right">${item.cenaBezPdv.toFixed(3)}</td>
+                        <td class="text-right">${vrijednostBezPdv.toFixed(2)}</td>
+                        <td class="text-right">${item.rabat.toFixed(1)}%</td>
+                        <td class="text-right">${item.pdvStopa.toFixed(0)}%</td>
+                        <td class="text-right">${pdvIznos.toFixed(2)}</td>
+                        <td class="text-right">${item.cenaSaPdv.toFixed(3)}</td>
+                        <td class="text-right">${vrijednostSaPdv.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+            
+            document.getElementById('print-items-tbody').innerHTML = itemsHTML;
+            document.getElementById('print-total-bez-pdv').textContent = totalBezPdv.toFixed(2);
+            document.getElementById('print-total-rabat').textContent = totalRabat.toFixed(2);
+            document.getElementById('print-osnovica').textContent = totalBezPdv.toFixed(2);
+            document.getElementById('print-pdv-iznos').textContent = totalPdv.toFixed(2);
+            document.getElementById('print-total-sa-pdv').textContent = totalSaPdv.toFixed(2);
+            
+            document.getElementById('print-signature-left').textContent = getSignatureText(tipDokumenta);
+            document.getElementById('print-disclaimer').innerHTML = `<div><strong>${getDisclaimerText(tipDokumenta)}</strong></div>`;
         }
-        
-        const dokument = data.dokument;
-        
-        // Pretvori datum
-        const today = new Date(dokument.datum);
-        const formattedDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
-        
-        const docNumberMatch = dokument.tip_dokumenta.match(/(\d+)/);
-        const docNumber = docNumberMatch ? docNumberMatch[1] : 'N/A';
-        
-        const documentType = getDocumentTypeForPrint(dokument.tip_dokumenta);
-        
-        const partner = await loadPartnerByName(dokument.partner);
-        
-        document.getElementById('print-date').textContent = formattedDate;
-        document.getElementById('print-document-type').textContent = documentType;
-        document.getElementById('print-doc-number').textContent = docNumber;
-        
-        if (partner) {
-            document.getElementById('print-customer-code').textContent = partner.Sifra || '';
-            document.getElementById('print-customer-name').textContent = partner.Naziv_partnera || dokument.partner;
-            document.getElementById('print-customer-pib').textContent = partner.PIB || '';
-            document.getElementById('print-customer-pdv').textContent = partner.PDV || '';
-            document.getElementById('print-customer-address').textContent = partner.Adresa || '';
-            document.getElementById('print-customer-city').textContent = partner.Grad || '';
-        } else {
-            document.getElementById('print-customer-code').textContent = 'N/A';
-            document.getElementById('print-customer-name').textContent = dokument.partner;
-            document.getElementById('print-customer-pib').textContent = '';
-            document.getElementById('print-customer-pdv').textContent = '';
-            document.getElementById('print-customer-address').textContent = '';
-            document.getElementById('print-customer-city').textContent = '';
+
+        async function generatePrintDocumentFromId(id) {
+            try {
+                const response = await fetch(`/api/dokumenti/${id}`);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    alert('Greška pri učitavanju dokumenta za štampu');
+                    return;
+                }
+                
+                const dokument = data.dokument;
+                
+                // Pretvori datum
+                const today = new Date(dokument.datum);
+                // ISPRAVLJENO: Srpski format datuma (dan/mjesec/godina)
+                const formattedDate = `${today.getDate()}.${today.getMonth() + 1}.${today.getFullYear()}`;
+                
+                // ISPRAVLJENO: Ekstrakcija broja dokumenta
+                let docNumberRaw = (dokument.tip_dokumenta || '').toString();
+                
+                // Ukloni "br." i sve pre njega, zadrži samo deo nakon "br."
+                const brMatch = docNumberRaw.match(/br\.\s*(.+)$/i);
+                let docNumber = brMatch ? brMatch[1].trim() : docNumberRaw;
+
+                // Ako nije pronađen "br.", pokušaj da izdvojiš samo brojčani deo
+                if (!brMatch) {
+                    // Ukloni reči kao što su "Otpremnica", "Ponuda", "Kalkulacija", "Predračun" itd.
+                    docNumber = docNumberRaw.replace(/(Otpremnica|Ponuda|Kalkulacija|Predračun)\s*/gi, '').trim();
+                }
+
+                // Ukloni eventualno preostalo "br." ako je ostalo
+                docNumber = docNumber.replace(/br\.\s*/gi, '').trim();
+                
+                const documentType = getDocumentTypeForPrint(dokument.tip_dokumenta);
+                
+                const partner = await loadPartnerByName(dokument.partner);
+                
+                // Učitaj komercijalistu ako postoji
+                let komercijalistIme = '';
+                if (dokument.komercijalist_id) {
+                    try {
+                        const komercijalistResponse = await fetch(`/komercijalisti/${dokument.komercijalist_id}`);
+                        const komercijalist = await komercijalistResponse.json();
+                        komercijalistIme = komercijalist.ime_prezime;
+                    } catch (error) {
+                        console.error('Error fetching komercijalist:', error);
+                    }
+                }
+                
+                document.getElementById('print-date').textContent = formattedDate;
+                document.getElementById('print-document-type').textContent = documentType;
+                document.getElementById('print-doc-number').textContent = docNumber;
+                document.getElementById('print-komercijalist').textContent = komercijalistIme;
+                
+                // PRIKAŽI ILI SAKRIJ NAPOMENU
+                const napomenaSection = document.getElementById('print-napomena-section');
+                const napomenaElement = document.getElementById('print-napomena');
+                
+                if (dokument.napomena) {
+                    napomenaElement.textContent = dokument.napomena;
+                    napomenaSection.style.display = 'block';
+                } else {
+                    napomenaSection.style.display = 'none';
+                }
+                
+                if (partner) {
+                    document.getElementById('print-customer-code').textContent = partner.Sifra || '';
+                    document.getElementById('print-customer-name').textContent = partner.Naziv_partnera || dokument.partner;
+                    document.getElementById('print-customer-pib').textContent = partner.PIB || '';
+                    document.getElementById('print-customer-pdv').textContent = partner.PDV || '';
+                    document.getElementById('print-customer-address').textContent = partner.Adresa || '';
+                    document.getElementById('print-customer-city').textContent = partner.Grad || '';
+                } else {
+                    document.getElementById('print-customer-code').textContent = 'N/A';
+                    document.getElementById('print-customer-name').textContent = dokument.partner;
+                    document.getElementById('print-customer-pib').textContent = '';
+                    document.getElementById('print-customer-pdv').textContent = '';
+                    document.getElementById('print-customer-address').textContent = '';
+                    document.getElementById('print-customer-city').textContent = '';
+                }
+                
+                // Učitaj artikle sa STVARNIM cenama iz lagera + INDIVIDUALNIM RABATIMA
+                const artikli = [];
+                for (let i = 0; i < data.artikli.length; i++) {
+                    const art = data.artikli[i];
+                    
+                    try {
+                        const lagerResponse = await fetch(`/api/lager/sifra/${art.sifra}`);
+                        let cene = {
+                            cena_bez_pdv: art.cena_bez_pdv,
+                            cena_sa_pdv: art.cena_sa_pdv
+                        };
+                        
+                        if (lagerResponse.ok) {
+                            const lagerData = await lagerResponse.json();
+                            cene.cena_bez_pdv = parseFloat(lagerData.cena_bez_pdv);
+                            cene.cena_sa_pdv = parseFloat(lagerData.cena_sa_pdv);
+                        }
+                        
+                        // Učitaj INDIVIDUALNI rabat iz tabele
+                        let individualniRabat = 0;
+                        if (partner && partner.Sifra && art.sifra !== 'N/A') {
+                            try {
+                                const rabatResponse = await fetch(`/api/rabat/${partner.Sifra}/${art.sifra}`);
+                                const rabatData = await rabatResponse.json();
+                                if (rabatData.success) {
+                                    individualniRabat = parseFloat(rabatData.rabat) || 0;
+                                }
+                            } catch (rabatError) {
+                                console.warn(`Nije moguće učitati rabat za ${art.sifra}:`, rabatError);
+                            }
+                        }
+                        
+                        // ISPRAVLJENO: Uklanja nove redove iz naziva artikla
+                        let nazivArtikla = art.naziv;
+                        nazivArtikla = nazivArtikla.replace(/\n/g, ' ').trim();
+                        
+                        artikli.push({
+                            rb: i + 1,
+                            sifra: art.sifra,
+                            naziv: nazivArtikla,
+                            jm: 'kom',
+                            kolicina: parseFloat(art.kolicina),
+                            cenaBezPdv: cene.cena_bez_pdv,
+                            cenaSaPdv: cene.cena_sa_pdv,
+                            rabat: individualniRabat,
+                            pdvStopa: 21
+                        });
+                    } catch (error) {
+                        console.error(`Greška pri učitavanju cena za ${art.sifra}:`, error);
+                        
+                        // ISPRAVLJENO: Uklanja nove redove iz naziva artikla
+                        let nazivArtikla = art.naziv;
+                        nazivArtikla = nazivArtikla.replace(/\n/g, ' ').trim();
+                        
+                        artikli.push({
+                            rb: i + 1,
+                            sifra: art.sifra,
+                            naziv: nazivArtikla,
+                            jm: 'kom',
+                            kolicina: parseFloat(art.kolicina),
+                            cenaBezPdv: parseFloat(art.cena_bez_pdv) || 0,
+                            cenaSaPdv: parseFloat(art.cena_sa_pdv) || 0,
+                            rabat: 0,
+                            pdvStopa: 21
+                        });
+                    }
+                }
+                
+                let itemsHTML = '';
+                let totalBezPdv = 0;
+                let totalRabat = 0;
+                let totalPdv = 0;
+                let totalSaPdv = 0;
+                
+                artikli.forEach((item) => {
+                    const vrijednostBezPdv = item.cenaBezPdv * item.kolicina;
+                    const rabatIznos = vrijednostBezPdv * (item.rabat / 100);
+                    const vrijednostBezPdvSaRabatom = vrijednostBezPdv - rabatIznos;
+                    const pdvIznos = vrijednostBezPdvSaRabatom * (item.pdvStopa / 100);
+                    const vrijednostSaPdv = vrijednostBezPdvSaRabatom * 1.21;
+                    
+                    // Cena sa PDV NAKON primene rabata
+                    const cenaSaPdvSaRabatom = item.cenaSaPdv - (item.cenaSaPdv * (item.rabat / 100));
+                    
+                    totalBezPdv += vrijednostBezPdvSaRabatom;
+                    totalRabat += rabatIznos;
+                    totalPdv += pdvIznos;
+                    totalSaPdv += vrijednostSaPdv;
+                    
+                    itemsHTML += `
+                        <tr>
+                            <td>${item.rb}</td>
+                            <td>${item.sifra}</td>
+                            <td class="text-left">${item.naziv}</td>
+                            <td>${item.jm}</td>
+                            <td>${item.kolicina}</td>
+                            <td class="text-right">${item.cenaBezPdv.toFixed(3)}</td>
+                            <td class="text-right">${vrijednostBezPdv.toFixed(2)}</td>
+                            <td class="text-right">${item.rabat.toFixed(1)}%</td>
+                            <td class="text-right">${item.pdvStopa.toFixed(0)}%</td>
+                            <td class="text-right">${pdvIznos.toFixed(2)}</td>
+                            <td class="text-right">${cenaSaPdvSaRabatom.toFixed(3)}</td>
+                            <td class="text-right">${vrijednostSaPdv.toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+                
+                document.getElementById('print-items-tbody').innerHTML = itemsHTML;
+                document.getElementById('print-total-bez-pdv').textContent = totalBezPdv.toFixed(2);
+                document.getElementById('print-total-rabat').textContent = totalRabat.toFixed(2);
+                document.getElementById('print-osnovica').textContent = totalBezPdv.toFixed(2);
+                document.getElementById('print-pdv-iznos').textContent = totalPdv.toFixed(2);
+                document.getElementById('print-total-sa-pdv').textContent = totalSaPdv.toFixed(2);
+                
+                document.getElementById('print-signature-left').textContent = getSignatureText(dokument.tip_dokumenta);
+                document.getElementById('print-disclaimer').innerHTML = `<div><strong>${getDisclaimerText(dokument.tip_dokumenta)}</strong></div>`;
+                
+            } catch (error) {
+                console.error('Error generating print document:', error);
+                alert('Greška pri pripremi dokumenta za štampu');
+            }
         }
-        
-        // Učitaj artikle sa STVARNIM cenama iz lagera + INDIVIDUALNIM RABATIMA
-        const artikli = [];
-        for (let i = 0; i < data.artikli.length; i++) {
-            const art = data.artikli[i];
+
+        // AŽURIRANA SUBMIT FUNKCIJA SA NAPOMENOM
+        document.getElementById('edit-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Čuvam...';
             
             try {
-                const lagerResponse = await fetch(`/api/lager/sifra/${art.sifra}`);
-                let cene = {
-                    cena_bez_pdv: art.cena_bez_pdv,
-                    cena_sa_pdv: art.cena_sa_pdv
+                const artikli = [];
+                document.querySelectorAll('#edit-artikli-tbody tr').forEach(row => {
+                    artikli.push({
+                        sifra: row.querySelector('.artikal-sifra').value || 'N/A',
+                        naziv: row.querySelector('.artikal-naziv').value,
+                        jm: 'kom',
+                        kolicina: parseFloat(row.querySelector('.artikal-kolicina').value),
+                        cena_bez_pdv: parseFloat(row.querySelector('.artikal-cena-bez').value),
+                        cena_sa_pdv: parseFloat(row.querySelector('.artikal-cena-sa').value),
+                        rabat: parseFloat(row.querySelector('.artikal-rabat').value)
+                    });
+                });
+                
+                const data = {
+                    datum: document.getElementById('edit-datum').value,
+                    partner: document.getElementById('edit-partner').value,
+                    tip_dokumenta: document.getElementById('edit-tip-dokumenta').value,
+                    komercijalist_id: document.getElementById('edit-komercijalist').value || null,
+                    artikli: artikli,
+                    napomena: document.getElementById('edit-napomena').value // DODATO
                 };
                 
-                if (lagerResponse.ok) {
-                    const lagerData = await lagerResponse.json();
-                    cene.cena_bez_pdv = parseFloat(lagerData.cena_bez_pdv);
-                    cene.cena_sa_pdv = parseFloat(lagerData.cena_sa_pdv);
+                const dokumentId = document.getElementById('edit-dokument-id').value;
+                
+                const response = await fetch(`/api/dokumenti/${dokumentId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Dokument je uspešno ažuriran!');
+                    document.getElementById('edit-modal').classList.remove('show');
+                    location.reload();
+                } else {
+                    alert('Greška: ' + (result.error || 'Nepoznata greška'));
                 }
                 
-                // Učitaj INDIVIDUALNI rabat iz tabele
-                let individualniRabat = 0;
-                if (partner && partner.Sifra && art.sifra !== 'N/A') {
-                    try {
-                        const rabatResponse = await fetch(`/api/rabat/${partner.Sifra}/${art.sifra}`);
-                        const rabatData = await rabatResponse.json();
-                        if (rabatData.success) {
-                            individualniRabat = parseFloat(rabatData.rabat) || 0;
-                        }
-                    } catch (rabatError) {
-                        console.warn(`Nije moguće učitati rabat za ${art.sifra}:`, rabatError);
+            } catch (error) {
+                console.error('Error saving document:', error);
+                alert('Greška pri čuvanju dokumenta: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Sačuvaj izmene';
+            }
+        });
+
+        // Document details
+        function showDocumentDetails(id) {
+            const dokument = dokumentiData.find(d => d.id == id);
+            if (!dokument) return;
+            
+            const detailsHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <strong>ID:</strong> ${dokument.id}<br>
+                        <strong>Datum:</strong> ${new Date(dokument.datum).toLocaleDateString('sr-RS')}<br>
+                        <strong>Tip dokumenta:</strong> ${dokument.tip_dokumenta}<br>
+                        <strong>Partner:</strong> ${dokument.partner}
+                    </div>
+                    <div>
+                        <strong>Količina:</strong> ${parseFloat(dokument.kolicina).toFixed(2)}<br>
+                        <strong>Iznos bez PDV:</strong> ${parseFloat(dokument.iznos_bez_pdv).toFixed(2)} €<br>
+                        <strong>PDV iznos:</strong> ${parseFloat(dokument.pdv_iznos).toFixed(2)} €<br>
+                        <strong>Iznos sa PDV:</strong> ${parseFloat(dokument.iznos_sa_pdv).toFixed(2)} €<br>
+                        <strong>Rabat:</strong> ${parseFloat(dokument.rabat).toFixed(2)}%
+                    </div>
+                </div>
+                ${dokument.napomena ? `
+                <div style="margin-bottom: 1rem;">
+                    <strong>Napomena:</strong>
+                    <div style="padding: 10px; background-color: #f8f9fa; border-radius: 4px; margin-top: 0.5rem; word-wrap: break-word; white-space: pre-wrap;">${dokument.napomena}</div>
+                </div>
+                ` : ''}
+                <div style="margin-bottom: 1rem;">
+                    <strong>Naziv artikla:</strong>
+                    <div style="padding: 10px; background-color: #f8f9fa; border-radius: 4px; margin-top: 0.5rem; word-wrap: break-word; white-space: pre-wrap;">${dokument.naziv_artikla}</div>
+                </div>
+            `;
+            
+            document.getElementById('document-details-content').innerHTML = detailsHTML;
+            window.currentDocumentForPrint = dokument;
+            document.getElementById('document-details-modal').classList.add('show');
+        }
+
+        document.getElementById('close-details-modal').addEventListener('click', () => {
+            document.getElementById('document-details-modal').classList.remove('show');
+        });
+
+        document.getElementById('close-details-btn').addEventListener('click', () => {
+            document.getElementById('document-details-modal').classList.remove('show');
+        });
+
+        document.getElementById('print-from-details-btn').addEventListener('click', async () => {
+            if (window.currentDocumentForPrint) {
+                await generatePrintDocumentFromId(window.currentDocumentForPrint.id);
+                window.print();
+            }
+        });
+
+        function getDocumentTypeForPrint(tipDokumenta) {
+            const tip = tipDokumenta.toLowerCase();
+            if (tip.includes('otpremnica')) return 'Otpremnica';
+            if (tip.includes('predracun')) return 'Predračun';
+            if (tip.includes('kalkulacija')) return 'Kalkulacija';
+            if (tip.includes('ponuda')) return 'Ponuda';
+            return 'Dokument';
+        }
+
+        function getSignatureText(tipDokumenta) {
+            const tip = tipDokumenta.toLowerCase();
+            if (tip.includes('otpremnica')) return 'Otpremio,';
+            if (tip.includes('predracun')) return 'Izradio,';
+            if (tip.includes('kalkulacija')) return 'Kalkulisao,';
+            if (tip.includes('ponuda')) return 'Ponudio,';
+            return 'Izdao,';
+        }
+
+        function getDisclaimerText(tipDokumenta) {
+            const tip = tipDokumenta.toLowerCase();
+            if (tip.includes('otpremnica')) return 'OVO NIJE PDV RAČUN!!!';
+            if (tip.includes('predracun')) return 'OVO NIJE PDV RAČUN - PREDRAČUN!!!';
+            if (tip.includes('kalkulacija')) return 'KALKULACIJA - OVO NIJE PDV RAČUN!!!';
+            if (tip.includes('ponuda')) return 'PONUDA - OVO NIJE OBAVEZUJUĆI DOKUMENT!!!';
+            return 'OVO NIJE PDV RAČUN!!!';
+        }
+
+        async function loadPartnerByName(partnerName) {
+            try {
+                const partner = sviPartneri.find(p=> 
+                    (p.Naziv_partnera || p.naziv_partnera || '').toLowerCase() === partnerName.toLowerCase()
+                );
+                return partner || null;
+            } catch (error) {
+                console.error('Error loading partner:', error);
+                return null;
+            }
+        }
+
+        // U filter controls delu, promeni format prikaza datuma
+        function applyFilters() {
+            const searchTerm = document.getElementById('search-documents').value.toLowerCase();
+            const partner = document.getElementById('partner-filter').value;
+            const tip = document.getElementById('tip-filter').value;
+            const magacin = document.getElementById('magacin-filter').value;
+            const fromDate = document.getElementById('date-from').value;
+            const toDate = document.getElementById('date-to').value;
+            
+            filteredData = dokumentiData.filter(item => {
+                let passes = true;
+                
+                if (searchTerm) {
+                    const searchableText = `${item.partner} ${item.naziv_artikla} ${item.tip_dokumenta} ${item.magacin || ''}`.toLowerCase();
+                    if (!searchableText.includes(searchTerm)) {
+                        passes = false;
                     }
                 }
                 
-                artikli.push({
-                    rb: i + 1,
-                    sifra: art.sifra,
-                    naziv: art.naziv,
-                    jm: art.jm,
-                    kolicina: parseFloat(art.kolicina),
-                    cenaBezPdv: cene.cena_bez_pdv,
-                    cenaSaPdv: cene.cena_sa_pdv,
-                    rabat: individualniRabat,
-                    pdvStopa: 21
-                });
-            } catch (error) {
-                console.error(`Greška pri učitavanju cena za ${art.sifra}:`, error);
-                artikli.push({
-                    rb: i + 1,
-                    sifra: art.sifra,
-                    naziv: art.naziv,
-                    jm: art.jm,
-                    kolicina: parseFloat(art.kolicina),
-                    cenaBezPdv: parseFloat(art.cena_bez_pdv) || 0,
-                    cenaSaPdv: parseFloat(art.cena_sa_pdv) || 0,
-                    rabat: 0,
-                    pdvStopa: 21
-                });
-            }
+                if (partner && item.partner !== partner) {
+                    passes = false;
+                }
+                
+                if (tip && !item.tip_dokumenta.toLowerCase().startsWith(tip.toLowerCase())) {
+                    passes = false;
+                }
+                
+                if (magacin && item.magacin !== magacin) {
+                    passes = false;
+                }
+                
+                if (fromDate && toDate) {
+                    const itemDate = new Date(item.datum);
+                    const filterFromDate = new Date(fromDate);
+                    const filterToDate = new Date(toDate);
+                    
+                    if (itemDate < filterFromDate || itemDate > filterToDate) {
+                        passes = false;
+                    }
+                }
+                
+                return passes;
+            });
+            
+            filteredData.sort((a, b) => b.id - a.id);
+            
+            renderDokumentiTable();
         }
-        
-        let itemsHTML = '';
-        let totalBezPdv = 0;
-        let totalRabat = 0;
-        let totalPdv = 0;
-        let totalSaPdv = 0;
-        
-        artikli.forEach((item) => {
-            const vrijednostBezPdv = item.cenaBezPdv * item.kolicina;
-            const rabatIznos = vrijednostBezPdv * (item.rabat / 100);
-            const vrijednostBezPdvSaRabatom = vrijednostBezPdv - rabatIznos;
-            const pdvIznos = vrijednostBezPdvSaRabatom * (item.pdvStopa / 100);
-            const vrijednostSaPdv = vrijednostBezPdvSaRabatom * 1.21;
+
+        // Funkcije za formatiranje datuma po srpskom standardu
+        function formatDateToSrpski(date) {
+            const dan = date.getDate().toString().padStart(2, '0');
+            const mjesec = (date.getMonth() + 1).toString().padStart(2, '0');
+            const godina = date.getFullYear();
+            return `${dan}/${mjesec}/${godina}`;
+        }
+
+        function parseSrpskiDate(dateString) {
+            const parts = dateString.split('/');
+            if (parts.length === 3) {
+                const dan = parseInt(parts[0], 10);
+                const mjesec = parseInt(parts[1], 10) - 1;
+                const godina = parseInt(parts[2], 10);
+                return new Date(godina, mjesec, dan);
+            }
+            return new Date(dateString);
+        }
+
+        // Validacija srpskog formata datuma
+        function isValidSrpskiDate(dateString) {
+            const pattern = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+            return pattern.test(dateString);
+        }
+
+        // Ažurirajte applyFilters funkciju da koristi srpski format
+        function applyFilters() {
+            const searchTerm = document.getElementById('search-documents').value.toLowerCase();
+            const partner = document.getElementById('partner-filter').value;
+            const tip = document.getElementById('tip-filter').value;
+            const magacin = document.getElementById('magacin-filter').value;
+            const fromDateStr = document.getElementById('date-from').value;
+            const toDateStr = document.getElementById('date-to').value;
             
-            // Cena sa PDV NAKON primene rabata
-            const cenaSaPdvSaRabatom = item.cenaSaPdv - (item.cenaSaPdv * (item.rabat / 100));
+            let fromDate = null;
+            let toDate = null;
             
-            totalBezPdv += vrijednostBezPdvSaRabatom;
-            totalRabat += rabatIznos;
-            totalPdv += pdvIznos;
-            totalSaPdv += vrijednostSaPdv;
+            // Parsiranje srpskog formata datuma
+            if (fromDateStr && isValidSrpskiDate(fromDateStr)) {
+                fromDate = parseSrpskiDate(fromDateStr);
+            }
             
-            itemsHTML += `
-                <tr>
-                    <td>${item.rb}</td>
-                    <td>${item.sifra}</td>
-                    <td class="text-left">${item.naziv}</td>
-                    <td>${item.jm}</td>
-                    <td>${item.kolicina}</td>
-                    <td class="text-right">${item.cenaBezPdv.toFixed(3)}</td>
-                    <td class="text-right">${vrijednostBezPdv.toFixed(2)}</td>
-                    <td class="text-right">${item.rabat.toFixed(1)}%</td>
-                    <td class="text-right">${item.pdvStopa.toFixed(0)}%</td>
-                    <td class="text-right">${pdvIznos.toFixed(2)}</td>
-                    <td class="text-right">${cenaSaPdvSaRabatom.toFixed(3)}</td>
-                    <td class="text-right">${vrijednostSaPdv.toFixed(2)}</td>
-                </tr>
-            `;
+            if (toDateStr && isValidSrpskiDate(toDateStr)) {
+                toDate = parseSrpskiDate(toDateStr);
+            }
+            
+            filteredData = dokumentiData.filter(item => {
+                let passes = true;
+                
+                if (searchTerm) {
+                    const searchableText = `${item.partner} ${item.naziv_artikla} ${item.tip_dokumenta} ${item.magacin || ''}`.toLowerCase();
+                    if (!searchableText.includes(searchTerm)) {
+                        passes = false;
+                    }
+                }
+                
+                if (partner && item.partner !== partner) {
+                    passes = false;
+                }
+                
+                if (tip && !item.tip_dokumenta.toLowerCase().startsWith(tip.toLowerCase())) {
+                    passes = false;
+                }
+                
+                if (magacin && item.magacin !== magacin) {
+                    passes = false;
+                }
+                
+                if (fromDate && toDate) {
+                    const itemDate = new Date(item.datum);
+                    
+                    if (itemDate < fromDate || itemDate > toDate) {
+                        passes = false;
+                    }
+                }
+                
+                return passes;
+            });
+            
+            filteredData.sort((a, b) => b.id - a.id);
+            
+            renderDokumentiTable();
+        }
+
+        // Dodajte event listenere za validaciju datuma
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInputs = document.querySelectorAll('.date-input');
+            
+            dateInputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    if (this.value && !isValidSrpskiDate(this.value)) {
+                        this.style.borderColor = 'var(--accent-color)';
+                        alert('Molimo unesite datum u formatu dd/mm/yyyy (npr. 31/01/2025)');
+                    } else {
+                        this.style.borderColor = '';
+                    }
+                });
+                
+                // Opciono: dodajte masku za unos
+                input.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length >= 2) {
+                        value = value.substring(0, 2) + '/' + value.substring(2);
+                    }
+                    if (value.length >= 5) {
+                        value = value.substring(0, 5) + '/' + value.substring(5, 9);
+                    }
+                    e.target.value = value;
+                });
+            });
         });
-        
-        document.getElementById('print-items-tbody').innerHTML = itemsHTML;
-        document.getElementById('print-total-bez-pdv').textContent = totalBezPdv.toFixed(2);
-        document.getElementById('print-total-rabat').textContent = totalRabat.toFixed(2);
-        document.getElementById('print-osnovica').textContent = totalBezPdv.toFixed(2);
-        document.getElementById('print-pdv-iznos').textContent = totalPdv.toFixed(2);
-        document.getElementById('print-total-sa-pdv').textContent = totalSaPdv.toFixed(2);
-        
-        document.getElementById('print-signature-left').textContent = getSignatureText(dokument.tip_dokumenta);
-        document.getElementById('print-disclaimer').innerHTML = `<div><strong>${getDisclaimerText(dokument.tip_dokumenta)}</strong></div>`;
-        
-    } catch (error) {
-        console.error('Error generating print document:', error);
-        alert('Greška pri pripremi dokumenta za štampu');
-    }
-}
 
-    // Submit form - sa INDIVIDUALNIM RABATIMA
-    document.getElementById('edit-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const submitBtn = e.target.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Čuvam...';
-        
-        try {
-            const artikli = [];
-            document.querySelectorAll('#edit-artikli-tbody tr').forEach(row => {
-                artikli.push({
-                    sifra: row.querySelector('.artikal-sifra').value || 'N/A',
-                    naziv: row.querySelector('.artikal-naziv').value,
-                    jm: row.querySelector('.artikal-jm').value,
-                    kolicina: parseFloat(row.querySelector('.artikal-kolicina').value),
-                    cena_bez_pdv: parseFloat(row.querySelector('.artikal-cena-bez').value),
-                    cena_sa_pdv: parseFloat(row.querySelector('.artikal-cena-sa').value),
-                    rabat: parseFloat(row.querySelector('.artikal-rabat').value)  // INDIVIDUALNI RABAT
-                });
+        function renderDokumentiTable() {
+            const tbody = document.getElementById('dokumenti-tbody');
+            tbody.innerHTML = '';
+            
+            filteredData.forEach((item, index) => {
+                const row = document.createElement('tr');
+                if (index === 0) {
+                    row.classList.add('selected');
+                }
+
+                // ISPRAVLJENO: Srpski format datuma u tabeli (dan/mjesec/godina)
+                const itemDate = new Date(item.datum);
+                const formattedDate = `${itemDate.getDate()}.${itemDate.getMonth() + 1}.${itemDate.getFullYear()}`;
+
+                row.innerHTML = `
+                    <td>${item.id}</td>
+                    <td class="date-column">${formattedDate}</td>
+                    <td>${item.partner}</td>
+                    <td class="doc-type-column">${item.tip_dokumenta}</td>
+                    <td title="${item.naziv_artikla}" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.naziv_artikla}</td>
+                    <td>${item.magacin || 'N/A'}</td>
+                    <td class="price-column">${parseFloat(item.iznos_sa_pdv).toLocaleString('sr-RS', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-info view-document-btn" data-id="${item.id}" title="Pregled">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-warning edit-document-btn" data-id="${item.id}" title="Izmeni">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-primary print-document-btn" data-id="${item.id}" title="Štampaj">
+                                <i class="fas fa-print"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger delete-document-btn" data-id="${item.id}" title="Obriši">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
             });
-            
-            const data = {
-                datum: document.getElementById('edit-datum').value,
-                partner: document.getElementById('edit-partner').value,
-                tip_dokumenta: document.getElementById('edit-tip-dokumenta').value,
-                komercijalist_id: document.getElementById('edit-komercijalist').value || null,
-                artikli: artikli
-            };
-            
-            const dokumentId = document.getElementById('edit-dokument-id').value;
-            
-            const response = await fetch(`/api/dokumenti/${dokumentId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                alert('Dokument je uspešno ažuriran!');
-                document.getElementById('edit-modal').classList.remove('show');
-                location.reload();
-            } else {
-                alert('Greška: ' + (result.error || 'Nepoznata greška'));
-            }
-            
-        } catch (error) {
-            console.error('Error saving document:', error);
-            alert('Greška pri čuvanju dokumenta: ' + error.message);
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-save"></i> Sačuvaj izmene';
+
+            document.getElementById('document-count').textContent = `Ukupno: ${filteredData.length} dokumenata`;
         }
-    });
 
-    // Document details
-    function showDocumentDetails(id) {
-        const dokument = dokumentiData.find(d => d.id == id);
-        if (!dokument) return;
-        
-        const detailsHTML = `
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-                <div>
-                    <strong>ID:</strong> ${dokument.id}<br>
-                    <strong>Datum:</strong> ${new Date(dokument.datum).toLocaleDateString('sr-RS')}<br>
-                    <strong>Tip dokumenta:</strong> ${dokument.tip_dokumenta}<br>
-                    <strong>Partner:</strong> ${dokument.partner}
-                </div>
-                <div>
-                    <strong>Količina:</strong> ${parseFloat(dokument.kolicina).toFixed(2)}<br>
-                    <strong>Iznos bez PDV:</strong> ${parseFloat(dokument.iznos_bez_pdv).toFixed(2)} €<br>
-                    <strong>PDV iznos:</strong> ${parseFloat(dokument.pdv_iznos).toFixed(2)} €<br>
-                    <strong>Iznos sa PDV:</strong> ${parseFloat(dokument.iznos_sa_pdv).toFixed(2)} €<br>
-                    <strong>Rabat:</strong> ${parseFloat(dokument.rabat).toFixed(2)}%
-                </div>
-            </div>
-            <div style="margin-bottom: 1rem;">
-                <strong>Naziv artikla:</strong>
-                <div style="padding: 10px; background-color: #f8f9fa; border-radius: 4px; margin-top: 0.5rem; word-wrap: break-word; white-space: pre-wrap;">${dokument.naziv_artikla}</div>
-            </div>
-        `;
-        
-        document.getElementById('document-details-content').innerHTML = detailsHTML;
-        window.currentDocumentForPrint = dokument;
-        document.getElementById('document-details-modal').classList.add('show');
-    }
+        document.getElementById('search-documents').addEventListener('input', applyFilters);
+        document.getElementById('partner-filter').addEventListener('change', applyFilters);
+        document.getElementById('tip-filter').addEventListener('change', applyFilters);
+        document.getElementById('magacin-filter').addEventListener('change', applyFilters);
+        document.getElementById('date-from').addEventListener('change', applyFilters);
+        document.getElementById('date-to').addEventListener('change', applyFilters);
+        document.getElementById('apply-filters').addEventListener('click', applyFilters);
 
-    document.getElementById('close-details-modal').addEventListener('click', () => {
-        document.getElementById('document-details-modal').classList.remove('show');
-    });
-
-    document.getElementById('close-details-btn').addEventListener('click', () => {
-        document.getElementById('document-details-modal').classList.remove('show');
-    });
-
-    document.getElementById('print-from-details-btn').addEventListener('click', async () => {
-        if (window.currentDocumentForPrint) {
-            await generatePrintDocumentFromId(window.currentDocumentForPrint.id);
+        document.getElementById('print-btn').addEventListener('click', () => {
             window.print();
-        }
-    });
+        });
 
-    // Helper functions
-    function getDocumentTypeForPrint(tipDokumenta) {
-        const tip = tipDokumenta.toLowerCase();
-        if (tip.includes('otpremnica')) return 'Otpremnica';
-        if (tip.includes('predracun')) return 'Predračun';
-        if (tip.includes('kalkulacija')) return 'Kalkulacija';
-        if (tip.includes('ponuda')) return 'Ponuda';
-        return 'Dokument';
-    }
-
-    function getSignatureText(tipDokumenta) {
-        const tip = tipDokumenta.toLowerCase();
-        if (tip.includes('otpremnica')) return 'Otpremio,';
-        if (tip.includes('predracun')) return 'Izradio,';
-        if (tip.includes('kalkulacija')) return 'Kalkulisao,';
-        if (tip.includes('ponuda')) return 'Ponudio,';
-        return 'Izdao,';
-    }
-
-    function getDisclaimerText(tipDokumenta) {
-        const tip = tipDokumenta.toLowerCase();
-        if (tip.includes('otpremnica')) return 'OVO NIJE PDV RAČUN!!!';
-        if (tip.includes('predracun')) return 'OVO NIJE PDV RAČUN - PREDRAČUN!!!';
-        if (tip.includes('kalkulacija')) return 'KALKULACIJA - OVO NIJE PDV RAČUN!!!';
-        if (tip.includes('ponuda')) return 'PONUDA - OVO NIJE OBAVEZUJUĆI DOKUMENT!!!';
-        return 'OVO NIJE PDV RAČUN!!!';
-    }
-
-    async function loadPartnerByName(partnerName) {
-        try {
-            const partner = sviPartneri.find(p=> 
-                (p.Naziv_partnera || p.naziv_partnera || '').toLowerCase() === partnerName.toLowerCase()
-            );
-            return partner || null;
-        } catch (error) {
-            console.error('Error loading partner:', error);
-            return null;
-        }
-    }
-
-function applyFilters() {
-    const searchTerm = document.getElementById('search-documents').value.toLowerCase();
-    const partner = document.getElementById('partner-filter').value;
-    const tip = document.getElementById('tip-filter').value;
-    const magacin = document.getElementById('magacin-filter').value;
-    const fromDate = document.getElementById('date-from').value;
-    const toDate = document.getElementById('date-to').value;
-    
-    filteredData = dokumentiData.filter(item => {
-        let passes = true;
-        
-        if (searchTerm) {
-            const searchableText = `${item.partner} ${item.naziv_artikla} ${item.tip_dokumenta} ${item.magacin || ''}`.toLowerCase();
-            if (!searchableText.includes(searchTerm)) {
-                passes = false;
-            }
-        }
-        
-        if (partner && item.partner !== partner) {
-            passes = false;
-        }
-        
-        // PROMENA OVDE: Proverava da li tip dokumenta POČINJE sa izabranim osnovnim tipom
-        if (tip && !item.tip_dokumenta.toLowerCase().startsWith(tip.toLowerCase())) {
-            passes = false;
-        }
-        
-        if (magacin && item.magacin !== magacin) {
-            passes = false;
-        }
-        
-        if (fromDate && toDate) {
-            const itemDate = new Date(item.datum);
-            const filterFromDate = new Date(fromDate);
-            const filterToDate = new Date(toDate);
+        document.getElementById('export-btn').addEventListener('click', () => {
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + "ID,Datum,Partner,Tip dokumenta,Naziv artikla,Iznos sa PDV (€)\n"
+                + filteredData.map(item => 
+                    `${item.id},${new Date(item.datum).toLocaleDateString('sr-RS')},${item.partner},${item.tip_dokumenta},${item.naziv_artikla},${item.iznos_sa_pdv}`
+                ).join("\n");
             
-            if (itemDate < filterFromDate || itemDate > filterToDate) {
-                passes = false;
-            }
-        }
-        
-        return passes;
-    });
-    
-    filteredData.sort((a, b) => b.id - a.id);
-    
-    renderDokumentiTable();
-}
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "dokumenti.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
 
+        document.getElementById('refresh-btn').addEventListener('click', () => {
+            location.reload();
+        });
 
-    function renderDokumentiTable() {
-    const tbody = document.getElementById('dokumenti-tbody');
-    tbody.innerHTML = '';
-    
-    filteredData.forEach((item, index) => {
-        const row = document.createElement('tr');
-        if (index === 0) {
-            row.classList.add('selected');
-        }
-
-        row.innerHTML = `
-                <td>${item.id}</td>
-                <td class="date-column">${new Date(item.datum).toLocaleDateString('sr-RS')}</td>
-                <td>${item.partner}</td>
-                <td class="doc-type-column">${item.tip_dokumenta}</td>
-                <td title="${item.naziv_artikla}" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.naziv_artikla}</td>
-                <td>${item.magacin || 'N/A'}</td>  <!-- DODAJ OVO -->
-                <td class="price-column">${parseFloat(item.iznos_sa_pdv).toLocaleString('sr-RS', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn btn-sm btn-info view-document-btn" data-id="${item.id}" title="Pregled">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-warning edit-document-btn" data-id="${item.id}" title="Izmeni">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-primary print-document-btn" data-id="${item.id}" title="Štampaj">
-                            <i class="fas fa-print"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger delete-document-btn" data-id="${item.id}" title="Obriši">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            `;
-        
-        tbody.appendChild(row);
-    });
-
-    document.getElementById('document-count').textContent = `Ukupno: ${filteredData.length} dokumenata`;
-}
-
-    // Event listeners - ažuriraj postojeći
-document.getElementById('search-documents').addEventListener('input', applyFilters);
-document.getElementById('partner-filter').addEventListener('change', applyFilters);
-document.getElementById('tip-filter').addEventListener('change', applyFilters);
-document.getElementById('magacin-filter').addEventListener('change', applyFilters);  // PROMENJENO
-document.getElementById('date-from').addEventListener('change', applyFilters);
-document.getElementById('date-to').addEventListener('change', applyFilters);
-document.getElementById('apply-filters').addEventListener('click', applyFilters);
-
-    document.getElementById('print-btn').addEventListener('click', () => {
-        window.print();
-    });
-
-    document.getElementById('export-btn').addEventListener('click', () => {
-        const csvContent = "data:text/csv;charset=utf-8," 
-            + "ID,Datum,Partner,Tip dokumenta,Naziv artikla,Iznos sa PDV (€)\n"
-            + filteredData.map(item => 
-                `${item.id},${new Date(item.datum).toLocaleDateString('sr-RS')},${item.partner},${item.tip_dokumenta},${item.naziv_artikla},${item.iznos_sa_pdv}`
-            ).join("\n");
-        
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "dokumenti.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    });
-
-    document.getElementById('refresh-btn').addEventListener('click', () => {
-        location.reload();
-    });
-
-    window.addEventListener('resize', function() {
-        if (window.innerWidth > 576) {
-            sidebar.classList.remove('mobile-open');
-            sidebarOverlay.classList.remove('show');
-            document.body.style.overflow = '';
-        }
-    });
-
-    window.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            if (document.getElementById('edit-modal').classList.contains('show')) {
-                document.getElementById('edit-modal').classList.remove('show');
-            } else if (document.getElementById('document-details-modal').classList.contains('show')) {
-                document.getElementById('document-details-modal').classList.remove('show');
-            } else if (sidebar.classList.contains('mobile-open')) {
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 576) {
                 sidebar.classList.remove('mobile-open');
                 sidebarOverlay.classList.remove('show');
                 document.body.style.overflow = '';
             }
-        }
-    });
+        });
 
-    console.log('Tehnolux Pregled dokumenata - SISTEM SA INDIVIDUALNIM RABATIMA INICIJALIZOVAN');
-    console.log('- Cene se učitavaju direktno iz LAGER baze');
-    console.log('- Rabati se učitavaju iz PARTNER_ARTIKAL_RABAT tabele');
-    console.log('- Svaki artikal može imati različit rabat');
-</script>
+        window.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (document.getElementById('edit-modal').classList.contains('show')) {
+                    document.getElementById('edit-modal').classList.remove('show');
+                } else if (document.getElementById('document-details-modal').classList.contains('show')) {
+                    document.getElementById('document-details-modal').classList.remove('show');
+                } else if (sidebar.classList.contains('mobile-open')) {
+                    sidebar.classList.remove('mobile-open');
+                    sidebarOverlay.classList.remove('show');
+                    document.body.style.overflow = '';
+                }
+            }
+        });
+
+        console.log('Tehnolux Pregled dokumenata - SISTEM SA INDIVIDUALNIM RABATIMA I NAPOMENAMA INICIJALIZOVAN');
+        console.log('- Cene se učitavaju direktno iz LAGER baze');
+        console.log('- Rabati se učitavaju iz PARTNER_ARTIKAL_RABAT tabele');
+        console.log('- Napomena se prikazuje u štampanom dokumentu');
+    </script>
 </body>
 </html>

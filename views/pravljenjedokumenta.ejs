@@ -1609,10 +1609,10 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Napomene (opciono):</label>
-                    <textarea class="form-control" id="document-napomene" rows="3" 
-                              placeholder="Unesite dodatne napomene za ovaj dokument..."></textarea>
-                </div>
+    <label class="form-label">Napomena (opciono):</label>
+    <textarea class="form-control" id="document-napomena" rows="3" 
+              placeholder="Unesite napomenu za ovaj dokument..."></textarea>
+</div>
                 
                 <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
                     <button type="button" class="btn btn-secondary" id="prev-step-6">Nazad</button>
@@ -1661,92 +1661,100 @@
         </div>
     </div>
 
-    <!-- Print Document -->
-    <div class="print-document" id="print-document">
-        <div class="document-header">
-            <div class="company-info">
-                <h2>TEHNO LUX</h2>
-                <div>Podgorica, Bulevar Pera Cetkovica 36</div>
-                <div>Tel: 020/656-411</div>
-                <div>Fax:</div>
-            </div>
-            <div class="document-info">
-                <div>PIB: 02390264</div>
-                <div>PDV: 30154-03169-8</div>
-                <div>Šif.djel.:</div>
-                <div style="margin-top: 10px;">Ž.R: <strong>530-18008-18</strong></div>
-                <div><strong>510-1062-55</strong></div>
-                <div><strong>520-30872-94</strong></div>
-            </div>
+<!-- Print Document -->
+<div class="print-document" id="print-document">
+    <div class="document-header">
+        <div class="company-info">
+            <h2>TEHNO LUX</h2>
+            <div>Podgorica, Bulevar Pera Cetkovica 36</div>
+            <div>Tel: 020/656-411</div>
+            <div>Fax:</div>
         </div>
-
-        <div style="display: flex; justify-content: space-between; margin: 20px 0;">
-            <div>
-                <div>Podgorica, <span id="print-date"></span> godine</div>
-                <div style="margin-top: 10px;"><strong><span id="print-document-type"></span> br. <span id="print-doc-number"></span></strong></div>
-            </div>
-            <div style="text-align: right;">
-                <div>Kupac: <span id="print-customer-code"></span></div>
-            </div>
-        </div>
-
-        <div class="customer-info">
-            <h3 id="print-customer-name"></h3>
-            <div>PIB: <span id="print-customer-pib"></span></div>
-            <div>PDV: <span id="print-customer-pdv"></span></div>
-            <div>Adresa: <span id="print-customer-address"></span></div>
-            <div>Grad: <span id="print-customer-city"></span></div>
-        </div>
-
-        <div style="margin: 20px 0;">
-            <div>Na osnovu: _________________________ fakturišemo Vam:</div>
-        </div>
-
-        <table class="items-table">
-            <thead>
-                <tr>
-                    <th>Rb</th>
-                    <th>ŠIFRA</th>
-                    <th>NAZIV PROIZVODA/USLUGE</th>
-                    <th>JM</th>
-                    <th>Količina</th>
-                    <th>Cijena bez PDV (€)</th>
-                    <th>Vrijednost bez PDV (€)</th>
-                    <th>Rabat (%)</th>
-                    <th>PDV Stopa</th>
-                    <th>Iznos PDV (€)</th>
-                    <th>Cijena sa PDV (€)</th> <!-- NOVA KOLONA -->
-                    <th>Vrijednost sa PDV (€)</th>
-                </tr>
-            </thead>
-            <tbody id="print-items-tbody"></tbody>
-        </table>
-
-        <div class="totals-section">
-            <div><strong>Vrijednost bez PDV: <span id="print-total-bez-pdv"></span> €</strong></div>
-            <div><strong>Iznos rabata: <span id="print-total-rabat"></span> €</strong></div>
-            <div style="border-top: 1px solid #000; margin-top: 5px; padding-top: 5px;">
-                <strong>Osnovica za stopu 21%: <span id="print-osnovica"></span> €</strong>
-            </div>
-            <div><strong>PDV po stopi 21%: <span id="print-pdv-iznos"></span> €</strong></div>
-            <div style="border-top: 2px solid #000; margin-top: 5px; padding-top: 5px;">
-                <strong>IZNOS ZA UPLATU €: <span id="print-total-sa-pdv"></span></strong>
-            </div>
-        </div>
-
-        <div style="margin-top: 20px;" id="print-disclaimer">
-            <div><strong>OVO NIJE PDV RAČUN!!!</strong></div>
-        </div>
-
-        <div class="signature-section">
-            <div class="signature-box">
-                <div id="print-signature-left">Otpremio,</div>
-            </div>
-            <div class="signature-box">
-                <div>Primio,</div>
-            </div>
+        <div class="document-info">
+            <div>PIB: 02390264</div>
+            <div>PDV: 30154-03169-8</div>
+            <div>Šif.djel.:</div>
+            
+            <div style="margin-top: 5px;">Ž.R: <strong>530-18008-18</strong></div>
+            <div><strong>510-1062-55</strong></div>
+            <div><strong>520-30872-94</strong></div>
+            <div style="margin-top: 10px;">Komercijalist: <span id="print-komercijalist"></span></div>
         </div>
     </div>
+
+    <div style="display: flex; justify-content: space-between; margin: 20px 0;">
+        <div>
+            <div>Podgorica, <span id="print-date"></span> godine</div>
+            <div style="margin-top: 10px;"><strong><span id="print-document-type"></span> br. <span id="print-doc-number"></span></strong></div>
+        </div>
+        <div style="text-align: right;">
+            <div>Kupac: <span id="print-customer-code"></span></div>
+        </div>
+    </div>
+
+    <div class="customer-info">
+        <h3 id="print-customer-name"></h3>
+        <div>PIB: <span id="print-customer-pib"></span></div>
+        <div>PDV: <span id="print-customer-pdv"></span></div>
+        <div>Adresa: <span id="print-customer-address"></span></div>
+        <div>Grad: <span id="print-customer-city"></span></div>
+    </div>
+
+    <div style="margin: 20px 0;">
+        <div>Na osnovu: _________________________ fakturišemo Vam:</div>
+    </div>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Rb</th>
+                <th>ŠIFRA</th>
+                <th>NAZIV PROIZVODA/USLUGE</th>
+                <th>JM</th>
+                <th>Količina</th>
+                <th>Cijena bez PDV (€)</th>
+                <th>Vrijednost bez PDV (€)</th>
+                <th>Rabat (%)</th>
+                <th>PDV Stopa</th>
+                <th>Iznos PDV (€)</th>
+                <th>Cijena sa PDV (€)</th>
+                <th>Vrijednost sa PDV (€)</th>
+            </tr>
+        </thead>
+        <tbody id="print-items-tbody"></tbody>
+    </table>
+    <!-- Sekcija za napomenu u štampanom dokumentu -->
+<div id="print-napomena-container" style="margin-top: 20px; display: none;">
+    <div style="border: 1px solid #000; padding: 10px; background-color: #f9f9f9;">
+        <div style="font-weight: bold; margin-bottom: 5px;">Napomena:</div>
+        <div id="print-napomena-text" style="font-size: 11px; line-height: 1.4;"></div>
+    </div>
+</div>
+    <div class="totals-section">
+        <div><strong>Vrijednost bez PDV: <span id="print-total-bez-pdv"></span> €</strong></div>
+        <div><strong>Iznos rabata: <span id="print-total-rabat"></span> €</strong></div>
+        <div style="border-top: 1px solid #000; margin-top: 5px; padding-top: 5px;">
+            <strong>Osnovica za stopu 21%: <span id="print-osnovica"></span> €</strong>
+        </div>
+        <div><strong>PDV po stopi 21%: <span id="print-pdv-iznos"></span> €</strong></div>
+        <div style="border-top: 2px solid #000; margin-top: 5px; padding-top: 5px;">
+            <strong>IZNOS ZA UPLATU €: <span id="print-total-sa-pdv"></span></strong>
+        </div>
+    </div>
+
+    <div style="margin-top: 20px;" id="print-disclaimer">
+        <div><strong>OVO NIJE PDV RAČUN!!!</strong></div>
+    </div>
+
+    <div class="signature-section">
+        <div class="signature-box">
+            <div id="print-signature-left">Otpremio,</div>
+        </div>
+        <div class="signature-box">
+            <div>Primio,</div>
+        </div>
+    </div>
+</div>
 
     <script>
         // GLOBALNE VARIJABLE
@@ -2343,6 +2351,7 @@
             });
         }
 
+
 async function createDocument() {
     const createBtn = document.getElementById('create-document-final');
     createBtn.disabled = true;
@@ -2354,6 +2363,9 @@ async function createDocument() {
         const partnerIdent = selectedPartner?.Sifra ?? selectedPartner?.sifra ?? selectedPartner?.id ?? null;
         const komercijalistIdent = selectedKomercijalist?.id ?? selectedKomercijalist?.ID ?? null;
 
+        // Uzimanje vrednosti iz textarea za napomenu
+        const napomena = document.getElementById('document-napomena').value.trim();
+
         const documentData = {
             datum: new Date().toISOString(),
             tipDokumenta: selectedDocumentType,
@@ -2364,7 +2376,8 @@ async function createDocument() {
             ukupanIznos: totals.iznosSaPdv,
             ukupnoBezPdv: totals.iznosBezPdv,
             ukupnoSaPdv: totals.iznosSaPdv,
-            ukupanPdv: totals.pdvIznos
+            ukupanPdv: totals.pdvIznos,
+            napomena: napomena
         };
 
         const missing = [];
@@ -2406,10 +2419,10 @@ async function createDocument() {
         createdDocumentData = {
             ...documentData,
             documentNumber: fullDocumentNumber,
-            id: result.id || result.documentId
+            id: result.id || result.documentId,
+            napomena: result.napomena
         };
 
-        // ISPRAVLJENA IZMENA - uklanja SVE tipove dokumenata
         const displayDocNumber = fullDocumentNumber.replace(/(ponuda|predracun|otpremnica|kalkulacija)/, '');
         document.getElementById('created-doc-number').textContent = displayDocNumber;
         
@@ -2490,6 +2503,7 @@ function calculateTotals() {
 
 
 
+
 async function generatePrintDocumentFromCreatedData() {
     if (!createdDocumentData) return;
 
@@ -2501,9 +2515,13 @@ async function generatePrintDocumentFromCreatedData() {
     document.getElementById('print-date').textContent = formattedDate;
     document.getElementById('print-document-type').textContent = documentType;
     
-    // Ispravljeno - uklanja sve tipove dokumenata
     const printDocNumber = (createdDocumentData.documentNumber || '').replace(/(ponuda|predracun|otpremnica|kalkulacija)/, '');
     document.getElementById('print-doc-number').textContent = printDocNumber;
+    
+    // Populate the komercijalist field
+    if (selectedKomercijalist) {
+        document.getElementById('print-komercijalist').textContent = selectedKomercijalist.ime_prezime;
+    }
     
     if (selectedPartner) {
         const sifra = selectedPartner.Sifra || selectedPartner.sifra || '';
@@ -2519,6 +2537,17 @@ async function generatePrintDocumentFromCreatedData() {
         document.getElementById('print-customer-pdv').textContent = pdv;
         document.getElementById('print-customer-address').textContent = adresa;
         document.getElementById('print-customer-city').textContent = grad;
+    }
+    
+    // Prikaz napomene ako postoji
+    const napomenaContainer = document.getElementById('print-napomena-container');
+    const napomenaText = document.getElementById('print-napomena-text');
+    
+    if (createdDocumentData.napomena && createdDocumentData.napomena.trim() !== '') {
+        napomenaText.textContent = createdDocumentData.napomena;
+        napomenaContainer.style.display = 'block';
+    } else {
+        napomenaContainer.style.display = 'none';
     }
     
     let itemsHTML = '';
@@ -2545,7 +2574,7 @@ async function generatePrintDocumentFromCreatedData() {
         const pdvIznos = iznosBezPdv * (pdvStopa / 100);
         const iznosSaPdv = iznosBezPdv + pdvIznos;
         
-        // CIJENA SA PDV PO JEDINICI - OVO JE KLJUČNA PROMJENA
+        // CIJENA SA PDV PO JEDINICI
         const cenaBezPdvNakonRabata = cenaBezPdv * (1 - rabat / 100);
         const cenaSaPdvPoJedinici = cenaBezPdvNakonRabata * (1 + pdvStopa / 100);
 
@@ -2567,7 +2596,7 @@ async function generatePrintDocumentFromCreatedData() {
                 <td class="text-right">${rabat.toFixed(1)}%</td>
                 <td class="text-right">${pdvStopa}%</td>
                 <td class="text-right">${pdvIznos.toFixed(2)}</td>
-                <td class="text-right">${cenaSaPdvPoJedinici.toFixed(2)}</td> <!-- CIJENA PO JEDINICI -->
+                <td class="text-right">${cenaSaPdvPoJedinici.toFixed(2)}</td>
                 <td class="text-right">${iznosSaPdv.toFixed(2)}</td>
             </tr>
         `;
@@ -2583,7 +2612,6 @@ async function generatePrintDocumentFromCreatedData() {
     document.getElementById('print-signature-left').textContent = getSignatureText(createdDocumentData.tipDokumenta);
     document.getElementById('print-disclaimer').innerHTML = `<div><strong>${getDisclaimerText(createdDocumentData.tipDokumenta)}</strong></div>`;
 }
-
 
 
 async function previewPrint() {

@@ -1653,21 +1653,21 @@
         }
 
         // Fill form with service data
-        function fillServiceForm(service) {
-            serviceIdInput.value = service.id;
-            document.getElementById('service-number').value = service.broj_servisa;
-            document.getElementById('customer-name').value = service.ime_kupca || '';
-            document.getElementById('customer-phone').value = service.telefon || '';
-            document.getElementById('customer-email').value = service.email || '';
-            document.getElementById('product-model').value = service.proizvod_model || '';
-            document.getElementById('serial-number').value = service.serijski_broj || '';
-            document.getElementById('warranty-status').value = service.status_garancije || 'proverava-se';
-            document.getElementById('problem-description').value = service.opis_kvara || '';
-            document.getElementById('assigned-technician').value = service.tehnicar || '';
-            document.getElementById('priority-level').value = service.prioritet || 'srednji';
-            document.getElementById('estimated-cost').value = service.procenjena_cena || '';
-            document.getElementById('service-notes').value = service.napomene || '';
-        }
+function fillServiceForm(service) {
+    serviceIdInput.value = service.id;
+    document.getElementById('service-number').value = service.broj_servisa;
+    document.getElementById('customer-name').value = service.ime_kupca || '';
+    document.getElementById('customer-phone').value = service.telefon || '';
+    document.getElementById('customer-email').value = service.email || '';
+    document.getElementById('product-model').value = service.proizvod_model || '';
+    document.getElementById('serial-number').value = service.serijski_broj || '';
+    document.getElementById('warranty-status').value = service.status_garancije || 'proverava-se';
+    document.getElementById('problem-description').value = service.opis_kvara || '';
+    document.getElementById('assigned-technician').value = service.tehnicar || '';
+    document.getElementById('priority-level').value = service.prioritet || 'srednji';
+    document.getElementById('estimated-cost').value = service.procenjena_cena || '';
+    document.getElementById('service-notes').value = service.napomene || '';
+}
 
         // Clear form
         async function clearServiceForm() {
@@ -1679,85 +1679,229 @@
             document.getElementById('warranty-status').value = 'proverava-se';
         }
 
-        // Print service report
-        function printServiceReport(serviceId) {
-            const row = document.querySelector(`tr[data-id="${serviceId}"]`);
-            if (!row) return;
 
-            const serviceData = {
-                id: row.cells[0].textContent.trim(),
-                customer: row.cells[1].textContent.trim(),
-                product: row.cells[2].textContent.trim(),
-                problem: row.cells[3].title || row.cells[3].textContent.trim(),
-                serviser: row.cells[4].textContent.trim(),
-                status: row.cells[5].textContent.trim(),
-                dateCreated: row.cells[6].querySelector('.date-warning').title,
-                cost: row.cells[7].textContent.trim()
-            };
+function printServiceReport(serviceId) {
+    const row = document.querySelector(`tr[data-id="${serviceId}"]`);
+    if (!row) return;
 
-            // Create print window
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html>
-                <head>
-                    <title>Servisni izveštaj #${serviceData.id}</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; margin: 20px; }
-                        .header { text-align: center; margin-bottom: 30px; }
-                        .service-info { margin-bottom: 20px; }
-                        .info-row { display: flex; margin-bottom: 10px; }
-                        .label { font-weight: bold; width: 150px; }
-                        .value { flex: 1; }
-                        .signature { margin-top: 50px; display: flex; justify-content: space-between; }
-                        .signature div { text-align: center; }
-                        @media print { body { margin: 0; } }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h1>TEHNOLUX</h1>
-                        <h2>Servisni izveštaj #${serviceData.id}</h2>
-                    </div>
-                    <div class="service-info">
-                        <div class="info-row">
-                            <div class="label">Kupac:</div>
-                            <div class="value">${serviceData.customer}</div>
-                        </div>
-                        <div class="info-row">
-                            <div class="label">Proizvod/Model:</div>
-                            <div class="value">${serviceData.product}</div>
-                        </div>
-                        <div class="info-row">
-                            <div class="label">Opis problema:</div>
-                            <div class="value">${serviceData.problem}</div>
-                        </div>
-                        <div class="info-row">
-                            <div class="label">Serviser:</div>
-                            <div class="value">${serviceData.serviser}</div>
-                        </div>
-                        <div class="info-row">
-                            <div class="label">Status:</div>
-                            <div class="value">${serviceData.status}</div>
-                        </div>
-                        <div class="info-row">
-                            <div class="label">Datum kreiranja:</div>
-                            <div class="value">${serviceData.dateCreated}</div>
-                        </div>
-                    </div>
-                    <div class="signature">
-                        <div>
-                            <p>_____________________</p>
-                            <p>Potpis kupca</p>
-                        </div>
-                    </div>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-            printWindow.print();
-        }
+    // Dodajemo podatke o telefonu i garanciji - ovo će biti popunjeno iz baze
+    const serviceData = {
+        id: row.cells[0].textContent.trim(),
+        customer: row.cells[1].textContent.trim(),
+        product: row.cells[2].textContent.trim(),
+        problem: row.cells[3].title || row.cells[3].textContent.trim(),
+        serviser: row.cells[4].textContent.trim(),
+        status: row.cells[5].textContent.trim(),
+        dateCreated: row.cells[6].querySelector('.date-warning').title,
+        cost: row.cells[7].textContent.trim(),
+        // Ovi podaci će biti učitani sa servera kada se otvori modal za štampu
+        phone: 'Nije naveden', // Ovo će biti popunjeno kada se učita servis
+        warranty: 'Proverava se' // Ovo će biti popunjeno kada se učita servis
+    };
 
-        // Show notification
+    // Učitajmo dodatne podatke sa servera
+    fetch(`/servis/get/${serviceId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                serviceData.phone = data.service.telefon || 'Nije naveden';
+                serviceData.warranty = data.service.status_garancije || 'Proverava se';
+                
+                // Mapiranje statusa garancije na čitljiv tekst
+                const warrantyMap = {
+                    'u-garanciji': 'U garanciji',
+                    'van-garancije': 'Van garancije',
+                    'proverava-se': 'Proverava se'
+                };
+                serviceData.warranty = warrantyMap[serviceData.warranty] || serviceData.warranty;
+                
+                // Sada možemo da štampamo sa svim podacima
+                printReportWithData(serviceData);
+            } else {
+                // Ako ne uspe učitavanje, štampaj sa osnovnim podacima
+                printReportWithData(serviceData);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading service details:', error);
+            printReportWithData(serviceData);
+        });
+}
+
+function printReportWithData(serviceData) {
+    // Create print window
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Servisni izveštaj #${serviceData.id}</title>
+            <style>
+                body { 
+                    font-family: Arial, sans-serif; 
+                    margin: 20px; 
+                    line-height: 1.4;
+                }
+                .header { 
+                    text-align: center; 
+                    margin-bottom: 30px;
+                    border-bottom: 2px solid #333;
+                    padding-bottom: 15px;
+                }
+                .company-name {
+                    font-size: 24px;
+                    font-weight: bold;
+                    margin-bottom: 5px;
+                }
+                .report-title {
+                    font-size: 18px;
+                    margin-bottom: 10px;
+                }
+                .service-info { 
+                    margin-bottom: 20px; 
+                }
+                .info-row { 
+                    display: flex; 
+                    margin-bottom: 8px;
+                    padding: 5px 0;
+                }
+                .label { 
+                    font-weight: bold; 
+                    width: 180px; 
+                    min-width: 180px;
+                }
+                .value { 
+                    flex: 1; 
+                }
+                .problem-description {
+                    background-color: #f5f5f5;
+                    padding: 10px;
+                    border-left: 3px solid #3498db;
+                    margin: 10px 0;
+                }
+                .signature { 
+                    margin-top: 80px; 
+                    display: flex; 
+                    justify-content: space-between; 
+                }
+                .signature div { 
+                    text-align: center; 
+                    width: 45%;
+                }
+                .signature-line {
+                    border-top: 1px solid #000;
+                    margin-top: 60px;
+                    padding-top: 5px;
+                    margin-left: 25%;
+                }
+                .warranty-status {
+                    display: inline-block;
+                    padding: 3px 8px;
+                    border-radius: 4px;
+                    font-weight: bold;
+                    margin-left: 10px;
+                }
+                .warranty-in {
+                    background-color: #d4edda;
+                    color: #155724;
+                }
+                .warranty-out {
+                    background-color: #f8d7da;
+                    color: #721c24;
+                }
+                .warranty-check {
+                    background-color: #fff3cd;
+                    color: #856404;
+                }
+                @media print { 
+                    body { 
+                        margin: 15px; 
+                    }
+                    .header {
+                        margin-bottom: 20px;
+                    }
+                }
+                .footer {
+                    margin-top: 50px;
+                    text-align: center;
+                    font-size: 12px;
+                    color: #666;
+                    border-top: 1px solid #ddd;
+                    padding-top: 10px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <div class="company-name">TEHNOLUX</div>
+                <div class="report-title">Servisni izveštaj #${serviceData.id}</div>
+                <div>Datum: ${new Date().toLocaleDateString('sr-RS')}</div>
+            </div>
+            
+            <div class="service-info">
+                <div class="info-row">
+                    <div class="label">Kupac:</div>
+                    <div class="value">${serviceData.customer}</div>
+                </div>
+                <div class="info-row">
+                    <div class="label">Kontakt telefon:</div>
+                    <div class="value">${serviceData.phone}</div>
+                </div>
+                <div class="info-row">
+                    <div class="label">Proizvod/Model:</div>
+                    <div class="value">${serviceData.product}</div>
+                </div>
+                <div class="info-row">
+                    <div class="label">Status garancije:</div>
+                    <div class="value">
+                        ${serviceData.warranty}
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="label">Serviser:</div>
+                    <div class="value">${serviceData.serviser}</div>
+                </div>
+                <div class="info-row">
+                    <div class="label">Status servisa:</div>
+                    <div class="value">${serviceData.status}</div>
+                </div>
+                <div class="info-row">
+                    <div class="label">Datum kreiranja:</div>
+                    <div class="value">${serviceData.dateCreated}</div>
+                </div>
+                <div class="info-row">
+                    <div class="label">Opis problema:</div>
+
+                    ${serviceData.problem}
+                </div>
+            </div>
+            
+            <div class="signature">
+                <div>
+                    <div class="signature-line"></div>
+                    <p>Potpis servisera</p>
+                </div>
+                <div>
+                    <div class="signature-line"></div>
+                    <p>Potpis kupca</p>
+                </div>
+            </div>
+            
+            <div class="footer">
+                Servisni izveštaj - Tehnolux<br>
+                Generisano: ${new Date().toLocaleString('sr-RS')}
+            </div>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    
+    // Sačekaj malo da se stranica učpa pre štampe
+    setTimeout(() => {
+        printWindow.print();
+    }, 500);
+}
+
+
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
             notification.style.cssText = `

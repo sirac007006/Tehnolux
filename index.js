@@ -4901,7 +4901,6 @@ app.put("/servis/update/:id", async (req, res) => {
     }
 });
 
-// PUT - Update service status
 app.put("/servis/status/:id", async (req, res) => {
     try {
         const serviceId = req.params.id;
@@ -4918,7 +4917,7 @@ app.put("/servis/status/:id", async (req, res) => {
         
         // Proveri da li servis postoji
         const existingService = await db.query(
-            'SELECT id, status as current_status FROM servisi WHERE id = $1',
+            'SELECT id, status as current_status, napomene FROM servisi WHERE id = $1',
             [serviceId]
         );
         
@@ -4929,27 +4928,37 @@ app.put("/servis/status/:id", async (req, res) => {
             });
         }
         
-        let updateQuery = 'UPDATE servisi SET status = $1';
+        const currentData = existingService.rows[0];
+        
+        // Priprema parametara za update
+        let updateFields = ['status = $1'];
         let params = [status];
         let paramIndex = 2;
         
+        // Obrada napomene
         if (napomena) {
-            updateQuery += `, napomene = CONCAT(COALESCE(napomene, ''), $${paramIndex})`;
-            params.push(`\n---\nStatus promena (${new Date().toLocaleDateString('sr-RS')}): ${napomena}`);
+            const newNote = `\n---\nStatus promena (${new Date().toLocaleDateString('sr-RS')}): ${napomena}`;
+            const updatedNotes = (currentData.napomene || '') + newNote;
+            updateFields.push(`napomene = $${paramIndex}`);
+            params.push(updatedNotes);
             paramIndex++;
         }
         
+        // Obrada finalne cene
         if (finalna_cena && (status === 'gotov' || status === 'isporucen')) {
             const finalCost = parseFloat(finalna_cena);
-            if (finalCost >= 0) {
-                updateQuery += `, procenjena_cena = $${paramIndex}`;
+            if (!isNaN(finalCost) && finalCost >= 0) {
+                updateFields.push(`procenjena_cena = $${paramIndex}`);
                 params.push(finalCost);
                 paramIndex++;
             }
         }
         
-        updateQuery += ` WHERE id = $${paramIndex}`;
+        // Dodaj serviceId na kraj
         params.push(serviceId);
+        
+        // Konstruiši finalni query
+        const updateQuery = `UPDATE servisi SET ${updateFields.join(', ')} WHERE id = $${paramIndex}`;
         
         await db.query(updateQuery, params);
         

@@ -3386,39 +3386,87 @@ app.put("/api/dokumenti/:id", async (req, res) => {
         res.status(500).json({ error: "Greška pri ažuriranju dokumenta: " + error.message });
     }
 });
-// Helper funkcija za parsiranje artikala iz dokumenta
+
+// POBOLJŠANA FUNKCIJA ZA PARSIRANJE ARTIKALA - REŠAVA PROBLEM SA BROJEVIMA U NAZIVU
 function parseArtikliFromDokument(dokument) {
     const artikli = [];
     
     if (!dokument.naziv_artikla) return artikli;
     
-    // Format: "šifra - naziv (količina jm), šifra2 - naziv2 (količina2 jm2)"
-    const parts = dokument.naziv_artikla.split(', ');
-    
-    parts.forEach((part, index) => {
-        const match = part.match(/^(.+?)\s-\s(.+?)\s\((.+?)\s(.+?)\)$/);
-        if (match) {
-            const [, sifra, naziv, kolicina, jm] = match;
+    try {
+        const parts = dokument.naziv_artikla.split(', ');
+        
+        parts.forEach((part, index) => {
+            // POBOLJŠANI REGEX - bolje rukuje brojevima u nazivu
+            const match = part.match(/^(.+?)\s-\s(.+?)\s\(([\d.,]+)\s*([^()]*)\)$/);
             
-            // Distribuj cene i rabat proporcionalno
-            const kolicinaNum = parseFloat(kolicina) || 0;
-            const totalKolicina = parseFloat(dokument.kolicina) || 1;
-            
+            if (match) {
+                const [, sifra, naziv, kolicina, jm] = match;
+                
+                // Čišćenje i konverzija količine - zameni zarez tačkom za decimalne brojeve
+                const cleanedKolicina = kolicina.replace(',', '.');
+                const kolicinaNum = parseFloat(cleanedKolicina) || 0;
+                const totalKolicina = parseFloat(dokument.kolicina) || 1;
+                
+                artikli.push({
+                    rb: index + 1,
+                    sifra: sifra.trim(),
+                    naziv: naziv.trim(),
+                    jm: jm.trim() || 'kom',
+                    kolicina: kolicinaNum,
+                    cena_bez_pdv: (parseFloat(dokument.iznos_bez_pdv) || 0) / totalKolicina,
+                    cena_sa_pdv: (parseFloat(dokument.iznos_sa_pdv) || 0) / totalKolicina,
+                    rabat: parseFloat(dokument.rabat) || 0
+                });
+            } else {
+                // ALTERNATIVNI POKUŠAJ - ako prvi regex ne uspe
+                const altMatch = part.match(/^(.+?)\s-\s(.+?)\s\(([^()]+)\)$/);
+                if (altMatch) {
+                    const [, sifra, naziv, unutarZagrade] = altMatch;
+                    
+                    // Pokušaj da izdvojiš količinu i JM iz zagrade
+                    const quantityMatch = unutarZagrade.match(/^([\d.,]+)\s*(.*)$/);
+                    
+                    if (quantityMatch) {
+                        const [, kolicinaStr, jmStr] = quantityMatch;
+                        const cleanedKolicina = kolicinaStr.replace(',', '.');
+                        const kolicinaNum = parseFloat(cleanedKolicina) || 0;
+                        const totalKolicina = parseFloat(dokument.kolicina) || 1;
+                        
+                        artikli.push({
+                            rb: index + 1,
+                            sifra: sifra.trim(),
+                            naziv: naziv.trim(),
+                            jm: (jmStr.trim() || 'kom'),
+                            kolicina: kolicinaNum,
+                            cena_bez_pdv: (parseFloat(dokument.iznos_bez_pdv) || 0) / totalKolicina,
+                            cena_sa_pdv: (parseFloat(dokument.iznos_sa_pdv) || 0) / totalKolicina,
+                            rabat: parseFloat(dokument.rabat) || 0
+                        });
+                    }
+                } else {
+                    console.warn(`Neuspešno parsiranje stavke: ${part}`);
+                }
+            }
+        });
+        
+        // Ako parsiranje ne uspe, kreiraj jedan red
+        if (artikli.length === 0 && dokument.naziv_artikla) {
             artikli.push({
-                rb: index + 1,
-                sifra: sifra.trim(),
-                naziv: naziv.trim(),
-                jm: jm.trim(),
-                kolicina: kolicinaNum,
-                cena_bez_pdv: (parseFloat(dokument.iznos_bez_pdv) || 0) / totalKolicina,
-                cena_sa_pdv: (parseFloat(dokument.iznos_sa_pdv) || 0) / totalKolicina,
+                rb: 1,
+                sifra: 'N/A',
+                naziv: dokument.naziv_artikla,
+                jm: 'kom',
+                kolicina: parseFloat(dokument.kolicina) || 1,
+                cena_bez_pdv: parseFloat(dokument.iznos_bez_pdv) || 0,
+                cena_sa_pdv: parseFloat(dokument.iznos_sa_pdv) || 0,
                 rabat: parseFloat(dokument.rabat) || 0
             });
         }
-    });
-    
-    // Ako parsiranje ne uspe, kreiraj jedan red
-    if (artikli.length === 0) {
+        
+    } catch (error) {
+        console.error('Greška pri parsiranju artikala:', error);
+        // Fallback na osnovne podatke
         artikli.push({
             rb: 1,
             sifra: 'N/A',
@@ -3433,6 +3481,8 @@ function parseArtikliFromDokument(dokument) {
     
     return artikli;
 }
+
+
 
 // Uzmi pojedinačni dokument po ID-u
 app.get("/dokumenti/:id", async (req, res) => {

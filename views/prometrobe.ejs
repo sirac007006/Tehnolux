@@ -1139,7 +1139,6 @@
         console.error('Error loading filters:', error);
     }
 }
-
 function parseDocuments(documents) {
     const artikli = [];
     
@@ -1156,70 +1155,86 @@ function parseDocuments(documents) {
         const artikalStrings = doc.naziv_artikla.split(', ');
         
         artikalStrings.forEach(artStr => {
-            // Poboljšana regex za različite formate - posebno obrađujemo jedinicu mere
-            const match = artStr.match(/^(.+?)\s-\s(.+?)\s\((.+?)\s(.+?)\)$/);
+            // POBOLJŠANI REGEX - posebno obrađuje slučajeve sa brojevima u nazivu
+            const match = artStr.match(/^(\d+)\s-\s(.+?)\s\(([\d.,]+)\s*(kom|m|KG|kg|L|l|sht|komad|komada)\)$/i);
             
             if (match) {
                 const [, sifra, naziv, kolicina, jm] = match;
-                const kolicinaNum = parseFloat(kolicina) || 0;
-                
-                // Čišćenje jedinice mere - uzimamo samo "kom" ili "m"
-                let cleanedJm = jm.trim();
-                if (cleanedJm.includes('kom')) {
-                    cleanedJm = 'kom';
-                } else if (cleanedJm.includes('m')) {
-                    cleanedJm = 'm';
-                }
-                // Ako nije ni "kom" ni "m", ostavljamo originalnu vrednost
+                const kolicinaNum = parseFloat(kolicina.replace(',', '.')) || 0;
                 
                 artikli.push({
                     datum: doc.datum,
                     sifra: sifra.trim(),
                     naziv: naziv.trim(),
                     kolicina: kolicinaNum,
-                    jm: cleanedJm,
+                    jm: jm.toLowerCase(),
                     partner: doc.partner,
                     komercijalist: doc.komercijalist_ime || doc.komercijalist || 'N/A',
                     tip_dokumenta: doc.tip_dokumenta,
                     magacin: doc.magacin || 'N/A'
                 });
             } else {
-                // Ako parsiranje ne uspe, pokušavamo da izdvojimo jedinicu na drugi način
-                console.warn('Could not parse artikal string:', artStr);
+                // ALTERNATIVNI POKUŠAJ za složenije formate
+                const altMatch = artStr.match(/^(\d+)\s-\s(.+?)\s\(([^()]+)\)$/);
                 
-                let jm = 'kom'; // podrazumevana vrednost
-                let cleanedNaziv = artStr;
-                
-                // Pokušavamo da pronađemo jedinicu u stringu
-                if (artStr.includes('kom')) {
-                    jm = 'kom';
-                    // Uklanjamo "kom" iz naziva ako je tu
-                    cleanedNaziv = artStr.replace(/\s*kom\s*$/, '').trim();
-                } else if (artStr.includes('m')) {
-                    jm = 'm';
-                    // Uklanjamo "m" iz naziva ako je tu
-                    cleanedNaziv = artStr.replace(/\s*m\s*$/, '').trim();
+                if (altMatch) {
+                    const [, sifra, naziv, unutarZagrade] = altMatch;
+                    
+                    // Pokušaj da pronađeš količinu i JM u zagradi
+                    const quantityMatch = unutarZagrade.match(/([\d.,]+)\s*(kom|m|KG|kg|L|l|sht|komad|komada)?$/i);
+                    
+                    if (quantityMatch) {
+                        const [, kolicinaStr, jmStr] = quantityMatch;
+                        const kolicinaNum = parseFloat(kolicinaStr.replace(',', '.')) || 0;
+                        const jedinica = jmStr ? jmStr.toLowerCase() : 'kom';
+                        
+                        artikli.push({
+                            datum: doc.datum,
+                            sifra: sifra.trim(),
+                            naziv: naziv.trim(),
+                            kolicina: kolicinaNum,
+                            jm: jedinica,
+                            partner: doc.partner,
+                            komercijalist: doc.komercijalist_ime || doc.komercijalist || 'N/A',
+                            tip_dokumenta: doc.tip_dokumenta,
+                            magacin: doc.magacin || 'N/A'
+                        });
+                    } else {
+                        // Ako ne uspe, koristi podrazumevane vrednosti
+                        artikli.push({
+                            datum: doc.datum,
+                            sifra: 'N/A',
+                            naziv: artStr,
+                            kolicina: doc.kolicina || 0,
+                            jm: 'kom',
+                            partner: doc.partner,
+                            komercijalist: doc.komercijalist_ime || doc.komercijalist || 'N/A',
+                            tip_dokumenta: doc.tip_dokumenta,
+                            magacin: doc.magacin || 'N/A'
+                        });
+                    }
+                } else {
+                    // Fallback ako ništa ne uspe
+                    console.warn('Could not parse artikal string:', artStr);
+                    
+                    artikli.push({
+                        datum: doc.datum,
+                        sifra: 'N/A',
+                        naziv: artStr,
+                        kolicina: doc.kolicina || 0,
+                        jm: 'kom',
+                        partner: doc.partner,
+                        komercijalist: doc.komercijalist_ime || doc.komercijalist || 'N/A',
+                        tip_dokumenta: doc.tip_dokumenta,
+                        magacin: doc.magacin || 'N/A'
+                    });
                 }
-                
-                artikli.push({
-                    datum: doc.datum,
-                    sifra: 'N/A',
-                    naziv: cleanedNaziv,
-                    kolicina: doc.kolicina || 0,
-                    jm: jm,
-                    partner: doc.partner,
-                    komercijalist: doc.komercijalist_ime || doc.komercijalist || 'N/A',
-                    tip_dokumenta: doc.tip_dokumenta,
-                    magacin: doc.magacin || 'N/A'
-                });
             }
         });
     });
     
     return artikli;
 }
-
-
 async function loadPrometData() {
     try {
         // Konvertuj srpske datume u ISO format pre slanja na server

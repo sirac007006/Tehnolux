@@ -28,7 +28,8 @@ const ADMIN1_HASH  = '$2a$12$s7poSaYnwcVvY7226esSi.FGP15GospPS/2ctrZhoQJWBy0yWC4
 const SERVIS_HASH = "$2a$12$mVDJhEzXLoGc3NcBbnN7ne4gfwuAHk8X6laD/oCCX1IViJ068j2qe";
 const RADNJA_HASH  = '$2b$12$T1wLn3vutZ7VJaNsmS5q1uVqJwiT0qo1FW2DyyidxGbWSJZ20eRau'; 
 const MAGACIN_HASH = '$2b$12$8yj9bdZ/C.KdDA4S5fixreK1nfPJ4wQnX9cNIRPw6eWm3S93Is19K';
-
+const MAGACIN2_KES_HASH = '$2a$12$JBqEdgMoIfb4/TaGE9of8.jBMwDrh3UDgJ6b5TifkdCYPVsMyPDtK';//malkes123
+const MAGACIN2_RATE_HASH = '$2a$12$Lvu6Ou3QRuhd1f6YIYM2T.YNEh4NoarKsAujrGo/wOtLa91WgrQlm';//malrate321
 
 
 
@@ -80,7 +81,7 @@ app.use((req, res, next) => {
     }
     return next();
   }
-
+  
   // magacin role - NEMA pristup uplatama i karticama kupaca
   if (req.session.role === 'magacin') {
     if (url.startsWith('/uplate') || url.startsWith('/api/uplate') || 
@@ -138,9 +139,26 @@ app.post('/login', async (req, res) => {
         return res.redirect('/partneri');
       }
     }
+    if (username === 'magacin2_kes') {
+  const match = await bcrypt.compare(password, MAGACIN2_KES_HASH);
+  if (match) {
+    req.session.role = 'magacin';
+    req.session.username = 'magacin2_kes';
+    return res.redirect('/partneri');
+  }
+}
+
+if (username === 'magacin2_rate') {
+  const match = await bcrypt.compare(password, MAGACIN2_RATE_HASH);
+  if (match) {
+    req.session.role = 'magacin';
+    req.session.username = 'magacin2_rate';
+    return res.redirect('/partneri');
+  }
+}
 
     // --- MAGACIN ---
-    if (username === 'magacin') {
+    if (username === 'magacin1') {
       const match = await bcrypt.compare(password, MAGACIN_HASH);
       if (match) {
         req.session.role = 'magacin';

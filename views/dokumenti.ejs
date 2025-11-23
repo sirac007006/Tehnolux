@@ -1962,20 +1962,9 @@
                         lagerCene.cena_sa_pdv = parseFloat(lagerData.cena_sa_pdv);
                     }
                     
-                    // Učitaj rabat iz partner_artikal_rabat tabele
+                    // Koristi rabat koji je već snimljen u dokumentu
                     let rabat = parseFloat(artikal.rabat) || 0;
-                    if (partnerSifra) {
-                        try {
-                            const rabatResponse = await fetch(`/api/rabat/${partnerSifra}/${artikal.sifra}`);
-                            const rabatData = await rabatResponse.json();
-                            if (rabatData.success) {
-                                rabat = parseFloat(rabatData.rabat) || 0;
-                                console.log(`Učitan rabat iz tabele za ${artikal.sifra}: ${rabat}%`);
-                            }
-                        } catch (rabatError) {
-                            console.warn(`Nije moguće učitati rabat za ${artikal.sifra}:`, rabatError);
-                        }
-                    }
+
                     
                     addEditRow({
                         ...artikal,

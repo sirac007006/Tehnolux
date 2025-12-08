@@ -1274,8 +1274,8 @@
                         <input type="tel" class="form-control" id="customer-phone" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="customer-email">Email:</label>
-                        <input type="email" class="form-control" id="customer-email">
+                        <label class="form-label" for="customer-adresa">Adresa:</label>
+                        <input type="text" class="form-control" id="customer-adresa">
                     </div>
                 </div>
 
@@ -1658,7 +1658,7 @@ function fillServiceForm(service) {
     document.getElementById('service-number').value = service.broj_servisa;
     document.getElementById('customer-name').value = service.ime_kupca || '';
     document.getElementById('customer-phone').value = service.telefon || '';
-    document.getElementById('customer-email').value = service.email || '';
+    document.getElementById('customer-adresa').value = service.adresa || '';
     document.getElementById('product-model').value = service.proizvod_model || '';
     document.getElementById('serial-number').value = service.serijski_broj || '';
     document.getElementById('warranty-status').value = service.status_garancije || 'proverava-se';
@@ -2017,7 +2017,7 @@ function printReportWithData(serviceData) {
             const formData = {
                 ime_kupca: document.getElementById('customer-name').value,
                 telefon: document.getElementById('customer-phone').value,
-                email: document.getElementById('customer-email').value,
+                adresa: document.getElementById('customer-adresa').value,
                 proizvod_model: document.getElementById('product-model').value,
                 serijski_broj: document.getElementById('serial-number').value,
                 status_garancije: document.getElementById('warranty-status').value,

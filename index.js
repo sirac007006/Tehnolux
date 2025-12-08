@@ -929,7 +929,7 @@ app.put("/partneri/:Sifra", async (req, res) => {
             adresa: p.Adresa || existing.Adresa || null,
             telefon: p.Telefon || existing.Telefon || null,
             fax: p.Fax || existing.Fax || null,
-            email: p.E_mail || p.Email || existing.E_mail || null,
+            adresa: p.E_mail || p.Email || existing.E_mail || null,
             lice1: p.Lice1 || p.Kontakt_osoba1 || existing.Lice1 || null,
             lice2: p.Lice2 || p.Kontakt_osoba2 || existing.Lice2 || null,
             rabat: rabat !== null ? rabat : existing.rabat
@@ -947,7 +947,7 @@ app.put("/partneri/:Sifra", async (req, res) => {
                 updatedData.adresa,
                 updatedData.telefon,
                 updatedData.fax,
-                updatedData.email,
+                updatedData.adresa,
                 updatedData.lice1,
                 updatedData.lice2,
                 updatedData.rabat,
@@ -4662,7 +4662,7 @@ app.get("/servis", async (req, res) => {
         broj_servisa,
         ime_kupca,
         telefon,
-        email,
+        adresa,
         proizvod_model,
         serijski_broj,
         status_garancije,
@@ -4711,7 +4711,7 @@ app.post("/servis/add", async (req, res) => {
         const {
             ime_kupca,
             telefon,
-            email,
+            adresa,
             proizvod_model,
             serijski_broj,
             status_garancije,
@@ -4775,7 +4775,7 @@ app.post("/servis/add", async (req, res) => {
                 broj_servisa,
                 ime_kupca,
                 telefon,
-                email,
+                adresa,
                 proizvod_model,
                 serijski_broj,
                 status_garancije,
@@ -4792,7 +4792,7 @@ app.post("/servis/add", async (req, res) => {
             nextNumber,
             ime_kupca.trim(),
             telefon.trim(),
-            email ? email.trim() : null,
+            adresa ? adresa.trim() : null,
             proizvod_model.trim(),
             serijski_broj.trim(),
             statusGarancijeNorm,
@@ -4828,7 +4828,7 @@ app.put("/servis/update/:id", async (req, res) => {
         const {
             ime_kupca,
             telefon,
-            email,
+            adresa,
             proizvod_model,
             serijski_broj,
             status_garancije,
@@ -4897,7 +4897,7 @@ app.put("/servis/update/:id", async (req, res) => {
             UPDATE servisi SET
                 ime_kupca = $1,
                 telefon = $2,
-                email = $3,
+                adresa = $3,
                 proizvod_model = $4,
                 serijski_broj = $5,
                 status_garancije = $6,
@@ -4910,7 +4910,7 @@ app.put("/servis/update/:id", async (req, res) => {
         `, [
             ime_kupca.trim(),
             telefon.trim(),
-            email ? email.trim() : null,
+            adresa ? adresa.trim() : null,
             proizvod_model.trim(),
             serijski_broj.trim(),
             statusGarancijeNorm,
@@ -5070,7 +5070,7 @@ app.get("/servis/get/:id", async (req, res) => {
         
         const result = await db.query(
             `SELECT 
-                id, broj_servisa, ime_kupca, telefon, email, proizvod_model,
+                id, broj_servisa, ime_kupca, telefon, adresa, proizvod_model,
                 serijski_broj, status_garancije, opis_kvara, tehnicar,
                 prioritet, procenjena_cena, napomene, datum_kreiranja, status
             FROM servisi WHERE id = $1`,
@@ -5141,7 +5141,7 @@ app.get("/servis/search", async (req, res) => {
         
         let query = `
             SELECT 
-                id, broj_servisa, ime_kupca, telefon, email, proizvod_model,
+                id, broj_servisa, ime_kupca, telefon, adresa, proizvod_model,
                 serijski_broj, status_garancije, opis_kvara, tehnicar,
                 prioritet, procenjena_cena, napomene, datum_kreiranja, status
             FROM servisi 

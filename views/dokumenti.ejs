@@ -2572,8 +2572,12 @@
                     document.getElementById('print-customer-city').textContent = '';
                 }
                 
-                // Učitaj artikle sa STVARNIM cenama iz lagera + INDIVIDUALNIM RABATIMA
+                // Učitaj artikle sa STVARNIM cenama iz lagera + RABATIMA
                 const artikli = [];
+                
+                // ISPRAVLJENO: Koristi rabat sačuvan u dokumentu kao fallback
+                const dokumentRabat = parseFloat(dokument.rabat) || 0;
+                
                 for (let i = 0; i < data.artikli.length; i++) {
                     const art = data.artikli[i];
                     
@@ -2590,21 +2594,29 @@
                             cene.cena_sa_pdv = parseFloat(lagerData.cena_sa_pdv);
                         }
                         
-                        // Učitaj INDIVIDUALNI rabat iz tabele
-                        let individualniRabat = 0;
-                        if (partner && partner.Sifra && art.sifra !== 'N/A') {
+                        // ISPRAVLJENO: Prvo koristi rabat iz artikla (sačuvan u dokumentu),
+                        // ako nije dostupan, pokušaj učitati iz tabele partner_artikal_rabat
+                        let finalRabat = parseFloat(art.rabat) || 0;
+                        
+                        // Ako artikal nema sačuvan rabat, pokušaj učitati iz tabele
+                        if (finalRabat === 0 && partner && partner.Sifra && art.sifra !== 'N/A') {
                             try {
                                 const rabatResponse = await fetch(`/api/rabat/${partner.Sifra}/${art.sifra}`);
                                 const rabatData = await rabatResponse.json();
-                                if (rabatData.success) {
-                                    individualniRabat = parseFloat(rabatData.rabat) || 0;
+                                if (rabatData.success && rabatData.rabat > 0) {
+                                    finalRabat = parseFloat(rabatData.rabat);
                                 }
                             } catch (rabatError) {
                                 console.warn(`Nije moguće učitati rabat za ${art.sifra}:`, rabatError);
                             }
                         }
                         
-                        // ISPRAVLJENO: Uklanja nove redove iz naziva artikla
+                        // Ako još uvijek nema rabat, koristi rabat iz dokumenta
+                        if (finalRabat === 0 && dokumentRabat > 0) {
+                            finalRabat = dokumentRabat;
+                        }
+                        
+                        // Uklanja nove redove iz naziva artikla
                         let nazivArtikla = art.naziv;
                         nazivArtikla = nazivArtikla.replace(/\n/g, ' ').trim();
                         
@@ -2616,15 +2628,18 @@
                             kolicina: parseFloat(art.kolicina),
                             cenaBezPdv: cene.cena_bez_pdv,
                             cenaSaPdv: cene.cena_sa_pdv,
-                            rabat: individualniRabat,
+                            rabat: finalRabat,
                             pdvStopa: 21
                         });
                     } catch (error) {
                         console.error(`Greška pri učitavanju cena za ${art.sifra}:`, error);
                         
-                        // ISPRAVLJENO: Uklanja nove redove iz naziva artikla
+                        // Uklanja nove redove iz naziva artikla
                         let nazivArtikla = art.naziv;
                         nazivArtikla = nazivArtikla.replace(/\n/g, ' ').trim();
+                        
+                        // ISPRAVLJENO: Koristi rabat iz artikla ili dokumenta
+                        let fallbackRabat = parseFloat(art.rabat) || dokumentRabat || 0;
                         
                         artikli.push({
                             rb: i + 1,
@@ -2634,7 +2649,7 @@
                             kolicina: parseFloat(art.kolicina),
                             cenaBezPdv: parseFloat(art.cena_bez_pdv) || 0,
                             cenaSaPdv: parseFloat(art.cena_sa_pdv) || 0,
-                            rabat: 0,
+                            rabat: fallbackRabat,
                             pdvStopa: 21
                         });
                     }

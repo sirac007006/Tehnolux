@@ -2355,7 +2355,8 @@ app.get("/pravljenjedokumenta", async (req, res) => {
     }
 });
 
-// POST - Kreiranje dokumenta sa šifrom magacina i napomenom
+
+// POST - Kreiranje dokumenta sa KOMPLETNIM podacima sačuvanim u bazi
 app.post("/api/pravljenjedokumenta", async (req, res) => {
     try {
         await db.query('BEGIN');
@@ -2368,7 +2369,7 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
             rabat, 
             ukupanIznos,
             magacin,
-            napomena // DODATO: Polje za napomenu
+            napomena
         } = req.body;
         
         // Validacija
@@ -2392,7 +2393,7 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
 
         const today = new Date().toISOString().split('T')[0];
         
-        // GENERIŠI NOVU ŠIFRU DOKUMENTA SA ŠIFROM MAGACINA
+        // Generiši šifru dokumenta
         const documentTypeMap = {
             'ponuda': 'ponuda',
             'predracun': 'predracun', 
@@ -2402,7 +2403,6 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
         
         const docType = documentTypeMap[tipDokumenta] || 'dokument';
         
-        // Pronađi poslednji broj za ovaj tip dokumenta
         const lastDoc = await db.query(
             `SELECT tip_dokumenta 
              FROM dokumenti 
@@ -2416,16 +2416,13 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
         if (lastDoc.rows.length > 0) {
             const lastDocNumber = lastDoc.rows[0].tip_dokumenta;
             
-            // Proveri da li dokument već ima šifru magacina
             if (lastDocNumber.includes('-')) {
-                // Ako ima, uzmi samo deo pre '-' za određivanje broja
                 const basePart = lastDocNumber.split('-')[0];
                 const match = basePart.match(/(\d+)$/);
                 if (match) {
                     nextNumber = parseInt(match[1]) + 1;
                 }
             } else {
-                // Stari format bez magacina
                 const match = lastDocNumber.match(/(\d+)$/);
                 if (match) {
                     nextNumber = parseInt(match[1]) + 1;
@@ -2433,15 +2430,32 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
             }
         }
 
-        // Generiši osnovnu šifru (npr. "otpremnica9")
         const baseDocumentNumber = `${docType}${nextNumber}`;
-        
-        // Kreiraj kompletnu šifru sa magacinom (npr. "otpremnica9-VEL001")
         const fullDocumentNumber = `${baseDocumentNumber}-${magacin}`;
         
-        // Obradi artikle
+        // Pronađi partnera po šifri
+        const partnerResult = await db.query(
+            'SELECT * FROM partneri WHERE "Sifra" = $1',
+            [partner]
+        );
+        
+        if (partnerResult.rows.length === 0) {
+            await db.query('ROLLBACK');
+            return res.status(400).json({ error: "Partner nije pronađen." });
+        }
+        
+        const partnerData = partnerResult.rows[0];
+        const partnerNaziv = partnerData.Naziv_partnera;
+        
+        // OBRADA ARTIKALA - SAČUVAJ SVE PODATKE
         const processedArtikli = [];
         let totalKolicina = 0;
+        let totalBezPdvPreRabata = 0;
+        let totalRabatIznos = 0;
+        let totalBezPdvPosleRabata = 0;
+        let totalPdvIznos = 0;
+        let totalSaPdvFinal = 0;
+        let sumaRabata = 0;
         let lagerUpdateErrors = [];
 
         for (const artikal of artikli) {
@@ -2466,18 +2480,60 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
                 );
             }
             
-            // Čuvaj ORIGINALNE cene iz lagera
+            // ORIGINALNE cene iz lagera
+            const cenaBezPdv = parseFloat(lagerArtikal.cena_bez_PDV) || 0;
+            const cenaSaPdv = parseFloat(lagerArtikal.cena_sa_PDV) || 0;
+            
+            // INDIVIDUALNI RABAT za ovaj artikal
+            let individualniRabat = parseFloat(artikal.rabat) || 0;
+            
+            // Ako rabat nije prosleđen, učitaj iz tabele partner_artikal_rabat
+            if (individualniRabat === 0) {
+                try {
+                    const rabatResult = await db.query(
+                        'SELECT rabat FROM partner_artikal_rabat WHERE partner_sifra = $1 AND artikal_sifra = $2',
+                        [partnerData.Sifra, artikal.sifra]
+                    );
+                    
+                    if (rabatResult.rows.length > 0) {
+                        individualniRabat = parseFloat(rabatResult.rows[0].rabat) || 0;
+                    }
+                } catch (rabatError) {
+                    console.warn(`Greška pri učitavanju rabata za ${artikal.sifra}:`, rabatError);
+                }
+            }
+            
+            // KOMPLETNA KALKULACIJA
+            const iznosBezPdvPreRabata = cenaBezPdv * requestedQuantity;
+            const rabatIznos = iznosBezPdvPreRabata * (individualniRabat / 100);
+            const iznosBezPdvPosleRabata = iznosBezPdvPreRabata - rabatIznos;
+            const pdvIznos = iznosBezPdvPosleRabata * 0.21;
+            const iznosSaPdvFinal = iznosBezPdvPosleRabata + pdvIznos;
+            
+            // Čuvaj sve podatke za ovaj artikal
             processedArtikli.push({
                 sifra: artikal.sifra,
                 naziv: lagerArtikal.naziv,
                 jm: lagerArtikal.JM || 'kom',
                 kolicina: requestedQuantity,
-                cena_bez_pdv: parseFloat(lagerArtikal.cena_bez_PDV) || 0,
-                cena_sa_pdv: parseFloat(lagerArtikal.cena_sa_PDV) || 0,
-                rabat: parseFloat(artikal.rabat) || 0
+                cena_bez_pdv: cenaBezPdv,
+                cena_sa_pdv: cenaSaPdv,
+                rabat: individualniRabat,
+                iznos_bez_pdv_pre_rabata: iznosBezPdvPreRabata,
+                rabat_iznos: rabatIznos,
+                iznos_bez_pdv_posle_rabata: iznosBezPdvPosleRabata,
+                pdv_iznos: pdvIznos,
+                iznos_sa_pdv_final: iznosSaPdvFinal
             });
             
+            // Sumiranje
             totalKolicina += requestedQuantity;
+            totalBezPdvPreRabata += iznosBezPdvPreRabata;
+            totalRabatIznos += rabatIznos;
+            totalBezPdvPosleRabata += iznosBezPdvPosleRabata;
+            totalPdvIznos += pdvIznos;
+            totalSaPdvFinal += iznosSaPdvFinal;
+            sumaRabata += individualniRabat;
         }
 
         if (lagerUpdateErrors.length > 0) {
@@ -2493,64 +2549,42 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
             return res.status(400).json({ error: "Nijedan artikal nije uspešno obrađen." });
         }
         
-        // String artikala - SADA UKLJUČUJE CIJENE za tačno čuvanje
-        // Format: sifra - naziv (kolicina jm) [cb:cena_bez|cs:cena_sa|r:rabat]
-        const artikliString = processedArtikli.map(item => 
-            `${item.sifra} - ${item.naziv} (${item.kolicina} ${item.jm}) [cb:${item.cena_bez_pdv}|cs:${item.cena_sa_pdv}|r:${item.rabat}]`
-        ).join(', ');
-        
-        // KALKULACIJA - Čuva originalnu cenu, računa sa rabatom
-        let totalBezPdvBEZRabata = 0;
-        let totalBezPdvSARabatom = 0;
-        let totalPdv = 0;
-        let totalSaPdv = 0;
-        let sumaRabata = 0;
-
-        processedArtikli.forEach(artikal => {
-            const kolicina = parseFloat(artikal.kolicina) || 0;
-            const cenaBezPdv = parseFloat(artikal.cena_bez_pdv) || 0;
-            const cenaSaPdv = parseFloat(artikal.cena_sa_pdv) || 0;
-            const rabat = parseFloat(artikal.rabat) || 0;
-            
-            const iznosBezPdvOriginal = cenaBezPdv * kolicina;
-            const rabatIznos = iznosBezPdvOriginal * (rabat / 100);
-            const iznosBezPdvSaRabatom = iznosBezPdvOriginal - rabatIznos;
-            const pdvIznos = iznosBezPdvSaRabatom * 0.21;
-            const iznosSaPdv = iznosBezPdvSaRabatom + pdvIznos;
-            
-            totalBezPdvBEZRabata += iznosBezPdvOriginal;
-            totalBezPdvSARabatom += iznosBezPdvSaRabatom;
-            totalPdv += pdvIznos;
-            totalSaPdv += iznosSaPdv;
-            sumaRabata += rabat;
-        });
-
         // Prosečan rabat
         const prosecniRabat = processedArtikli.length > 0 
             ? sumaRabata / processedArtikli.length 
             : 0;
         
-        // Nađi naziv partnera
-        const partnerRes = await db.query(
-            'SELECT "Naziv_partnera" FROM partneri WHERE "Sifra" = $1',
-            [partner]
-        );
+        // String artikala (za kompatibilnost sa starim sistemom)
+        const artikliString = processedArtikli.map(item => 
+            `${item.sifra} - ${item.naziv} (${item.kolicina} ${item.jm})`
+        ).join(', ');
 
-        if (partnerRes.rows.length === 0) {
-            await db.query('ROLLBACK');
-            return res.status(400).json({ error: "Partner nije pronađen." });
-        }
-
-        const partnerNaziv = partnerRes.rows[0].Naziv_partnera;
-
-        // Upiši u bazu SA NAPOMENOM
+        // UPIŠI U BAZU - SVE PODATKE
         const documentResult = await db.query(
             `INSERT INTO dokumenti (
-                datum, partner, tip_dokumenta, magacin, naziv_artikla, 
-                kolicina, iznos_bez_pdv, iznos_sa_pdv, pdv_iznos, rabat, 
-                komercijalist_id, napomena
+                datum, 
+                partner, 
+                tip_dokumenta, 
+                magacin, 
+                naziv_artikla, 
+                kolicina, 
+                iznos_bez_pdv, 
+                iznos_sa_pdv, 
+                pdv_iznos, 
+                rabat, 
+                komercijalist_id, 
+                napomena,
+                artikli_json,
+                ukupna_kolicina,
+                ukupno_bez_pdv_pre_rabata,
+                ukupan_rabat_iznos,
+                ukupno_bez_pdv_posle_rabata,
+                ukupan_pdv_iznos,
+                ukupno_sa_pdv_final,
+                prosecan_rabat
             )
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id`,
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20) 
+            RETURNING id`,
             [
                 today,
                 partnerNaziv,
@@ -2558,12 +2592,20 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
                 magacin,
                 artikliString,
                 totalKolicina,
-                parseFloat(totalBezPdvBEZRabata) || 0,
-                parseFloat(totalSaPdv) || 0,
-                parseFloat(totalPdv) || 0,
+                totalBezPdvPreRabata,  // Stara kolona - pre rabata
+                totalSaPdvFinal,       // Stara kolona - final
+                totalPdvIznos,
                 prosecniRabat,
                 komercijalist_id,
-                napomena || null
+                napomena || null,
+                JSON.stringify(processedArtikli),  // SVE podatke u JSON
+                totalKolicina,
+                totalBezPdvPreRabata,
+                totalRabatIznos,
+                totalBezPdvPosleRabata,
+                totalPdvIznos,
+                totalSaPdvFinal,
+                prosecniRabat
             ]
         );
 
@@ -2571,7 +2613,7 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
         
         await db.query('COMMIT');
 
-        console.log(`Document created: ${fullDocumentNumber}, Partner: ${partnerNaziv}, Magacin: ${magacin}, Napomena: ${napomena ? 'Da' : 'Ne'}`);
+        console.log(`Document created: ${fullDocumentNumber}, Partner: ${partnerNaziv}, Artikli saved: ${processedArtikli.length}`);
         
         res.json({ 
             success: true, 
@@ -2582,7 +2624,15 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
             komercijalist: komercijalist.ime_prezime,
             processedItems: processedArtikli.length,
             lagerUpdated: ['otpremnica', 'kalkulacija'].includes(tipDokumenta.toLowerCase()),
-            napomena: napomena
+            napomena: napomena,
+            totals: {
+                kolicina: totalKolicina,
+                bez_pdv_pre_rabata: totalBezPdvPreRabata,
+                rabat_iznos: totalRabatIznos,
+                bez_pdv_posle_rabata: totalBezPdvPosleRabata,
+                pdv: totalPdvIznos,
+                sa_pdv_final: totalSaPdvFinal
+            }
         });
         
     } catch (error) {
@@ -2591,7 +2641,6 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
         res.status(500).json({ error: "Greška pri kreiranju dokumenta: " + error.message });
     } 
 });
-
 
 
 app.get("/api/pravljenjedokumenta/dokumenti", async (req, res) => {
@@ -3235,20 +3284,45 @@ app.get("/dokumenti", async (req, res) => {
 });
 
 
-// GET - Uzmi pojedinačni dokument sa parsiranim artiklima (JSON)
+// GET - Uzmi pojedinačni dokument sa KOMPLETNIM podacima
 app.get("/api/dokumenti/:id", async (req, res) => {
     try {
         const { id } = req.params;
         
         const dokumentResult = await db.query('SELECT * FROM dokumenti WHERE id = $1', [id]);
+        
         if (dokumentResult.rows.length === 0) {
             return res.status(404).json({ error: 'Dokument nije pronađen' });
         }
         
         const dokument = dokumentResult.rows[0];
         
-        // Parsiraj artikle iz polja naziv_artikla
-        const artikli = parseArtikliFromDokument(dokument);
+        // Ako postoji artikli_json, koristi ga (NOVI SISTEM)
+        let artikli = [];
+        
+        if (dokument.artikli_json && typeof dokument.artikli_json === 'object') {
+            // NOVI SISTEM - koristi sačuvane podatke
+            artikli = Array.isArray(dokument.artikli_json) 
+                ? dokument.artikli_json 
+                : [dokument.artikli_json];
+            
+            console.log(`Loaded ${artikli.length} artikli from JSON for document ${id}`);
+        } else {
+            // STARI SISTEM - parse iz naziv_artikla (fallback za stare dokumente)
+            artikli = parseArtikliFromDokument(dokument);
+            console.log(`Parsed ${artikli.length} artikli from naziv_artikla for old document ${id}`);
+        }
+        
+        // FALLBACK za totale - koristi stare kolone ako nove nisu popunjene
+        if (!dokument.ukupno_sa_pdv_final || dokument.ukupno_sa_pdv_final === 0) {
+            dokument.ukupna_kolicina = parseFloat(dokument.kolicina) || 0;
+            dokument.ukupno_bez_pdv_pre_rabata = parseFloat(dokument.iznos_bez_pdv) || 0;
+            dokument.ukupan_rabat_iznos = (parseFloat(dokument.iznos_bez_pdv) || 0) * ((parseFloat(dokument.rabat) || 0) / 100);
+            dokument.ukupno_bez_pdv_posle_rabata = (parseFloat(dokument.iznos_bez_pdv) || 0) * (1 - (parseFloat(dokument.rabat) || 0) / 100);
+            dokument.ukupan_pdv_iznos = parseFloat(dokument.pdv_iznos) || 0;
+            dokument.ukupno_sa_pdv_final = parseFloat(dokument.iznos_sa_pdv) || 0;
+            dokument.prosecan_rabat = parseFloat(dokument.rabat) || 0;
+        }
         
         res.json({
             success: true,
@@ -3261,6 +3335,91 @@ app.get("/api/dokumenti/:id", async (req, res) => {
         res.status(500).json({ error: "Greška pri dohvatanju dokumenta." });
     }
 });
+
+// FALLBACK funkcija za stare dokumente
+function parseArtikliFromDokument(dokument) {
+    const artikli = [];
+    
+    if (!dokument.naziv_artikla) return artikli;
+    
+    try {
+        const parts = dokument.naziv_artikla.split(', ');
+        const totalKolicina = parseFloat(dokument.kolicina) || 1;
+        const prosecniRabat = parseFloat(dokument.rabat) || 0;
+        
+        parts.forEach((part, index) => {
+            const match = part.match(/^(.+?)\s-\s(.+?)\s\(([\d.,]+)\s*([^()]*)\)$/);
+            
+            if (match) {
+                const [, sifra, naziv, kolicina, jm] = match;
+                const cleanedKolicina = kolicina.replace(',', '.');
+                const kolicinaNum = parseFloat(cleanedKolicina) || 0;
+                
+                // Procenjeni iznosi za stare dokumente
+                const iznosBezPdv = (parseFloat(dokument.iznos_bez_pdv) || 0) / totalKolicina * kolicinaNum;
+                const iznosSaPdv = (parseFloat(dokument.iznos_sa_pdv) || 0) / totalKolicina * kolicinaNum;
+                const cenaBezPdv = iznosBezPdv / kolicinaNum;
+                const cenaSaPdv = iznosSaPdv / kolicinaNum;
+                
+                artikli.push({
+                    rb: index + 1,
+                    sifra: sifra.trim(),
+                    naziv: naziv.trim(),
+                    jm: jm.trim() || 'kom',
+                    kolicina: kolicinaNum,
+                    cena_bez_pdv: cenaBezPdv,
+                    cena_sa_pdv: cenaSaPdv,
+                    rabat: prosecniRabat,
+                    iznos_bez_pdv_pre_rabata: iznosBezPdv,
+                    rabat_iznos: iznosBezPdv * (prosecniRabat / 100),
+                    iznos_bez_pdv_posle_rabata: iznosBezPdv * (1 - prosecniRabat / 100),
+                    pdv_iznos: (iznosSaPdv - iznosBezPdv),
+                    iznos_sa_pdv_final: iznosSaPdv
+                });
+            }
+        });
+        
+        if (artikli.length === 0 && dokument.naziv_artikla) {
+            artikli.push({
+                rb: 1,
+                sifra: 'N/A',
+                naziv: dokument.naziv_artikla,
+                jm: 'kom',
+                kolicina: parseFloat(dokument.kolicina) || 1,
+                cena_bez_pdv: parseFloat(dokument.iznos_bez_pdv) || 0,
+                cena_sa_pdv: parseFloat(dokument.iznos_sa_pdv) || 0,
+                rabat: parseFloat(dokument.rabat) || 0,
+                iznos_bez_pdv_pre_rabata: parseFloat(dokument.iznos_bez_pdv) || 0,
+                rabat_iznos: 0,
+                iznos_bez_pdv_posle_rabata: parseFloat(dokument.iznos_bez_pdv) || 0,
+                pdv_iznos: parseFloat(dokument.pdv_iznos) || 0,
+                iznos_sa_pdv_final: parseFloat(dokument.iznos_sa_pdv) || 0
+            });
+        }
+        
+    } catch (error) {
+        console.error('Greška pri parsiranju artikala:', error);
+        artikli.push({
+            rb: 1,
+            sifra: 'N/A',
+            naziv: dokument.naziv_artikla,
+            jm: 'kom',
+            kolicina: parseFloat(dokument.kolicina) || 1,
+            cena_bez_pdv: parseFloat(dokument.iznos_bez_pdv) || 0,
+            cena_sa_pdv: parseFloat(dokument.iznos_sa_pdv) || 0,
+            rabat: parseFloat(dokument.rabat) || 0,
+            iznos_bez_pdv_pre_rabata: parseFloat(dokument.iznos_bez_pdv) || 0,
+            rabat_iznos: 0,
+            iznos_bez_pdv_posle_rabata: parseFloat(dokument.iznos_bez_pdv) || 0,
+            pdv_iznos: parseFloat(dokument.pdv_iznos) || 0,
+            iznos_sa_pdv_final: parseFloat(dokument.iznos_sa_pdv) || 0
+        });
+    }
+    
+    return artikli;
+}
+
+
 
 // PUT - Ažuriraj dokument sa artiklima I NAPOMENOM
 app.put("/api/dokumenti/:id", async (req, res) => {
@@ -3375,119 +3534,6 @@ app.put("/api/dokumenti/:id", async (req, res) => {
     }
 });
 
-// POBOLJŠANA FUNKCIJA ZA PARSIRANJE ARTIKALA - REŠAVA PROBLEM SA BROJEVIMA U NAZIVU
-function parseArtikliFromDokument(dokument) {
-    const artikli = [];
-    
-    if (!dokument.naziv_artikla) return artikli;
-    
-    try {
-        // Razdvoji artikle - pazi na zarez unutar zagrada
-        const parts = dokument.naziv_artikla.split(/,\s*(?=\d+\s*-\s*)/);
-        
-        parts.forEach((part, index) => {
-            // NOVI FORMAT SA CIJENAMA: sifra - naziv (kolicina jm) [cb:X|cs:Y|r:Z]
-            const newFormatMatch = part.match(/^(.+?)\s-\s(.+?)\s\(([\d.,]+)\s*([^()]*)\)\s*\[cb:([\d.]+)\|cs:([\d.]+)\|r:([\d.]+)\]$/);
-            
-            if (newFormatMatch) {
-                const [, sifra, naziv, kolicina, jm, cenaBez, cenaSa, rabat] = newFormatMatch;
-                const cleanedKolicina = kolicina.replace(',', '.');
-                
-                artikli.push({
-                    rb: index + 1,
-                    sifra: sifra.trim(),
-                    naziv: naziv.trim(),
-                    jm: jm.trim() || 'kom',
-                    kolicina: parseFloat(cleanedKolicina) || 0,
-                    cena_bez_pdv: parseFloat(cenaBez) || 0,
-                    cena_sa_pdv: parseFloat(cenaSa) || 0,
-                    rabat: parseFloat(rabat) || 0
-                });
-                return;
-            }
-            
-            // STARI FORMAT BEZ CIJENA: sifra - naziv (kolicina jm)
-            const oldFormatMatch = part.match(/^(.+?)\s-\s(.+?)\s\(([\d.,]+)\s*([^()]*)\)$/);
-            
-            if (oldFormatMatch) {
-                const [, sifra, naziv, kolicina, jm] = oldFormatMatch;
-                const cleanedKolicina = kolicina.replace(',', '.');
-                const kolicinaNum = parseFloat(cleanedKolicina) || 0;
-                const totalKolicina = parseFloat(dokument.kolicina) || 1;
-                
-                // Za stari format, računaj prosječnu cijenu (fallback)
-                artikli.push({
-                    rb: index + 1,
-                    sifra: sifra.trim(),
-                    naziv: naziv.trim(),
-                    jm: jm.trim() || 'kom',
-                    kolicina: kolicinaNum,
-                    cena_bez_pdv: (parseFloat(dokument.iznos_bez_pdv) || 0) / totalKolicina,
-                    cena_sa_pdv: (parseFloat(dokument.iznos_sa_pdv) || 0) / totalKolicina,
-                    rabat: parseFloat(dokument.rabat) || 0
-                });
-                return;
-            }
-            
-            // ALTERNATIVNI POKUŠAJ za stari format
-            const altMatch = part.match(/^(.+?)\s-\s(.+?)\s\(([^()]+)\)$/);
-            if (altMatch) {
-                const [, sifra, naziv, unutarZagrade] = altMatch;
-                const quantityMatch = unutarZagrade.match(/^([\d.,]+)\s*(.*)$/);
-                
-                if (quantityMatch) {
-                    const [, kolicinaStr, jmStr] = quantityMatch;
-                    const cleanedKolicina = kolicinaStr.replace(',', '.');
-                    const kolicinaNum = parseFloat(cleanedKolicina) || 0;
-                    const totalKolicina = parseFloat(dokument.kolicina) || 1;
-                    
-                    artikli.push({
-                        rb: index + 1,
-                        sifra: sifra.trim(),
-                        naziv: naziv.trim(),
-                        jm: (jmStr.trim() || 'kom'),
-                        kolicina: kolicinaNum,
-                        cena_bez_pdv: (parseFloat(dokument.iznos_bez_pdv) || 0) / totalKolicina,
-                        cena_sa_pdv: (parseFloat(dokument.iznos_sa_pdv) || 0) / totalKolicina,
-                        rabat: parseFloat(dokument.rabat) || 0
-                    });
-                }
-            } else {
-                console.warn(`Neuspešno parsiranje stavke: ${part}`);
-            }
-        });
-        
-        // Ako parsiranje ne uspe, kreiraj jedan red
-        if (artikli.length === 0 && dokument.naziv_artikla) {
-            artikli.push({
-                rb: 1,
-                sifra: 'N/A',
-                naziv: dokument.naziv_artikla,
-                jm: 'kom',
-                kolicina: parseFloat(dokument.kolicina) || 1,
-                cena_bez_pdv: parseFloat(dokument.iznos_bez_pdv) || 0,
-                cena_sa_pdv: parseFloat(dokument.iznos_sa_pdv) || 0,
-                rabat: parseFloat(dokument.rabat) || 0
-            });
-        }
-        
-    } catch (error) {
-        console.error('Greška pri parsiranju artikala:', error);
-        // Fallback na osnovne podatke
-        artikli.push({
-            rb: 1,
-            sifra: 'N/A',
-            naziv: dokument.naziv_artikla,
-            jm: 'kom',
-            kolicina: parseFloat(dokument.kolicina) || 1,
-            cena_bez_pdv: parseFloat(dokument.iznos_bez_pdv) || 0,
-            cena_sa_pdv: parseFloat(dokument.iznos_sa_pdv) || 0,
-            rabat: parseFloat(dokument.rabat) || 0
-        });
-    }
-    
-    return artikli;
-}
 
 
 

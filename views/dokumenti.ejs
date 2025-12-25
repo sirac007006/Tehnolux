@@ -2361,135 +2361,175 @@
             }
         });
 
-        // ŠTAMPA - Koristi cene direktno iz input polja
-        async function generatePrintDocumentFromEditModal() {
-            const dokumentId = document.getElementById('edit-dokument-id').value;
-            const datum = document.getElementById('edit-datum').value;
-            const partnerNaziv = document.getElementById('edit-partner').value;
-            const tipDokumenta = document.getElementById('edit-tip-dokumenta').value;
-            const napomena = document.getElementById('edit-napomena').value; // DODATO
-            
-            const today = new Date(datum);
-            // ISPRAVLJENO: Srpski format datuma (dan/mjesec/godina)
-            const formattedDate = `${today.getDate()}.${today.getMonth() + 1}.${today.getFullYear()}`;
-            
-            // ISPRAVLJENO: Ekstrakcija broja dokumenta
-            let docNumberRaw = tipDokumenta;
-            
-            // Ukloni "br." i sve pre njega, zadrži samo deo nakon "br."
-            const brMatch = docNumberRaw.match(/br\.\s*(.+)$/i);
-            let docNumber = brMatch ? brMatch[1].trim() : docNumberRaw;
 
-            // Ako nije pronađen "br.", pokušaj da izdvojiš samo brojčani deo
-            if (!brMatch) {
-                // Ukloni reči kao što su "Otpremnica", "Ponuda", "Kalkulacija", "Predračun" itd.
-                docNumber = docNumberRaw.replace(/(Otpremnica|Ponuda|Kalkulacija|Predračun)\s*/gi, '').trim();
-            }
 
-            // Ukloni eventualno preostalo "br." ako je ostalo
-            docNumber = docNumber.replace(/br\.\s*/gi, '').trim();
-            
-            const documentType = getDocumentTypeForPrint(tipDokumenta);
-            
-            const partner = await loadPartnerByName(partnerNaziv);
-            
-            document.getElementById('print-date').textContent = formattedDate;
-            document.getElementById('print-document-type').textContent = documentType;
-            document.getElementById('print-doc-number').textContent = docNumber;
-            
-            // PRIKAŽI ILI SAKRIJ NAPOMENU
-            const napomenaSection = document.getElementById('print-napomena-section');
-            const napomenaElement = document.getElementById('print-napomena');
-            
-            if (napomena) {
-                napomenaElement.textContent = napomena;
-                napomenaSection.style.display = 'block';
-            } else {
-                napomenaSection.style.display = 'none';
+
+        // ŠTAMPA - Koristi cene direktno iz input polja (ISPRAVLJENO)
+async function generatePrintDocumentFromEditModal() {
+    const dokumentId = document.getElementById('edit-dokument-id').value;
+    const datum = document.getElementById('edit-datum').value;
+    const partnerNaziv = document.getElementById('edit-partner').value;
+    const tipDokumenta = document.getElementById('edit-tip-dokumenta').value;
+    const napomena = document.getElementById('edit-napomena').value;
+    
+    const today = new Date(datum);
+    const formattedDate = `${today.getDate()}.${today.getMonth() + 1}.${today.getFullYear()}`;
+    
+    // Ekstrakcija broja dokumenta
+    let docNumberRaw = tipDokumenta;
+    const brMatch = docNumberRaw.match(/br\.\s*(.+)$/i);
+    let docNumber = brMatch ? brMatch[1].trim() : docNumberRaw;
+
+    if (!brMatch) {
+        docNumber = docNumberRaw.replace(/(Otpremnica|Ponuda|Kalkulacija|Predracun)\s*/gi, '').trim();
+    }
+
+    docNumber = docNumber.replace(/br\.\s*/gi, '').trim();
+    
+    const documentType = getDocumentTypeForPrint(tipDokumenta);
+    
+    const partner = await loadPartnerByName(partnerNaziv);
+    
+    // Učitaj komercijalista
+    let komercijalistIme = '';
+    const komercijalistId = document.getElementById('edit-komercijalist').value;
+    if (komercijalistId) {
+        try {
+            const komercijalistData = komercijalisti.find(k => k.id == komercijalistId);
+            if (komercijalistData) {
+                komercijalistIme = komercijalistData.ime_prezime;
             }
-            
-            if (partner) {
-                document.getElementById('print-customer-code').textContent = partner.Sifra || '';
-                document.getElementById('print-customer-name').textContent = partner.Naziv_partnera || partnerNaziv;
-                document.getElementById('print-customer-pib').textContent = partner.PIB || '';
-                document.getElementById('print-customer-pdv').textContent = partner.PDV || '';
-                document.getElementById('print-customer-address').textContent = partner.Adresa || '';
-                document.getElementById('print-customer-city').textContent = partner.Grad || '';
-            } else {
-                document.getElementById('print-customer-code').textContent = 'N/A';
-                document.getElementById('print-customer-name').textContent = partnerNaziv;
-                document.getElementById('print-customer-pib').textContent = '';
-                document.getElementById('print-customer-pdv').textContent = '';
-                document.getElementById('print-customer-address').textContent = '';
-                document.getElementById('print-customer-city').textContent = '';
-            }
-            
-            // Uzmi artikle DIREKTNO IZ TABELE (sa tačnim cenama I INDIVIDUALNIM RABATIMA)
-            const artikli = [];
-            document.querySelectorAll('#edit-artikli-tbody tr').forEach((row, index) => {
-                // ISPRAVLJENO: Uklanja nove redove iz naziva artikla
-                let nazivArtikla = row.querySelector('.artikal-naziv').value;
-                nazivArtikla = nazivArtikla.replace(/\n/g, ' ').trim();
-                
-                artikli.push({
-                    rb: index + 1,
-                    sifra: row.querySelector('.artikal-sifra').value || 'N/A',
-                    naziv: nazivArtikla,
-                    jm: 'kom',
-                    kolicina: parseFloat(row.querySelector('.artikal-kolicina').value) || 0,
-                    cenaBezPdv: parseFloat(row.querySelector('.artikal-cena-bez').value) || 0,
-                    cenaSaPdv: parseFloat(row.querySelector('.artikal-cena-sa').value) || 0,
-                    rabat: parseFloat(row.querySelector('.artikal-rabat').value) || 0,  // INDIVIDUALNI RABAT
-                    pdvStopa: 21
-                });
-            });
-            
-            let itemsHTML = '';
-            let totalBezPdv = 0;
-            let totalRabat = 0;
-            let totalPdv = 0;
-            let totalSaPdv = 0;
-            
-            artikli.forEach((item) => {
-                const vrijednostBezPdv = item.cenaBezPdv * item.kolicina;
-                const rabatIznos = vrijednostBezPdv * (item.rabat / 100);
-                const vrijednostBezPdvSaRabatom = vrijednostBezPdv - rabatIznos;
-                const pdvIznos = vrijednostBezPdvSaRabatom * (item.pdvStopa / 100);
-                const vrijednostSaPdv = vrijednostBezPdvSaRabatom * 1.21;
-                
-                totalBezPdv += vrijednostBezPdvSaRabatom;
-                totalRabat += rabatIznos;
-                totalPdv += pdvIznos;
-                totalSaPdv += vrijednostSaPdv;
-                
-                itemsHTML += `
-                    <tr>
-                        <td>${item.rb}</td>
-                        <td>${item.sifra}</td>
-                        <td class="text-left">${item.naziv}</td>
-                        <td>${item.jm}</td>
-                        <td>${item.kolicina}</td>
-                        <td class="text-right">${item.cenaBezPdv.toFixed(3)}</td>
-                        <td class="text-right">${vrijednostBezPdv.toFixed(2)}</td>
-                        <td class="text-right">${item.rabat.toFixed(1)}%</td>
-                        <td class="text-right">${item.pdvStopa.toFixed(0)}%</td>
-                        <td class="text-right">${pdvIznos.toFixed(2)}</td>
-                        <td class="text-right">${item.cenaSaPdv.toFixed(3)}</td>
-                        <td class="text-right">${vrijednostSaPdv.toFixed(2)}</td>
-                    </tr>
-                `;
-            });
-            
-            document.getElementById('print-items-tbody').innerHTML = itemsHTML;
-            document.getElementById('print-total-bez-pdv').textContent = totalBezPdv.toFixed(2);
-            document.getElementById('print-total-rabat').textContent = totalRabat.toFixed(2);
-            document.getElementById('print-osnovica').textContent = totalBezPdv.toFixed(2);
-            document.getElementById('print-pdv-iznos').textContent = totalPdv.toFixed(2);
-            document.getElementById('print-total-sa-pdv').textContent = totalSaPdv.toFixed(2);
-            
-            document.getElementById('print-signature-left').textContent = getSignatureText(tipDokumenta);
-            document.getElementById('print-disclaimer').innerHTML = `<div><strong>${getDisclaimerText(tipDokumenta)}</strong></div>`;
+        } catch (error) {
+            console.error('Error fetching komercijalist:', error);
         }
+    }
+    
+    document.getElementById('print-date').textContent = formattedDate;
+    document.getElementById('print-document-type').textContent = documentType;
+    document.getElementById('print-doc-number').textContent = docNumber;
+    document.getElementById('print-komercijalist').textContent = komercijalistIme;
+    
+    // Napomena
+    const napomenaSection = document.getElementById('print-napomena-section');
+    const napomenaElement = document.getElementById('print-napomena');
+    
+    if (napomena) {
+        napomenaElement.textContent = napomena;
+        napomenaSection.style.display = 'block';
+    } else {
+        napomenaSection.style.display = 'none';
+    }
+    
+    if (partner) {
+        document.getElementById('print-customer-code').textContent = partner.Sifra || '';
+        document.getElementById('print-customer-name').textContent = partner.Naziv_partnera || partnerNaziv;
+        document.getElementById('print-customer-pib').textContent = partner.PIB || '';
+        document.getElementById('print-customer-pdv').textContent = partner.PDV || '';
+        document.getElementById('print-customer-address').textContent = partner.Adresa || '';
+        document.getElementById('print-customer-city').textContent = partner.Grad || '';
+    } else {
+        document.getElementById('print-customer-code').textContent = 'N/A';
+        document.getElementById('print-customer-name').textContent = partnerNaziv;
+        document.getElementById('print-customer-pib').textContent = '';
+        document.getElementById('print-customer-pdv').textContent = '';
+        document.getElementById('print-customer-address').textContent = '';
+        document.getElementById('print-customer-city').textContent = '';
+    }
+    
+    // 🔴 KLJUČNA IZMENA: Uzmi artikle DIREKTNO IZ TABELE (tačne cene iz input polja!)
+    const artikli = [];
+    document.querySelectorAll('#edit-artikli-tbody tr').forEach((row, index) => {
+        let nazivArtikla = row.querySelector('.artikal-naziv').value;
+        nazivArtikla = nazivArtikla.replace(/\n/g, ' ').trim();
+        
+        // 🔴 UZIMAMO TAČNE VREDNOSTI IZ INPUT POLJA
+        const kolicina = parseFloat(row.querySelector('.artikal-kolicina').value) || 0;
+        const cenaBezPdv = parseFloat(row.querySelector('.artikal-cena-bez').value) || 0;
+        const cenaSaPdv = parseFloat(row.querySelector('.artikal-cena-sa').value) || 0;
+        const rabat = parseFloat(row.querySelector('.artikal-rabat').value) || 0;
+        
+        // Izračunaj iznose NA OSNOVU TAČNIH CENA
+        const iznosBezPdvPreRabata = cenaBezPdv * kolicina;
+        const rabatIznos = iznosBezPdvPreRabata * (rabat / 100);
+        const iznosBezPdvPosleRabata = iznosBezPdvPreRabata - rabatIznos;
+        const pdvIznos = iznosBezPdvPosleRabata * 0.21;
+        const iznosSaPdv = iznosBezPdvPosleRabata + pdvIznos;
+        
+        artikli.push({
+            rb: index + 1,
+            sifra: row.querySelector('.artikal-sifra').value || 'N/A',
+            naziv: nazivArtikla,
+            jm: 'kom',
+            kolicina: kolicina,
+            cena_bez_pdv: cenaBezPdv,
+            cena_sa_pdv: cenaSaPdv,
+            rabat: rabat,
+            iznos_bez_pdv_pre_rabata: iznosBezPdvPreRabata,
+            rabat_iznos: rabatIznos,
+            iznos_bez_pdv_posle_rabata: iznosBezPdvPosleRabata,
+            pdv_iznos: pdvIznos,
+            iznos_sa_pdv_final: iznosSaPdv,
+            pdvStopa: 21
+        });
+    });
+    
+    let itemsHTML = '';
+    let totalBezPdvPreRabata = 0;
+    let totalRabat = 0;
+    let totalBezPdvPosleRabata = 0;
+    let totalPdv = 0;
+    let totalSaPdv = 0;
+    
+    artikli.forEach((item) => {
+        // Koristi VEĆ IZRAČUNATE vrednosti
+        const iznosBezPdvPreRabata = item.iznos_bez_pdv_pre_rabata;
+        const rabatIznos = item.rabat_iznos;
+        const iznosBezPdvPosleRabata = item.iznos_bez_pdv_posle_rabata;
+        const pdvIznos = item.pdv_iznos;
+        const iznosSaPdv = item.iznos_sa_pdv_final;
+        
+        // Cena sa PDV nakon rabata
+        const cenaSaPdvSaRabatom = (iznosSaPdv / item.kolicina) || 0;
+        
+        totalBezPdvPreRabata += iznosBezPdvPreRabata;
+        totalRabat += rabatIznos;
+        totalBezPdvPosleRabata += iznosBezPdvPosleRabata;
+        totalPdv += pdvIznos;
+        totalSaPdv += iznosSaPdv;
+        
+        itemsHTML += `
+            <tr>
+                <td>${item.rb}</td>
+                <td>${item.sifra}</td>
+                <td class="text-left">${item.naziv}</td>
+                <td>${item.jm}</td>
+                <td>${item.kolicina.toFixed(2)}</td>
+                <td class="text-right">${item.cena_bez_pdv.toFixed(3)}</td>
+                <td class="text-right">${iznosBezPdvPreRabata.toFixed(2)}</td>
+                <td class="text-right">${item.rabat.toFixed(1)}%</td>
+                <td class="text-right">${item.pdvStopa.toFixed(0)}%</td>
+                <td class="text-right">${Math.abs(pdvIznos).toFixed(2)}</td>
+                <td class="text-right">${cenaSaPdvSaRabatom.toFixed(3)}</td>
+                <td class="text-right">${iznosSaPdv.toFixed(2)}</td>
+            </tr>
+        `;
+    });
+    
+    document.getElementById('print-items-tbody').innerHTML = itemsHTML;
+    document.getElementById('print-total-bez-pdv').textContent = totalBezPdvPreRabata.toFixed(2);
+    document.getElementById('print-total-rabat').textContent = totalRabat.toFixed(2);
+    document.getElementById('print-osnovica').textContent = totalBezPdvPosleRabata.toFixed(2);
+    document.getElementById('print-pdv-iznos').textContent = Math.abs(totalPdv).toFixed(2);
+    document.getElementById('print-total-sa-pdv').textContent = totalSaPdv.toFixed(2);
+    
+    document.getElementById('print-signature-left').textContent = getSignatureText(tipDokumenta);
+    document.getElementById('print-disclaimer').innerHTML = `<div><strong>${getDisclaimerText(tipDokumenta)}</strong></div>`;
+    
+    console.log('✅ Dokument za štampu generisan iz edit modala SA TAČNIM CENAMA');
+}
+
+
+
 
 
         // AŽURIRANA funkcija za generisanje štampe - KORISTI SAČUVANE PODATKE
@@ -2588,7 +2628,9 @@ async function generatePrintDocumentFromId(id) {
             const iznosBezPdvPreRabata = parseFloat(item.iznos_bez_pdv_pre_rabata) || (cenaBezPdv * kolicina);
             const rabatIznos = parseFloat(item.rabat_iznos) || (iznosBezPdvPreRabata * (rabat / 100));
             const iznosBezPdvPosleRabata = parseFloat(item.iznos_bez_pdv_posle_rabata) || (iznosBezPdvPreRabata - rabatIznos);
-            const pdvIznos = parseFloat(item.pdv_iznos) || (iznosBezPdvPosleRabata * 0.21);
+            
+            // 🔴 ISPRAVLJENO: PDV MORA BITI POZITIVAN
+            const pdvIznos = Math.abs(parseFloat(item.pdv_iznos) || (iznosBezPdvPosleRabata * 0.21));
             const iznosSaPdv = parseFloat(item.iznos_sa_pdv_final) || (iznosBezPdvPosleRabata + pdvIznos);
             
             // Cena sa PDV NAKON rabata - za prikaz
@@ -2604,21 +2646,21 @@ async function generatePrintDocumentFromId(id) {
             nazivArtikla = nazivArtikla.replace(/\n/g, ' ').trim();
             
             itemsHTML += `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${item.sifra || 'N/A'}</td>
-                    <td class="text-left">${nazivArtikla}</td>
-                    <td>${item.jm || 'kom'}</td>
-                    <td>${kolicina.toFixed(2)}</td>
-                    <td class="text-right">${cenaBezPdv.toFixed(3)}</td>
-                    <td class="text-right">${iznosBezPdvPreRabata.toFixed(2)}</td>
-                    <td class="text-right">${rabat.toFixed(1)}%</td>
-                    <td class="text-right">${pdvStopa.toFixed(0)}%</td>
-                    <td class="text-right">${pdvIznos.toFixed(2)}</td>
-                    <td class="text-right">${cenaSaPdvSaRabatom.toFixed(3)}</td>
-                    <td class="text-right">${iznosSaPdv.toFixed(2)}</td>
-                </tr>
-            `;
+    <tr>
+        <td>${index + 1}</td>
+        <td>${item.sifra || 'N/A'}</td>
+        <td class="text-left">${nazivArtikla}</td>
+        <td>${item.jm || 'kom'}</td>
+        <td>${kolicina.toFixed(2)}</td>
+        <td class="text-right">${cenaBezPdv.toFixed(3)}</td>
+        <td class="text-right">${iznosBezPdvPreRabata.toFixed(2)}</td>
+        <td class="text-right">${rabat.toFixed(1)}%</td>
+        <td class="text-right">${pdvStopa.toFixed(0)}%</td>
+        <td class="text-right">${Math.abs(pdvIznos).toFixed(2)}</td>  <!-- 🔴 DODATO Math.abs() -->
+        <td class="text-right">${cenaSaPdvSaRabatom.toFixed(3)}</td>
+        <td class="text-right">${iznosSaPdv.toFixed(2)}</td>
+    </tr>
+`;
         });
         
         document.getElementById('print-items-tbody').innerHTML = itemsHTML;
@@ -2646,10 +2688,10 @@ async function generatePrintDocumentFromId(id) {
         }
         
         document.getElementById('print-total-bez-pdv').textContent = totalBezPdvPreRabata.toFixed(2);
-        document.getElementById('print-total-rabat').textContent = totalRabat.toFixed(2);
-        document.getElementById('print-osnovica').textContent = totalBezPdvPosleRabata.toFixed(2);
-        document.getElementById('print-pdv-iznos').textContent = totalPdv.toFixed(2);
-        document.getElementById('print-total-sa-pdv').textContent = totalSaPdv.toFixed(2);
+document.getElementById('print-total-rabat').textContent = totalRabat.toFixed(2);
+document.getElementById('print-osnovica').textContent = totalBezPdvPosleRabata.toFixed(2);
+document.getElementById('print-pdv-iznos').textContent = Math.abs(totalPdv).toFixed(2); // 🔴 DODATO Math.abs()
+document.getElementById('print-total-sa-pdv').textContent = totalSaPdv.toFixed(2);
         
         document.getElementById('print-signature-left').textContent = getSignatureText(dokument.tip_dokumenta);
         document.getElementById('print-disclaimer').innerHTML = `<div><strong>${getDisclaimerText(dokument.tip_dokumenta)}</strong></div>`;

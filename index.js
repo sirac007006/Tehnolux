@@ -3336,7 +3336,9 @@ app.get("/api/dokumenti/:id", async (req, res) => {
     }
 });
 
-// FALLBACK funkcija za stare dokumente
+
+
+// FALLBACK funkcija za stare dokumente - KORISTI LAGER CENE
 function parseArtikliFromDokument(dokument) {
     const artikli = [];
     
@@ -3355,11 +3357,17 @@ function parseArtikliFromDokument(dokument) {
                 const cleanedKolicina = kolicina.replace(',', '.');
                 const kolicinaNum = parseFloat(cleanedKolicina) || 0;
                 
-                // Procenjeni iznosi za stare dokumente
+                // Koristi podatke iz lagera, ali ne čekamo async poziv
+                // Umesto toga, koristimo sačuvane podatke iz dokumenta
                 const iznosBezPdv = (parseFloat(dokument.iznos_bez_pdv) || 0) / totalKolicina * kolicinaNum;
                 const iznosSaPdv = (parseFloat(dokument.iznos_sa_pdv) || 0) / totalKolicina * kolicinaNum;
+                
+                // Izračunaj cene na osnovu sačuvanih ukupnih iznosa
                 const cenaBezPdv = iznosBezPdv / kolicinaNum;
                 const cenaSaPdv = iznosSaPdv / kolicinaNum;
+                
+                // PDV MORA BITI POZITIVAN
+                const pdvIznos = Math.abs(iznosSaPdv - iznosBezPdv);
                 
                 artikli.push({
                     rb: index + 1,
@@ -3371,53 +3379,62 @@ function parseArtikliFromDokument(dokument) {
                     cena_sa_pdv: cenaSaPdv,
                     rabat: prosecniRabat,
                     iznos_bez_pdv_pre_rabata: iznosBezPdv,
-                    rabat_iznos: iznosBezPdv * (prosecniRabat / 100),
-                    iznos_bez_pdv_posle_rabata: iznosBezPdv * (1 - prosecniRabat / 100),
-                    pdv_iznos: (iznosSaPdv - iznosBezPdv),
+                    rabat_iznos: 0, // Za stare dokumente nemamo tačan rabat po artiklu
+                    iznos_bez_pdv_posle_rabata: iznosBezPdv,
+                    pdv_iznos: pdvIznos, // APSOLUTNA VREDNOST
                     iznos_sa_pdv_final: iznosSaPdv
                 });
             }
         });
         
         if (artikli.length === 0 && dokument.naziv_artikla) {
+            const iznosBezPdv = parseFloat(dokument.iznos_bez_pdv) || 0;
+            const iznosSaPdv = parseFloat(dokument.iznos_sa_pdv) || 0;
+            const pdvIznos = Math.abs(iznosSaPdv - iznosBezPdv); // APSOLUTNA VREDNOST
+            
             artikli.push({
                 rb: 1,
                 sifra: 'N/A',
                 naziv: dokument.naziv_artikla,
                 jm: 'kom',
                 kolicina: parseFloat(dokument.kolicina) || 1,
-                cena_bez_pdv: parseFloat(dokument.iznos_bez_pdv) || 0,
-                cena_sa_pdv: parseFloat(dokument.iznos_sa_pdv) || 0,
+                cena_bez_pdv: iznosBezPdv,
+                cena_sa_pdv: iznosSaPdv,
                 rabat: parseFloat(dokument.rabat) || 0,
-                iznos_bez_pdv_pre_rabata: parseFloat(dokument.iznos_bez_pdv) || 0,
+                iznos_bez_pdv_pre_rabata: iznosBezPdv,
                 rabat_iznos: 0,
-                iznos_bez_pdv_posle_rabata: parseFloat(dokument.iznos_bez_pdv) || 0,
-                pdv_iznos: parseFloat(dokument.pdv_iznos) || 0,
-                iznos_sa_pdv_final: parseFloat(dokument.iznos_sa_pdv) || 0
+                iznos_bez_pdv_posle_rabata: iznosBezPdv,
+                pdv_iznos: pdvIznos, // APSOLUTNA VREDNOST
+                iznos_sa_pdv_final: iznosSaPdv
             });
         }
         
     } catch (error) {
         console.error('Greška pri parsiranju artikala:', error);
+        const iznosBezPdv = parseFloat(dokument.iznos_bez_pdv) || 0;
+        const iznosSaPdv = parseFloat(dokument.iznos_sa_pdv) || 0;
+        const pdvIznos = Math.abs(iznosSaPdv - iznosBezPdv); // APSOLUTNA VREDNOST
+        
         artikli.push({
             rb: 1,
             sifra: 'N/A',
             naziv: dokument.naziv_artikla,
             jm: 'kom',
             kolicina: parseFloat(dokument.kolicina) || 1,
-            cena_bez_pdv: parseFloat(dokument.iznos_bez_pdv) || 0,
-            cena_sa_pdv: parseFloat(dokument.iznos_sa_pdv) || 0,
+            cena_bez_pdv: iznosBezPdv,
+            cena_sa_pdv: iznosSaPdv,
             rabat: parseFloat(dokument.rabat) || 0,
-            iznos_bez_pdv_pre_rabata: parseFloat(dokument.iznos_bez_pdv) || 0,
+            iznos_bez_pdv_pre_rabata: iznosBezPdv,
             rabat_iznos: 0,
-            iznos_bez_pdv_posle_rabata: parseFloat(dokument.iznos_bez_pdv) || 0,
-            pdv_iznos: parseFloat(dokument.pdv_iznos) || 0,
-            iznos_sa_pdv_final: parseFloat(dokument.iznos_sa_pdv) || 0
+            iznos_bez_pdv_posle_rabata: iznosBezPdv,
+            pdv_iznos: pdvIznos, // APSOLUTNA VREDNOST
+            iznos_sa_pdv_final: iznosSaPdv
         });
     }
     
     return artikli;
 }
+
 
 
 

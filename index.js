@@ -3462,15 +3462,18 @@ app.put("/api/dokumenti/:id", async (req, res) => {
         
         // Kreiraj string artikala za čuvanje
         const artikliString = artikli.map(a => 
-            `${a.sifra} - ${a.naziv} (${a.kolicina} ${a.jm})`
+            `${a.sifra} - ${a.naziv} (${a.kolicina} ${a.jm || 'kom'})`
         ).join(', ');
         
-        // Kalkulacije
+        // KOMPLETNA KALKULACIJA - isto kao kod kreiranja dokumenta
+        const processedArtikli = [];
         let totalKolicina = 0;
-        let totalBezPdv = 0;
-        let totalSaPdv = 0;
-        let totalPdv = 0;
-        let totalRabat = 0;
+        let totalBezPdvPreRabata = 0;
+        let totalRabatIznos = 0;
+        let totalBezPdvPosleRabata = 0;
+        let totalPdvIznos = 0;
+        let totalSaPdvFinal = 0;
+        let sumaRabata = 0;
         
         artikli.forEach(a => {
             const kol = parseFloat(a.kolicina) || 0;
@@ -3478,33 +3481,53 @@ app.put("/api/dokumenti/:id", async (req, res) => {
             const cenaSaPdv = parseFloat(a.cena_sa_pdv) || 0;
             const rabat = parseFloat(a.rabat) || 0;
             
-            // Ukupno BEZ rabata
-            const iznosBezPdvBefore = cenaBezPdv * kol;
-            const iznosSaPdvBefore = cenaSaPdv * kol;
+            // Iznos BEZ rabata
+            const iznosBezPdvPreRabata = cenaBezPdv * kol;
             
             // Rabat iznos
-            const rabatAmount = iznosBezPdvBefore * (rabat / 100);
-            const rabatAmountSaPdv = iznosSaPdvBefore * (rabat / 100);
+            const rabatIznos = iznosBezPdvPreRabata * (rabat / 100);
             
-            // Ukupno SA rabatom
-            const iznosBezPdv = iznosBezPdvBefore - rabatAmount;
-            const iznosSaPdv = iznosSaPdvBefore - rabatAmountSaPdv;
+            // Iznos POSLE rabata
+            const iznosBezPdvPosleRabata = iznosBezPdvPreRabata - rabatIznos;
             
-            const pdv = iznosSaPdv - iznosBezPdv;
+            // PDV iznos (21%)
+            const pdvIznos = iznosBezPdvPosleRabata * 0.21;
             
+            // Final sa PDV
+            const iznosSaPdvFinal = iznosBezPdvPosleRabata + pdvIznos;
+            
+            // Sačuvaj procesuirani artikal za artikli_json
+            processedArtikli.push({
+                sifra: a.sifra || 'N/A',
+                naziv: a.naziv,
+                jm: a.jm || 'kom',
+                kolicina: kol,
+                cena_bez_pdv: cenaBezPdv,
+                cena_sa_pdv: cenaSaPdv,
+                rabat: rabat,
+                iznos_bez_pdv_pre_rabata: iznosBezPdvPreRabata,
+                rabat_iznos: rabatIznos,
+                iznos_bez_pdv_posle_rabata: iznosBezPdvPosleRabata,
+                pdv_iznos: pdvIznos,
+                iznos_sa_pdv_final: iznosSaPdvFinal
+            });
+            
+            // Sumiranje
             totalKolicina += kol;
-            totalBezPdv += iznosBezPdv;
-            totalSaPdv += iznosSaPdv;
-            totalPdv += pdv;
-            totalRabat += rabatAmount;
+            totalBezPdvPreRabata += iznosBezPdvPreRabata;
+            totalRabatIznos += rabatIznos;
+            totalBezPdvPosleRabata += iznosBezPdvPosleRabata;
+            totalPdvIznos += pdvIznos;
+            totalSaPdvFinal += iznosSaPdvFinal;
+            sumaRabata += rabat;
         });
         
         // Prosečan rabat
-        const prosecniRabat = artikli.length > 0 
-            ? artikli.reduce((sum, a) => sum + (parseFloat(a.rabat) || 0), 0) / artikli.length 
+        const prosecniRabat = processedArtikli.length > 0 
+            ? sumaRabata / processedArtikli.length 
             : 0;
         
-        // Ažuriraj dokument SA NAPOMENOM
+        // Ažuriraj dokument SA SVIM PODACIMA uključujući artikli_json
         await db.query(`
             UPDATE dokumenti SET 
                 datum = $1,
@@ -3517,26 +3540,42 @@ app.put("/api/dokumenti/:id", async (req, res) => {
                 pdv_iznos = $8,
                 rabat = $9,
                 komercijalist_id = $10,
-                napomena = $11
-            WHERE id = $12
+                napomena = $11,
+                artikli_json = $12,
+                ukupna_kolicina = $13,
+                ukupno_bez_pdv_pre_rabata = $14,
+                ukupan_rabat_iznos = $15,
+                ukupno_bez_pdv_posle_rabata = $16,
+                ukupan_pdv_iznos = $17,
+                ukupno_sa_pdv_final = $18,
+                prosecan_rabat = $19
+            WHERE id = $20
         `, [
             datum,
             partner,
             tip_dokumenta,
             artikliString,
             totalKolicina,
-            totalBezPdv,
-            totalSaPdv,
-            totalPdv,
+            totalBezPdvPreRabata,   // iznos_bez_pdv - pre rabata
+            totalSaPdvFinal,        // iznos_sa_pdv - final
+            totalPdvIznos,
             prosecniRabat,
             komercijalist_id || null,
-            napomena || null, // DODATO
+            napomena || null,
+            JSON.stringify(processedArtikli),  // artikli_json
+            totalKolicina,
+            totalBezPdvPreRabata,
+            totalRabatIznos,
+            totalBezPdvPosleRabata,
+            totalPdvIznos,
+            totalSaPdvFinal,
+            prosecniRabat,
             id
         ]);
         
         await db.query('COMMIT');
         
-        console.log(`Document ${id} updated successfully with ${artikli.length} artikli and napomena: ${napomena ? 'Da' : 'Ne'}`);
+        console.log(`Document ${id} updated successfully with ${processedArtikli.length} artikli and napomena: ${napomena ? 'Da' : 'Ne'}`);
         
         res.json({ 
             success: true, 

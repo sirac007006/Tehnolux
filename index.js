@@ -22,6 +22,10 @@ const db = new pg.Client({
 })
 db.connect();
 
+// Migracija: dodaj datum_kupovine kolonu ako ne postoji
+db.query(`ALTER TABLE servisi ADD COLUMN IF NOT EXISTS datum_kupovine DATE`)
+  .catch(err => console.error('Migration error (datum_kupovine):', err.message));
+
 // bcrypt hash vrednosti za sve korisnike
 const ADMIN_HASH   = '$2b$12$GlMBYvuE3/jZuhfrZcagXOv.w3uVmwQEo5hdhqlpXtw9mOTbyfgfa'; // admin
 const ADMIN1_HASH  = '$2a$12$s7poSaYnwcVvY7226esSi.FGP15GospPS/2ctrZhoQJWBy0yWC4/a';
@@ -4779,11 +4783,12 @@ app.get("/servis", async (req, res) => {
   try {
     // Ako je ulogovani korisnik 'servis', prikaži samo servise dodeljene njemu
     let servisiQuery = `
-      SELECT 
+      SELECT
         id,
         broj_servisa,
         ime_kupca,
         telefon,
+        datum_kupovine,
         adresa,
         proizvod_model,
         serijski_broj,
@@ -4841,9 +4846,10 @@ app.post("/servis/add", async (req, res) => {
             tehnicar,
             prioritet,
             procenjena_cena,
-            napomene
+            napomene,
+            datum_kupovine
         } = req.body;
-        
+
         // Validacija osnovnih polja
         if (!ime_kupca || !telefon || !proizvod_model || !serijski_broj || !opis_kvara) {
             return res.status(400).json({
@@ -4907,8 +4913,9 @@ app.post("/servis/add", async (req, res) => {
                 procenjena_cena,
                 napomene,
                 datum_kreiranja,
-                status
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), 'primljen')
+                status,
+                datum_kupovine
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), 'primljen', $13)
             RETURNING id
         `, [
             nextNumber,
@@ -4922,7 +4929,8 @@ app.post("/servis/add", async (req, res) => {
             tehnicar.trim(),
             prioritetNorm,
             cenaValue,
-            napomene ? napomene.trim() : null
+            napomene ? napomene.trim() : null,
+            datum_kupovine || null
         ]);
         
         console.log(`New service created: ID ${result.rows[0].id}, Number: ${nextNumber}, Serviser: ${tehnicar}`);
@@ -4958,7 +4966,8 @@ app.put("/servis/update/:id", async (req, res) => {
             tehnicar,
             prioritet,
             procenjena_cena,
-            napomene
+            napomene,
+            datum_kupovine
         } = req.body;
 
         // Proveri da li servis postoji
@@ -5027,8 +5036,9 @@ app.put("/servis/update/:id", async (req, res) => {
                 tehnicar = $8,
                 prioritet = $9,
                 procenjena_cena = $10,
-                napomene = $11
-            WHERE id = $12
+                napomene = $11,
+                datum_kupovine = $12
+            WHERE id = $13
         `, [
             ime_kupca.trim(),
             telefon.trim(),
@@ -5041,6 +5051,7 @@ app.put("/servis/update/:id", async (req, res) => {
             prioritetNorm,
             cenaValue,
             napomene ? napomene.trim() : null,
+            datum_kupovine || null,
             serviceId
         ]);
         
@@ -5191,10 +5202,11 @@ app.get("/servis/get/:id", async (req, res) => {
         const serviceId = req.params.id;
         
         const result = await db.query(
-            `SELECT 
+            `SELECT
                 id, broj_servisa, ime_kupca, telefon, adresa, proizvod_model,
                 serijski_broj, status_garancije, opis_kvara, tehnicar,
-                prioritet, procenjena_cena, napomene, datum_kreiranja, status
+                prioritet, procenjena_cena, napomene, datum_kreiranja, status,
+                datum_kupovine
             FROM servisi WHERE id = $1`,
             [serviceId]
         );

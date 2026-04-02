@@ -1165,6 +1165,7 @@
                             <th>Serviser</th>
                             <th>Status</th>
                             <th>Datum kreiranja</th>
+                            <th>Datum kupovine</th>
                             <th>Cena (€)</th>
                             <th>Akcije</th>
                         </tr>
@@ -1218,6 +1219,7 @@
                 <span><%= diffDays %>d</span>
             </div>
         </td>
+        <td><%= servis.datum_kupovine ? new Date(servis.datum_kupovine).toLocaleDateString('sr-RS') : '-' %></td>
         <td class="price-column">€<%= parseFloat(servis.procenjena_cena || 0).toFixed(2) %></td>
         <td>
             <div class="action-buttons">
@@ -1280,7 +1282,7 @@
                 </div>
 
                 <!-- Treća sekcija - Podaci o proizvodu -->
-                <div class="form-row-3">
+                <div class="form-row-4">
                     <div class="form-group">
                         <label class="form-label" for="product-model">Proizvod/Model:</label>
                         <input type="text" class="form-control" id="product-model" required>
@@ -1296,6 +1298,10 @@
                             <option value="van-garancije">Van garancije</option>
                             <option value="proverava-se">Proverava se</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="purchase-date">Datum kupovine:</label>
+                        <input type="date" class="form-control" id="purchase-date">
                     </div>
                 </div>
 
@@ -1667,6 +1673,7 @@ function fillServiceForm(service) {
     document.getElementById('priority-level').value = service.prioritet || 'srednji';
     document.getElementById('estimated-cost').value = service.procenjena_cena || '';
     document.getElementById('service-notes').value = service.napomene || '';
+    document.getElementById('purchase-date').value = service.datum_kupovine ? service.datum_kupovine.substring(0, 10) : '';
 }
 
         // Clear form
@@ -1693,7 +1700,8 @@ function printServiceReport(serviceId) {
         serviser: row.cells[4].textContent.trim(),
         status: row.cells[5].textContent.trim(),
         dateCreated: row.cells[6].querySelector('.date-warning').title,
-        cost: row.cells[7].textContent.trim(),
+        purchaseDate: row.cells[7].textContent.trim(),
+        cost: row.cells[8].textContent.trim(),
         // Ovi podaci će biti učitani sa servera kada se otvori modal za štampu
         phone: 'Nije naveden', // Ovo će biti popunjeno kada se učita servis
         warranty: 'Proverava se' // Ovo će biti popunjeno kada se učita servis
@@ -2025,7 +2033,8 @@ function printReportWithData(serviceData) {
                 tehnicar: document.getElementById('assigned-technician').value,
                 prioritet: document.getElementById('priority-level').value,
                 procenjena_cena: document.getElementById('estimated-cost').value,
-                napomene: document.getElementById('service-notes').value
+                napomene: document.getElementById('service-notes').value,
+                datum_kupovine: document.getElementById('purchase-date').value || null
             };
 
             const serviceId = serviceIdInput.value;
@@ -2208,7 +2217,7 @@ function printReportWithData(serviceData) {
             visibleRows.forEach(row => {
                 const dateWarning = row.cells[6].querySelector('.date-warning');
                 const dateInfo = dateWarning ? dateWarning.title : '';
-                
+
                 tableRows += `
                     <tr>
                         <td>${row.cells[0].textContent}</td>
@@ -2219,6 +2228,7 @@ function printReportWithData(serviceData) {
                         <td>${row.cells[5].textContent.trim()}</td>
                         <td>${dateInfo}</td>
                         <td>${row.cells[7].textContent}</td>
+                        <td>${row.cells[8].textContent}</td>
                     </tr>
                 `;
             });
@@ -2253,6 +2263,7 @@ function printReportWithData(serviceData) {
                                 <th>Serviser</th>
                                 <th>Status</th>
                                 <th>Datum kreiranja</th>
+                                <th>Datum kupovine</th>
                                 <th>Cena (€)</th>
                             </tr>
                         </thead>

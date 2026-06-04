@@ -27,8 +27,8 @@ db.query(`ALTER TABLE servisi ADD COLUMN IF NOT EXISTS datum_kupovine DATE`)
   .catch(err => console.error('Migration error (datum_kupovine):', err.message));
 
 // bcrypt hash vrednosti za sve korisnike
-const ADMIN_HASH   = '$2b$12$GlMBYvuE3/jZuhfrZcagXOv.w3uVmwQEo5hdhqlpXtw9mOTbyfgfa'; // admin
-const ADMIN1_HASH  = '$2a$12$s7poSaYnwcVvY7226esSi.FGP15GospPS/2ctrZhoQJWBy0yWC4/a';
+const ADMIN_HASH   = '$2b$12$GlMBYvuE3/jZuhfrZcagXOv.w3uVmwQEo5hdhqlpXtw9mOTbyfgfa'; // jasmin
+const ADMIN1_HASH  = '$2a$12$mcmeT/BTIHz3cA1QQbnqcubf1FiFFu7f50YKw7/jPFaRabvRkpZdq';
 const SERVIS_HASH = "$2a$12$mVDJhEzXLoGc3NcBbnN7ne4gfwuAHk8X6laD/oCCX1IViJ068j2qe";
 const RADNJA_HASH  = '$2b$12$T1wLn3vutZ7VJaNsmS5q1uVqJwiT0qo1FW2DyyidxGbWSJZ20eRau'; 
 const MAGACIN_HASH = '$2b$12$8yj9bdZ/C.KdDA4S5fixreK1nfPJ4wQnX9cNIRPw6eWm3S93Is19K';

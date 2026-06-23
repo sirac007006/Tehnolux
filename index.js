@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import pg from "pg";
 import dotenv from 'dotenv';
 import session from 'express-session';
+import connectPgSimple from 'connect-pg-simple';
 import bcrypt from 'bcrypt';
 
 dotenv.config();
@@ -38,11 +39,17 @@ const MAGACIN_HASH = '$2b$12$8yj9bdZ/C.KdDA4S5fixreK1nfPJ4wQnX9cNIRPw6eWm3S93Is1
 
 
 // session setup
+const PgSession = connectPgSimple(session);
 app.use(session({
   name: 'sid',
   secret: process.env.SESSION_SECRET || 'replace_this_in_prod',
   resave: false,
   saveUninitialized: false,
+  store: new PgSession({
+    pool: db,
+    tableName: 'session',
+    createTableIfMissing: true,
+  }),
   cookie: {
     httpOnly: true,
     sameSite: true,

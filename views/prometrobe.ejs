@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tehnolux Admin Panel - Promet robe (Otpremnice)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ... postojeći CSS ostaje isti ... */
+        
+        @media print {
+            * {
+                margin: 0 !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+            }
+            
+            body {
+                background: white !important;
+                color: black !important;
+                font-size: 12px !important;
+                line-height: 1.2 !important;
+            }
+            
+            .sidebar, .header, .filter-controls, .btn, 
+            .mobile-menu-toggle, .toggle-sidebar {
+                display: none !important;
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            
+            .card {
+                box-shadow: none !important;
+                border: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                page-break-inside: avoid;
+            }
+            
+            .print-header {
+                display: block !important;
+                text-align: center;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #000;
+            }
+            
+            .print-header h2 {
+                font-size: 16px !important;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+            
+            .print-header p {
+                font-size: 12px !important;
+                margin-bottom: 0;
+            }
+            
+            .table-container {
+                overflow: visible !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+            }
+            
+            .data-table {
+                width: 100% !important;
+                min-width: auto !important;
+                border: 2px solid #000 !important;
+                border-collapse: collapse !important;
+                font-size: 10px !important;
+                page-break-inside: auto;
+            }
+            
+            .data-table th,
+            .data-table td {
+                border: 1px solid #000 !important;
+                padding: 3px 4px !important;
+                font-size: 9px !important;
+                line-height: 1.1 !important;
+                text-align: left;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+            }
+            
+            .data-table th {
+                background-color: #f0f0f0 !important;
+                font-weight: bold !important;
+                color: black !important;
+            }
+            
+            .data-table tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+            
+            .data-table td {
+                max-width: 120px;
+                overflow: hidden;
+            }
+            
+            /* Posebno za duže tekstove u koloni Artikal */
+            .data-table td:nth-child(3) {
+                max-width: 200px;
+                font-size: 8px !important;
+            }
+            
+            /* Podešavanje za landscape orijentaciju ako je potrebno */
+            @page {
+                size: landscape;
+                margin: 0.5cm;
+            }
+            
+            /* Skrivanje nepotrebnih elemenata */
+            .modal, .sidebar-overlay {
+                display: none !important;
+            }
+        }
+
+        .print-header {
+            display: none;
+        }
+
+        /* Ostali CSS ostaju isti */
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #2ecc71;
+            --warning-color: #f1c40f;
+            --text-color: #333;
+            --light-text: #ecf0f1;
+            --sidebar-width: 280px;
+            --sidebar-collapsed: 70px;
+            --header-height: 60px;
+            --transition-speed: 0.3s;
+            --border-radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        .sidebar {
+            position: fixed;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--primary-color);
+            color: var(--light-text);
+            padding: 1.5rem 1rem;
+            transition: all var(--transition-speed);
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed);
+            padding: 1rem 0.5rem;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            justify-content: center;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--light-text);
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-icon {
+            margin-right: 10px;
+            font-size: 24px;
+            min-width: 24px;
+        }
+
+        .sidebar.collapsed .logo-text {
+            display: none;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .menu-section {
+            margin-bottom: 1rem;
+        }
+
+        .menu-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 0.5rem;
+            padding: 0 1rem;
+            transition: all var(--transition-speed);
+        }
+
+        .sidebar.collapsed .menu-title {
+            display: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.2rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 10px 1rem;
+            color: var(--light-text);
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            transition: all var(--transition-speed);
+            position: relative;
+            font-size: 14px;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link.active {
+            background-color: var(--secondary-color);
+        }
+        .submenu .nav-link {
+            padding: 8px 1rem;
+            font-size: 13px;
+            margin-left: 0;
+        }
+        .nav-icon {
+            margin-right: 12px;
+            font-size: 16px;
+            min-width: 16px;
+            text-align: center;
+        }
+
+        .sidebar.collapsed .nav-text {
+            display: none;
+        }
+
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height var(--transition-speed);
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: var(--border-radius);
+            margin-top: 0.2rem;
+            margin-left: 1rem;
+            margin-right: 0.5rem;
+        }
+
+        .submenu.open {
+            max-height: 400px;
+        }
+
+        .sidebar.collapsed .submenu {
+            display: none;
+        }
+
+        .toggle-sidebar {
+            position: sticky;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--light-text);
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            margin-top: auto;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-sidebar:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: all var(--transition-speed);
+            min-height: 100vh;
+            padding: 1rem;
+            padding-top: calc(var(--header-height) + 1rem);
+        }
+
+        .main-content.expanded {
+            margin-left: var(--sidebar-collapsed);
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            height: var(--header-height);
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all var(--transition-speed);
+            z-index: 900;
+        }
+
+        .header.expanded {
+            left: var(--sidebar-collapsed);
+        }
+
+        .page-title {
+            font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: clamp(11px, 1.5vw, 13px);
+            font-weight: 500;
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+
+        .btn-primary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: #333;
+        }
+
+        .btn-warning:hover {
+            background-color: #f39c12;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: clamp(1rem, 2vw, 1.5rem);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-controls {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .filter-row.dates {
+            grid-template-columns: 1fr 1fr auto;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-label {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            transition: border-color var(--transition-speed);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin: 1rem -1rem -1rem -1rem;
+            padding: 0 1rem 1rem 1rem;
+        }
+
+        .data-table {
+            width: 100%;
+            min-width: 900px;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: clamp(4px, 1vw, 8px) clamp(6px, 1.2vw, 10px);
+            text-align: left;
+            border: 1px solid #e6e9ed;
+            font-size: clamp(10px, 1.1vw, 12px);
+            white-space: nowrap;
+        }
+
+        .data-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .data-table tbody tr.selected {
+            background-color: #d4edda;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 1rem;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: clamp(1.5rem, 3vw, 2rem);
+            width: 100%;
+            max-width: min(600px, 95vw);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e6e9ed;
+        }
+
+        .modal-title {
+            font-size: clamp(1.1rem, 2.2vw, 1.3rem);
+            font-weight: 600;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .close-modal:hover {
+            color: var(--accent-color);
+        }
+
+        .kartica-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .kartica-field {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 1rem;
+        }
+
+        .kartica-label {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 0.3rem;
+            color: #666;
+        }
+
+        .kartica-value {
+            font-size: 16px;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .sort-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .sort-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .sort-option:hover {
+            background-color: #f8f9fa;
+        }
+
+        .sort-option input[type="radio"] {
+            margin: 0;
+        }
+
+        .quantity-column {
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-color);
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
+            background-color: white;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                width: var(--sidebar-collapsed);
+            }
+            
+            .sidebar .logo-text,
+            .sidebar .nav-text,
+            .sidebar .menu-title {
+                display: none;
+            }
+            
+            .main-content,
+            .header {
+                margin-left: var(--sidebar-collapsed);
+            }
+
+            .filter-row.dates {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                padding: 1rem;
+                margin: 0.5rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 320px;
+                height: 100vh;
+                padding: 1.5rem 1rem;
+                z-index: 2500;
+                background: var(--primary-color);
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            .sidebar.mobile-open .logo-text,
+            .sidebar.mobile-open .nav-text,
+            .sidebar.mobile-open .menu-title {
+                display: block;
+            }
+
+            .main-content,
+            .header {
+                margin-left: 0;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .btn span {
+                display: none;
+            }
+
+            .filter-controls {
+                padding: 1rem;
+            }
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.4);
+            z-index: 2000;
+            display: none;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+        }
+
+        .sidebar-nav::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.5);
+        }
+    </style>
+</head>
+<body>
+    <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="logo-container">
+            <div class="logo">
+                <span class="logo-text">Tehnolux</span>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="menu-section">
+                <div class="menu-title">Unos dokumentacije</div>
+                <div class="nav-item">
+                    <a href="/pravljenjedokumenta" class="nav-link">
+                        <i class="fas fa-file nav-icon"></i>
+                        <span class="nav-text">Dokumenti</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-title">Pregled</div>
+                <div class="nav-item has-submenu">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-eye nav-icon"></i>
+                        <span class="nav-text">Pregledi</span>
+                    </a>
+                    <div class="submenu open">
+                        <div class="nav-item">
+                            <a href="/lager" class="nav-link">
+                                <span class="nav-text">Lager</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/prometrobe" class="nav-link active">
+                                <span class="nav-text">Promet robe</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/dokumenti" class="nav-link">
+                                <span class="nav-text">Pregled dokumenata</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-title">Šifrarnik</div>
+                <div class="nav-item has-submenu">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-database nav-icon"></i>
+                        <span class="nav-text">Šifarnici</span>
+                    </a>
+                    <div class="submenu">
+                        <div class="nav-item">
+                            <a href="/artikli" class="nav-link">
+                                <span class="nav-text">Artikli</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/magacini" class="nav-link">
+                                <span class="nav-text">Magacini</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/komercijalisti" class="nav-link">
+                                <span class="nav-text">Komercijalisti</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-title">Kupci</div>
+                <div class="nav-item has-submenu">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-users nav-icon"></i>
+                        <span class="nav-text">Upravljanje kupcima</span>
+                    </a>
+                    <div class="submenu">
+                        <div class="nav-item">
+                            <a href="/uplate" class="nav-link">
+                                <span class="nav-text">Uplate</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/partneri" class="nav-link">
+                                <span class="nav-text">Partneri</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/karticekupca" class="nav-link">
+                                <span class="nav-text">Kartica kupca</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="menu-section">
+                <div class="menu-title">Servis</div>
+                <div class="nav-item">
+                    <a href="/servis" class="nav-link">
+                        <i class="fas fa-tools nav-icon"></i>
+                        <span class="nav-text">Servis</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <button class="toggle-sidebar" id="toggle-sidebar">
+            <i class="fas fa-chevron-left" id="sidebar-icon"></i>
+        </button>
+    </aside>
+
+    <header class="header" id="header">
+        <h1 class="page-title">Promet robe - Otpremnice</h1>
+        
+        <div class="header-actions">
+            <button class="btn btn-primary" id="print-btn">
+                <i class="fas fa-print"></i>
+                <span>Print</span>
+            </button>
+            <button class="btn btn-warning" id="sort-btn">
+                <i class="fas fa-sort"></i>
+                <span>Sort</span>
+            </button>
+            <button class="btn btn-secondary" id="kartica-btn">
+                <i class="fas fa-id-card"></i>
+                <span>Kartica</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="main-content" id="main-content">
+        <div class="print-header">
+            <h2>TEHNOLUX - PROMET ROBE (OTPREMNICE)</h2>
+            <p>Period: <span id="print-period"></span> | Partner: <span id="print-partner"></span></p>
+        </div>
+        
+        <div class="filter-controls">
+            <div class="filter-row dates">
+                <div class="filter-group">
+                    <label class="filter-label">Period od:</label>
+                    <input type="text" class="form-control" id="date-from" placeholder="dd.mm.yyyy" value="10.02.2025">
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Period do:</label>
+                    <input type="text" class="form-control" id="date-to" placeholder="dd.mm.yyyy" value="01.11.2025">
+                </div>
+                <div class="filter-group">
+                    <button class="btn btn-primary" id="apply-date-filter">Primeni</button>
+                </div>
+            </div>
+
+            <div class="filter-row">
+    <div class="filter-group">
+        <label class="filter-label">Partner:</label>
+        <select class="form-control" id="partner-filter">
+            <option value="">Svi partneri</option>
+        </select>
+    </div>
+    <div class="filter-group">
+        <label class="filter-label">Komercijalist:</label>
+        <select class="form-control" id="komercijalist-filter">
+            <option value="">Svi komercijalisti</option>
+        </select>
+    </div>
+    <div class="filter-group">
+        <label class="filter-label">Magacin:</label>
+        <select class="form-control" id="magacin-filter">
+            <option value="">Svi magacini</option>
+        </select>
+    </div>
+</div>
+        </div>
+
+        <div class="card">
+            <div class="table-container">
+                <table class="data-table" id="promet-table">
+                    <thead>
+                        <tr>
+                            <th>Datum</th>
+                            <th>Šifra</th>
+                            <th>Artikal</th>
+                            <th>Jedinica</th>
+                            <th>Količina</th>
+                            <th>Partner</th>
+                            <th>Komercijalist</th>
+                            <th>Magacin</th> <!-- Added this line -->
+                        </tr>
+                    </thead>
+                    <tbody id="promet-tbody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal" id="kartica-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Kartica stavke</h3>
+                <button class="close-modal" id="close-kartica-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="kartica-content" id="kartica-content">
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="sort-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Sortiranje</h3>
+                <button class="close-modal" id="close-sort-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="sort-options">
+                <div class="sort-option">
+                    <input type="radio" id="sort-datum" name="sort-by" value="datum" checked>
+                    <label for="sort-datum">Sortuj po datumu</label>
+                </div>
+                <div class="sort-option">
+                    <input type="radio" id="sort-sifra" name="sort-by" value="sifra">
+                    <label for="sort-sifra">Sortuj po šifri</label>
+                </div>
+                <div class="sort-option">
+                    <input type="radio" id="sort-naziv" name="sort-by" value="naziv">
+                    <label for="sort-naziv">Sortuj po nazivu artikla</label>
+                </div>
+                <div class="sort-option">
+                    <input type="radio" id="sort-partner" name="sort-by" value="partner">
+                    <label for="sort-partner">Sortuj po partneru</label>
+                </div>
+                <div class="sort-option">
+                    <input type="radio" id="sort-kolicina" name="sort-by" value="kolicina">
+                    <label for="sort-kolicina">Sortuj po količini</label>
+                </div>
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                <button class="btn btn-secondary" id="cancel-sort">Otkaži</button>
+                <button class="btn btn-primary" id="apply-sort">Primeni</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript kod ostaje isti
+        const magacinFilter = document.getElementById('magacin-filter');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const mainContent = document.getElementById('main-content');
+        const header = document.getElementById('header');
+        const toggleSidebar = document.getElementById('toggle-sidebar');
+        const sidebarIcon = document.getElementById('sidebar-icon');
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+
+        const dateFrom = document.getElementById('date-from');
+        const dateTo = document.getElementById('date-to');
+        const applyDateFilter = document.getElementById('apply-date-filter');
+        const partnerFilter = document.getElementById('partner-filter');
+        const komercijalistFilter = document.getElementById('komercijalist-filter');
+
+        const printBtn = document.getElementById('print-btn');
+        const sortBtn = document.getElementById('sort-btn');
+        const karticaBtn = document.getElementById('kartica-btn');
+
+        const karticaModal = document.getElementById('kartica-modal');
+        const sortModal = document.getElementById('sort-modal');
+        const closeKarticaModal = document.getElementById('close-kartica-modal');
+        const closeSortModal = document.getElementById('close-sort-modal');
+        const cancelSort = document.getElementById('cancel-sort');
+        const applySort = document.getElementById('apply-sort');
+
+        let currentData = [];
+
+        // Funkcija za konverziju srpskog formata u ISO format
+        function srpskiDatumUISO(datumSrpski) {
+            const [dan, mesec, godina] = datumSrpski.split('.');
+            return `${godina}-${mesec.padStart(2, '0')}-${dan.padStart(2, '0')}`;
+        }
+
+        // Funkcija za konverziju ISO formata u srpski format
+        function ISODatumUSrpski(datumISO) {
+            const date = new Date(datumISO);
+            const dan = String(date.getDate()).padStart(2, '0');
+            const mesec = String(date.getMonth() + 1).padStart(2, '0');
+            const godina = date.getFullYear();
+            return `${dan}.${mesec}.${godina}`;
+        }
+
+        // Postavljanje podrazumevanih vrednosti u srpskom formatu
+        const today = new Date();
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        // Ako već nisu postavljeni vrednosti u HTML-u, postavi podrazumevane
+        if (!dateFrom.value) {
+            dateFrom.value = ISODatumUSrpski(thirtyDaysAgo.toISOString());
+        }
+        if (!dateTo.value) {
+            dateTo.value = ISODatumUSrpski(today.toISOString());
+        }
+
+        function closeMobileSidebar() {
+            if (window.innerWidth <= 576) {
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+        }
+
+        mobileMenuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('mobile-open');
+            sidebarOverlay.classList.toggle('show');
+            
+            if (sidebar.classList.contains('mobile-open')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow= '';
+            }
+        });
+
+        sidebarOverlay.addEventListener('click', function() {
+            closeMobileSidebar();
+        });
+
+        toggleSidebar.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            header.classList.toggle('expanded');
+            
+            if (sidebar.classList.contains('collapsed')) {
+                sidebarIcon.classList.remove('fa-chevron-left');
+                sidebarIcon.classList.add('fa-chevron-right');
+            } else {
+                sidebarIcon.classList.remove('fa-chevron-right');
+                sidebarIcon.classList.add('fa-chevron-left');
+            }
+        });
+
+        document.querySelectorAll('.nav-item.has-submenu > .nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const parent = this.parentElement;
+                const submenu = parent.querySelector('.submenu');
+                
+                document.querySelectorAll('.nav-item.has-submenu').forEach(item => {
+                    if (item !== parent) {
+                        item.classList.remove('open');
+                        item.querySelector('.submenu').classList.remove('open');
+                    }
+                });
+                
+                parent.classList.toggle('open');
+                submenu.classList.toggle('open');
+            });
+        });
+
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                if (!this.parentElement.classList.contains('has-submenu')) {
+                    closeMobileSidebar();
+                }
+            });
+        });
+
+        async function loadFilters() {
+    try {
+        const partnersResponse = await fetch('/api/partneri');
+        const partners = await partnersResponse.json();
+        
+        partnerFilter.innerHTML = '<option value="">Svi partneri</option>';
+        partners.forEach(partner => {
+            const option = document.createElement('option');
+            option.value = partner.Naziv_partnera;
+            option.textContent = partner.Naziv_partnera;
+            partnerFilter.appendChild(option);
+        });
+
+        const komercijalistiResponse = await fetch('/api/komercijalisti');
+        const komercijalisti = await komercijalistiResponse.json();
+        
+        komercijalistFilter.innerHTML = '<option value="">Svi komercijalisti</option>';
+        komercijalisti.forEach(k => {
+            const option = document.createElement('option');
+            option.value = k.ime_prezime;
+            option.textContent = k.ime_prezime;
+            komercijalistFilter.appendChild(option);
+        });
+
+        // Load magacini
+        const magaciniResponse = await fetch('/api/magacini');
+        const magacini = await magaciniResponse.json();
+        
+        magacinFilter.innerHTML = '<option value="">Svi magacini</option>';
+        magacini.forEach(magacin => {
+            const option = document.createElement('option');
+            option.value = magacin.sifra || magacin.naziv;
+            option.textContent = magacin.naziv || magacin.sifra;
+            magacinFilter.appendChild(option);
+        });
+
+    } catch (error) {
+        console.error('Error loading filters:', error);
+    }
+}
+function parseDocuments(documents) {
+    const artikli = [];
+    
+    if (!Array.isArray(documents)) {
+        console.error('parseDocuments: Expected array but got:', typeof documents, documents);
+        return artikli;
+    }
+    
+    documents.forEach(doc => {
+        if (!doc.naziv_artikla) return;
+        
+        if (typeof doc.naziv_artikla !== 'string') return;
+        
+        const artikalStrings = doc.naziv_artikla.split(', ');
+        
+        artikalStrings.forEach(artStr => {
+            // POBOLJŠANI REGEX - posebno obrađuje slučajeve sa brojevima u nazivu
+            const match = artStr.match(/^(\d+)\s-\s(.+?)\s\(([\d.,]+)\s*(kom|m|KG|kg|L|l|sht|komad|komada)\)$/i);
+            
+            if (match) {
+                const [, sifra, naziv, kolicina, jm] = match;
+                const kolicinaNum = parseFloat(kolicina.replace(',', '.')) || 0;
+                
+                artikli.push({
+                    datum: doc.datum,
+                    sifra: sifra.trim(),
+                    naziv: naziv.trim(),
+                    kolicina: kolicinaNum,
+                    jm: jm.toLowerCase(),
+                    partner: doc.partner,
+                    komercijalist: doc.komercijalist_ime || doc.komercijalist || 'N/A',
+                    tip_dokumenta: doc.tip_dokumenta,
+                    magacin: doc.magacin || 'N/A'
+                });
+            } else {
+                // ALTERNATIVNI POKUŠAJ za složenije formate
+                const altMatch = artStr.match(/^(\d+)\s-\s(.+?)\s\(([^()]+)\)$/);
+                
+                if (altMatch) {
+                    const [, sifra, naziv, unutarZagrade] = altMatch;
+                    
+                    // Pokušaj da pronađeš količinu i JM u zagradi
+                    const quantityMatch = unutarZagrade.match(/([\d.,]+)\s*(kom|m|KG|kg|L|l|sht|komad|komada)?$/i);
+                    
+                    if (quantityMatch) {
+                        const [, kolicinaStr, jmStr] = quantityMatch;
+                        const kolicinaNum = parseFloat(kolicinaStr.replace(',', '.')) || 0;
+                        const jedinica = jmStr ? jmStr.toLowerCase() : 'kom';
+                        
+                        artikli.push({
+                            datum: doc.datum,
+                            sifra: sifra.trim(),
+                            naziv: naziv.trim(),
+                            kolicina: kolicinaNum,
+                            jm: jedinica,
+                            partner: doc.partner,
+                            komercijalist: doc.komercijalist_ime || doc.komercijalist || 'N/A',
+                            tip_dokumenta: doc.tip_dokumenta,
+                            magacin: doc.magacin || 'N/A'
+                        });
+                    } else {
+                        // Ako ne uspe, koristi podrazumevane vrednosti
+                        artikli.push({
+                            datum: doc.datum,
+                            sifra: 'N/A',
+                            naziv: artStr,
+                            kolicina: doc.kolicina || 0,
+                            jm: 'kom',
+                            partner: doc.partner,
+                            komercijalist: doc.komercijalist_ime || doc.komercijalist || 'N/A',
+                            tip_dokumenta: doc.tip_dokumenta,
+                            magacin: doc.magacin || 'N/A'
+                        });
+                    }
+                } else {
+                    // Fallback ako ništa ne uspe
+                    console.warn('Could not parse artikal string:', artStr);
+                    
+                    artikli.push({
+                        datum: doc.datum,
+                        sifra: 'N/A',
+                        naziv: artStr,
+                        kolicina: doc.kolicina || 0,
+                        jm: 'kom',
+                        partner: doc.partner,
+                        komercijalist: doc.komercijalist_ime || doc.komercijalist || 'N/A',
+                        tip_dokumenta: doc.tip_dokumenta,
+                        magacin: doc.magacin || 'N/A'
+                    });
+                }
+            }
+        });
+    });
+    
+    return artikli;
+}
+async function loadPrometData() {
+    try {
+        // Konvertuj srpske datume u ISO format pre slanja na server
+        const params = new URLSearchParams({
+            datum_od: srpskiDatumUISO(dateFrom.value),
+            datum_do: srpskiDatumUISO(dateTo.value),
+            partner: partnerFilter.value,
+            komercijalist: komercijalistFilter.value,
+            magacin: magacinFilter.value
+        });
+
+        const response = await fetch(`/api/prometrobe?${params}`);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+        }
+        
+        const data = await response.json();
+        
+        console.log('API Response:', data);
+        
+        currentData = parseDocuments(data);
+        updateTable(currentData);
+    } catch (error) {
+        console.error('Error loading promet data:', error);
+        alert('Greška pri učitavanju podataka: ' + error.message);
+    }
+}
+
+
+function updateTable(data) {
+    const tbody = document.getElementById('promet-tbody');
+    tbody.innerHTML = '';
+    
+    if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">Nema podataka za prikaz</td></tr>';
+        return;
+    }
+    
+    data.forEach((item, index) => {
+        const row = document.createElement('tr');
+        if (index === 0) {
+            row.classList.add('selected');
+        }
+        row.dataset.sifra = item.sifra;
+        row.dataset.naziv = item.naziv;
+        
+        // Dodatna provera i čišćenje jedinice mere
+        let displayJm = item.jm;
+        if (displayJm.includes('kom')) {
+            displayJm = 'kom';
+        } else if (displayJm.includes('m')) {
+            displayJm = 'm';
+        }
+        
+        row.innerHTML = `
+            <td>${formatDate(item.datum)}</td>
+            <td>${item.sifra}</td>
+            <td title="${item.naziv}">${item.naziv}</td>
+            <td>${displayJm}</td>
+            <td class="quantity-column">${item.kolicina.toFixed(2)}</td>
+            <td>${item.partner || ''}</td>
+            <td>${item.komercijalist || ''}</td>
+            <td>${item.magacin || ''}</td>
+        `;
+        
+        row.addEventListener('click', function() {
+            document.querySelectorAll('.data-table tbody tr').forEach(r => r.classList.remove('selected'));
+            this.classList.add('selected');
+        });
+        
+        tbody.appendChild(row);
+    });
+}
+
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}.${month}.${year}`;
+        }
+
+        applyDateFilter.addEventListener('click', loadPrometData);
+        magacinFilter.addEventListener('change', loadPrometData);
+        partnerFilter.addEventListener('change', loadPrometData);
+        komercijalistFilter.addEventListener('change', loadPrometData);
+
+        printBtn.addEventListener('click', function() {
+            // Koristi srpski format za štampu
+            const period = `${dateFrom.value} - ${dateTo.value}`;
+            const partner = partnerFilter.value || 'Svi partneri';
+            document.getElementById('print-period').textContent = period;
+            document.getElementById('print-partner').textContent = partner;
+            
+            window.print();
+        });
+
+        sortBtn.addEventListener('click', function() {
+            sortModal.classList.add('show');
+        });
+
+        applySort.addEventListener('click', function() {
+            const selectedSort = document.querySelector('input[name="sort-by"]:checked').value;
+            
+            currentData.sort((a, b) => {
+                switch(selectedSort) {
+                    case 'datum':
+                        return new Date(b.datum) - new Date(a.datum);
+                    case 'sifra':
+                        return (a.sifra || '').localeCompare(b.sifra || '');
+                    case 'naziv':
+                        return (a.naziv || '').toLowerCase().localeCompare((b.naziv || '').toLowerCase());
+                    case 'partner':
+                        return (a.partner || '').localeCompare(b.partner || '');
+                    case 'kolicina':
+                        return parseFloat(b.kolicina || 0) - parseFloat(a.kolicina || 0);
+                    default:
+                        return 0;
+                }
+            });
+            
+            updateTable(currentData);
+            sortModal.classList.remove('show');
+        });
+
+        karticaBtn.addEventListener('click', function() {
+    const selectedRow = document.querySelector('.data-table tbody tr.selected');
+    if (!selectedRow) {
+        alert('Molimo izaberite red u tabeli.');
+        return;
+    }
+
+    const cells = selectedRow.children;
+    const karticaContent = document.getElementById('kartica-content');
+    
+    karticaContent.innerHTML = `
+        <div class="kartica-field">
+            <div class="kartica-label">Datum:</div>
+            <div class="kartica-value">${cells[0].textContent}</div>
+        </div>
+        <div class="kartica-field">
+            <div class="kartica-label">Šifra:</div>
+            <div class="kartica-value">${cells[1].textContent}</div>
+        </div>
+        <div class="kartica-field" style="grid-column: 1/-1;">
+            <div class="kartica-label">Naziv artikla:</div>
+            <div class="kartica-value">${cells[2].textContent}</div>
+        </div>
+        <div class="kartica-field">
+            <div class="kartica-label">Jedinica mere:</div>
+            <div class="kartica-value">${cells[3].textContent}</div>
+        </div>
+        <div class="kartica-field">
+            <div class="kartica-label">Količina:</div>
+            <div class="kartica-value">${cells[4].textContent}</div>
+        </div>
+        <div class="kartica-field">
+            <div class="kartica-label">Partner:</div>
+            <div class="kartica-value">${cells[5].textContent}</div>
+        </div>
+        <div class="kartica-field">
+            <div class="kartica-label">Komercijalist:</div>
+            <div class="kartica-value">${cells[6].textContent || 'N/A'}</div>
+        </div>
+        <div class="kartica-field">
+            <div class="kartica-label">Magacin:</div>
+            <div class="kartica-value">${cells[7].textContent || 'N/A'}</div>
+        </div>
+    `;
+    
+    karticaModal.classList.add('show');
+});
+
+        closeKarticaModal.addEventListener('click', () => {
+            karticaModal.classList.remove('show');
+        });
+
+        closeSortModal.addEventListener('click', () => {
+            sortModal.classList.remove('show');
+        });
+
+        cancelSort.addEventListener('click', () => {
+            sortModal.classList.remove('show');
+        });
+
+        [karticaModal, sortModal].forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('show');
+                }
+            });
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (karticaModal.classList.contains('show')) {
+                    karticaModal.classList.remove('show');
+                } else if (sortModal.classList.contains('show')) {
+                    sortModal.classList.remove('show');
+                } else if (sidebar.classList.contains('mobile-open')) {
+                    closeMobileSidebar();
+                }
+            }
+            
+            if (e.ctrlKey && e.key === 'p') {
+                e.preventDefault();
+                printBtn.click();
+            }
+        });
+
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 576) {
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.innerWidth <= 992 && window.innerWidth > 576) {
+                sidebar.classList.add('collapsed');
+                mainContent.classList.add('expanded');
+                header.classList.add('expanded');
+                sidebarIcon.classList.remove('fa-chevron-left');
+                sidebarIcon.classList.add('fa-chevron-right');
+            }
+            
+            loadFilters().then(() => {
+                loadPrometData();
+            });
+            
+            console.log('Tehnolux Promet robe panel - artikli po redu (bez iznosa) initialized');
+        });
+    </script>
+</body>
+</html>

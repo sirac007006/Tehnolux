@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tehnolux Admin Panel - Lager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #2ecc71;
+            --warning-color: #f1c40f;
+            --text-color: #333;
+            --light-text: #ecf0f1;
+            --sidebar-width: 280px;
+            --sidebar-collapsed: 70px;
+            --header-height: 60px;
+            --transition-speed: 0.3s;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        /* Sidebar styles - poboljšano */
+        .sidebar {
+            position: fixed;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--primary-color);
+            color: var(--light-text);
+            padding: 1.5rem 1rem;
+            transition: all var(--transition-speed);
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed);
+            padding: 1rem 0.5rem;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            justify-content: center;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--light-text);
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-icon {
+            margin-right: 10px;
+            font-size: 24px;
+            min-width: 24px;
+        }
+
+        .sidebar.collapsed .logo-text {
+            display: none;
+        }
+
+        .sidebar.collapsed .logo-icon {
+            margin-right: 0;
+        }
+
+        /* Menu sections - poboljšano */
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .menu-section {
+            margin-bottom: 1rem;
+        }
+
+        .menu-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 0.5rem;
+            padding: 0 1rem;
+            transition: all var(--transition-speed);
+        }
+
+        .sidebar.collapsed .menu-title {
+            display: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.2rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 10px 1rem;
+            color: var(--light-text);
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            transition: all var(--transition-speed);
+            position: relative;
+            font-size: 14px;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link.active {
+            background-color: var(--secondary-color);
+        }
+
+        .nav-icon {
+            margin-right: 12px;
+            font-size: 16px;
+            min-width: 16px;
+            text-align: center;
+        }
+
+        .sidebar.collapsed .nav-text {
+            display: none;
+        }
+
+        .sidebar.collapsed .nav-icon {
+            margin-right: 0;
+        }
+
+        .sidebar.collapsed .nav-link {
+            justify-content: center;
+            padding: 10px;
+        }
+
+        /* Submenu styles - poboljšano */
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height var(--transition-speed);
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: var(--border-radius);
+            margin-top: 0.2rem;
+            margin-left: 1rem;
+            margin-right: 0.5rem;
+        }
+
+        .submenu.open {
+            max-height: 400px;
+        }
+
+        .submenu .nav-link {
+            padding: 8px 1rem;
+            font-size: 13px;
+            margin-left: 0;
+        }
+
+        .sidebar.collapsed .submenu {
+            display: none;
+        }
+
+        /* Toggle button - uvek dole */
+        .toggle-sidebar {
+            position: sticky;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--light-text);
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            margin-top: auto;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-sidebar:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Main content area */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: all var(--transition-speed);
+            min-height: 100vh;
+            padding: 1rem;
+            padding-top: calc(var(--header-height) + 1rem);
+        }
+
+        .main-content.expanded {
+            margin-left: var(--sidebar-collapsed);
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            height: var(--header-height);
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all var(--transition-speed);
+            z-index: 900;
+        }
+
+        .header.expanded {
+            left: var(--sidebar-collapsed);
+        }
+
+        .page-title {
+            font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: clamp(11px, 1.5vw, 13px);
+            font-weight: 500;
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+
+        .btn-danger {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: #333;
+        }
+
+        .btn-warning:hover {
+            background-color: #f39c12;
+        }
+
+        /* Card styles */
+        .card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: clamp(1rem, 2vw, 1.5rem);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e6e9ed;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .card-title {
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            font-weight: 600;
+        }
+
+        /* Summary cards */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, var(--secondary-color), #5dade2);
+            color: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+            box-shadow: var(--box-shadow);
+        }
+
+        .summary-card.warning {
+            background: linear-gradient(135deg, var(--warning-color), #f7dc6f);
+            color: #333;
+        }
+
+        .summary-card.danger {
+            background: linear-gradient(135deg, var(--accent-color), #ec7063);
+        }
+
+        .summary-card.success {
+            background: linear-gradient(135deg, var(--success-color), #58d68d);
+        }
+
+        .summary-card h3 {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-card p {
+            font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+            opacity: 0.9;
+        }
+
+        /* Table styles - poboljšano za responzivnost */
+        .table-container {
+            overflow-x: auto;
+            margin: 1rem -1rem -1rem -1rem;
+            padding: 0 1rem 1rem 1rem;
+        }
+
+        .data-table {
+            width: 100%;
+            min-width: 1000px; 
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: clamp(4px, 1vw, 8px) clamp(6px, 1.2vw, 10px);
+            text-align: left;
+            border-bottom: 1px solid #e6e9ed;
+            font-size: clamp(10px, 1.1vw, 12px);
+            white-space: nowrap;
+        }
+
+        /* Optimizovane širine kolona za EJS template */
+        .data-table th:nth-child(1),
+        .data-table td:nth-child(1) { width: 80px; max-width: 80px; }
+        .data-table th:nth-child(2),
+        .data-table td:nth-child(2) { width: 300px; max-width: 300px; overflow: hidden; text-overflow: ellipsis; }
+        .data-table th:nth-child(3),
+        .data-table td:nth-child(3) { width: 80px; max-width: 80px; text-align: center; }
+        .data-table th:nth-child(4),
+        .data-table td:nth-child(4) { width: 80px; max-width: 80px; text-align: center; }
+        .data-table th:nth-child(5),
+        .data-table td:nth-child(5) { width: 100px; max-width: 100px; text-align: right; }
+        .data-table th:nth-child(6),
+        .data-table td:nth-child(6) { width: 100px; max-width: 100px; text-align: right; }
+        .data-table th:nth-child(7),
+        .data-table td:nth-child(7) { width: 100px; max-width: 100px; text-align: center; }
+        .data-table th:nth-child(8),
+        .data-table td:nth-child(8) { width: 150px; max-width: 150px; padding: 4px 6px; }
+
+        .data-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 1rem;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: clamp(1.5rem, 3vw, 2rem);
+            width: 100%;
+            max-width: min(700px, 95vw);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e6e9ed;
+        }
+
+        .modal-title {
+            font-size: clamp(1.1rem, 2.2vw, 1.3rem);
+            font-weight: 600;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .close-modal:hover {
+            color: var(--accent-color);
+        }
+
+        /* Form styles */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: clamp(12px, 1.3vw, 13px);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: clamp(6px, 1.2vw, 8px) clamp(8px, 1.5vw, 10px);
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: clamp(12px, 1.3vw, 13px);
+            transition: border-color var(--transition-speed);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Search and filter */
+        .search-filter-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 200px;
+            max-width: 300px;
+        }
+
+        .search-box input {
+            padding-left: 35px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        /* Action buttons in table */
+        .action-buttons {
+            display: flex;
+            gap: 0.3rem;
+            flex-wrap: nowrap;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        .btn-sm {
+            padding: clamp(3px, 0.9vw, 4px) clamp(5px, 1.3vw, 7px);
+            font-size: clamp(9px, 1vw, 11px);
+            flex-shrink: 0;
+            min-width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Mobile menu toggle */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-color);
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
+            background-color: white;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        /* Stock status indicators */
+        .stock-status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .stock-status.high {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .stock-status.medium {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .stock-status.low {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .stock-status.out {
+            background-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        /* Price columns */
+        .price-column {
+            text-align: right;
+            font-family: monospace;
+        }
+
+        .quantity-column {
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Responsive design - poboljšano */
+        @media (max-width: 1200px) {
+            .data-table {
+                min-width: 900px;
+            }
+            .summary-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                width: var(--sidebar-collapsed);
+            }
+            
+            .sidebar .logo-text,
+            .sidebar .nav-text,
+            .sidebar .menu-title {
+                display: none;
+            }
+            
+            .main-content,
+            .header {
+                margin-left: var(--sidebar-collapsed);
+            }
+            
+            .toggle-sidebar {
+                display: flex;
+            }
+
+            .data-table {
+                min-width: 800px;
+            }
+
+            .header-actions {
+                gap: 0.5rem;
+            }
+
+            .summary-cards {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-filter-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .data-table {
+                min-width: 700px;
+            }
+
+            .card {
+                padding: 1rem;
+                margin: 0.5rem;
+            }
+
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .card-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .toggle-sidebar {
+                display: flex;
+            }
+
+        }
+
+        @media (max-width: 576px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 320px;
+                height: 100vh;
+                padding: 1.5rem 1rem;
+                z-index: 2500;
+                background: var(--primary-color);
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            .sidebar.mobile-open .logo-text,
+            .sidebar.mobile-open .nav-text,
+            .sidebar.mobile-open .menu-title {
+                display: block;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+                position: fixed;
+                top: 8px;
+                left: 12px;
+                z-index: 2600;
+                background-color: white;
+                border: none;
+                padding: 12px;
+                border-radius: 8px;
+                font-size: 18px;
+                color: var(--primary-color);
+                transition: all 0.2s ease;
+                width: 44px;
+                height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .main-content,
+            .header {
+                margin-left: 0;
+            }
+
+            .header {
+                padding: 0 1rem 0 60px;
+            }
+
+            .data-table {
+                min-width: 100%;
+            }
+
+            .data-table th:nth-child(1),
+            .data-table td:nth-child(1) { width: 12%; }
+            .data-table th:nth-child(2),
+            .data-table td:nth-child(2) { 
+                width: 35%;
+                max-width: none;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .data-table th:nth-child(3),
+            .data-table td:nth-child(3) { width: 10%; }
+            .data-table th:nth-child(4),
+            .data-table td:nth-child(4) { width: 10%; }
+            .data-table th:nth-child(5),
+            .data-table td:nth-child(5) { width: 10%; font-size: 10px; }
+            .data-table th:nth-child(6),
+            .data-table td:nth-child(6) { width: 10%; font-size: 10px; }
+            .data-table th:nth-child(7),
+            .data-table td:nth-child(7) { width: 8%; }
+            .data-table th:nth-child(8),
+            .data-table td:nth-child(8) { width: 15%; padding: 2px 4px; }
+
+            .btn span {
+                display: none;
+            }
+
+            .btn-sm span {
+                display: none;
+            }
+
+            .sidebar-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background-color: rgba(0, 0, 0, 0.4);
+                z-index: 2000;
+                display: none;
+            }
+
+            .sidebar-overlay.show {
+                display: block;
+            }
+        }
+
+        /* Animacije za smooth scroll */
+        .sidebar-nav {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.3) transparent;
+        }
+
+        .sidebar-nav::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.5);
+        }
+        .stock-status.danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar overlay za mobile -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+        <div class="logo-container">
+            <div class="logo">
+                <span class="logo-text">Tehnolux</span>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <!-- Unos Dokumentacije - skriva se na uređajima manjim od 768px osim na mobile sidebar -->
+            <div class="menu-section">
+                <div class="menu-title">Unos dokumentacije</div>
+                <div class="nav-item">
+                    <a href="/pravljenjedokumenta" class="nav-link">
+                        <i class="fas fa-file nav-icon"></i>
+                        <span class="nav-text">Dokumenti</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Pregled -->
+            <div class="menu-section">
+                <div class="menu-title">Pregled</div>
+                <div class="nav-item has-submenu">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-eye nav-icon"></i>
+                        <span class="nav-text">Pregledi</span>
+                    </a>
+                    <div class="submenu open">
+                        <div class="nav-item">
+                            <a href="/lager" class="nav-link active">
+                                <span class="nav-text">Lager</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/prometrobe" class="nav-link">
+                                <span class="nav-text">Promet robe</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/dokumenti" class="nav-link">
+                                <span class="nav-text">Pregled dokumenata</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Šifrarnik -->
+            <div class="menu-section">
+                <div class="menu-title">Šifrarnik</div>
+                <div class="nav-item has-submenu">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-database nav-icon"></i>
+                        <span class="nav-text">Šifarnici</span>
+                    </a>
+                    <div class="submenu">
+                        <div class="nav-item">
+                            <a href="/artikli" class="nav-link">
+                                <span class="nav-text">Artikli</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/magacini" class="nav-link">
+                                <span class="nav-text">Magacini</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/komercijalisti" class="nav-link">
+                                <span class="nav-text">Komercijalisti</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kupci -->
+            <div class="menu-section">
+                <div class="menu-title">Kupci</div>
+                <div class="nav-item has-submenu">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-users nav-icon"></i>
+                        <span class="nav-text">Upravljanje kupcima</span>
+                    </a>
+                    <div class="submenu">
+                        
+                        <div class="nav-item">
+                            <a href="/uplate" class="nav-link">
+                                <span class="nav-text">Uplate</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/partneri" class="nav-link">
+                                <span class="nav-text">Partneri</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/karticekupca" class="nav-link">
+                                <span class="nav-text">Kartica kupca</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="menu-section">
+                <div class="menu-title">Servis</div>
+                <div class="nav-item">
+                    <a href="/servis" class="nav-link">
+                        <i class="fas fa-tools nav-icon"></i>
+                        <span class="nav-text">Servis</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <button class="toggle-sidebar" id="toggle-sidebar">
+            <i class="fas fa-chevron-left" id="sidebar-icon"></i>
+        </button>
+    </aside>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <h1 class="page-title">Lager - Stanje zaliha</h1>
+        
+        <div class="header-actions">
+            <button class="btn btn-success" id="add-stock-btn">
+                <i class="fas fa-plus"></i>
+                <span>Dodaj zalihu</span>
+            </button>
+            <button class="btn btn-warning" id="stock-alert-btn">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Upozorenja</span>
+            </button>
+            <button class="btn btn-secondary" onclick="window.location.reload()">
+                <i class="fas fa-sync-alt"></i>
+                <span>Osvježi</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content" id="main-content">
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+            <%
+                let totalItems = lagerArtikli.length;
+                let inStock = lagerArtikli.filter(item => parseFloat(item.kolicina) > 0).length;
+                let lowStock = lagerArtikli.filter(item => {
+                    let qty = parseFloat(item.kolicina);
+                    return qty > 0 && qty <= 5;
+                }).length;
+                let outStock = lagerArtikli.filter(item => parseFloat(item.kolicina) === 0).length;
+            %>
+            <div class="summary-card">
+                <h3><%= totalItems %></h3>
+                <p>Ukupno artikala</p>
+            </div>
+            <div class="summary-card success">
+                <h3><%= inStock %></h3>
+                <p>Na stanju</p>
+            </div>
+            <div class="summary-card warning">
+                <h3><%= lowStock %></h3>
+                <p>Niske zalihe</p>
+            </div>
+            <div class="summary-card danger">
+                <h3><%= outStock %></h3>
+                <p>Nema na stanju</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Pregled lager stanja</h3>
+                <div class="search-filter-container">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="form-control" id="search-stock" placeholder="Pretraži po šifri ili nazivu...">
+                    </div>
+                    <select class="form-control" id="status-filter" style="width: auto; min-width: 150px;">
+                        <option value="">Svi statusi</option>
+                        <option value="high">Visoke zalihe</option>
+                        <option value="medium">Srednje zalihe</option>
+                        <option value="low">Niske zalihe</option>
+                        <option value="out">Nema na stanju</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table" id="stock-table">
+                    <thead>
+                        <tr>
+                            <th>Šifra</th>
+                            <th>Naziv artikla</th>
+                            <th>JM</th>
+                            <th>Količina</th>
+                            <th>Cena bez PDV</th>
+                            <th>Cena sa PDV</th>
+                            <th>Status</th>
+                            <th>Akcije</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stock-tbody">
+                        <% lagerArtikli.forEach(function(item) { 
+    let qty = parseFloat(item.kolicina);
+    let status, statusLabel;
+    
+    if (qty === 0) {
+        status = 'out';
+        statusLabel = 'Nema na stanju';
+    } else if (qty < 0) {
+        status = 'danger';
+        statusLabel = 'Negativno stanje';
+    } else if (qty <= 5) {
+        status = 'low';
+        statusLabel = 'Niske zalihe';
+    } else if (qty <= 20) {
+        status = 'medium';
+        statusLabel = 'Srednje zalihe';
+    } else {
+        status = 'high';
+        statusLabel = 'Visoke zalihe';
+    }
+%>
+                        <tr data-sifra="<%= item.sifra %>" data-status="<%= status %>">
+                            <td><%= item.sifra %></td>
+                            <td title="<%= item.naziv %>"><%= item.naziv %></td>
+                            <td class="quantity-column"><%= item.JM %></td>
+                            <td class="quantity-column"><%= qty %></td>
+                            <td class="price-column"><%= parseFloat(item.cena_bez_PDV).toFixed(2) %></td>
+                            <td class="price-column"><%= parseFloat(item.cena_sa_PDV).toFixed(2) %></td>
+                            <td><span class="stock-status <%= status %>"><%= statusLabel %></span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-primary edit-stock-btn" 
+                                            data-id="<%= item.id %>"
+                                            data-sifra="<%= item.sifra %>"
+                                            data-naziv="<%= item.naziv %>"
+                                            data-jm="<%= item.JM %>"
+                                            data-kolicina="<%= item.kolicina %>"
+                                            data-cena-bez="<%= item.cena_bez_PDV %>"
+                                            data-cena-sa="<%= item.cena_sa_PDV %>"
+                                            title="Izmeni">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger delete-stock-btn" 
+                                            data-id="<%= item.id %>"
+                                            data-sifra="<%= item.sifra %>"
+                                            title="Obriši">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <% }); %>
+                        
+                        <% if (lagerArtikli.length === 0) { %>
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 2rem; color: #666;">
+                                <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+                                Nema artikala u lageru
+                            </td>
+                        </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal za dodavanje/izmenu stanja -->
+    <div class="modal" id="stock-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-title">Dodaj novi artikal</h3>
+                <button class="close-modal" id="close-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="stock-form">
+                <input type="hidden" id="stock-id">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="stock-code">Šifra artikla:</label>
+                        <input type="text" class="form-control" id="stock-code" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="stock-name">Naziv artikla:</label>
+                        <input type="text" class="form-control" id="stock-name" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="stock-jm">Jedinica mere:</label>
+                        <select class="form-control" id="stock-jm" required>
+                            <option value="">Izaberite JM</option>
+                            <option value="kom">kom</option>
+                            <option value="kg">kg</option>
+                            <option value="lit">lit</option>
+                            <option value="m">m</option>
+                            <option value="m2">m²</option>
+                            <option value="m3">m³</option>
+                            <option value="pak">pak</option>
+                            <option value="set">set</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="stock-quantity">Količina:</label>
+                        <input type="number" class="form-control" id="stock-quantity" step="1" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="stock-price-bez">Cena bez PDV:</label>
+                        <input type="number" class="form-control" id="stock-price-bez" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="stock-price-sa">Cena sa PDV:</label>
+                        <input type="number" class="form-control" id="stock-price-sa" step="0.01" min="0" required>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-secondary" id="cancel-btn">Otkaži</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i>
+                        Sačuvaj
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal za upozorenja -->
+    <div class="modal" id="alert-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Upozorenja o zalihama</h3>
+                <button class="close-modal" id="close-alert-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="alert-content">
+                <% 
+                    let lowStockItems = lagerArtikli.filter(item => {
+                        let qty = parseFloat(item.kolicina);
+                        return qty > 0 && qty <= 5;
+                    });
+                    let outStockItems = lagerArtikli.filter(item => parseFloat(item.kolicina) === 0);
+                %>
+                
+                <h4 style="color: var(--accent-color); margin-bottom: 1rem;">
+                    <i class="fas fa-exclamation-triangle"></i> Artikli sa niskim zalihama (<%= lowStockItems.length %>)
+                </h4>
+                <div id="low-stock-list">
+                    <% if (lowStockItems.length > 0) { %>
+                        <% lowStockItems.forEach(function(item) { %>
+                            <div style="padding: 8px; border-left: 3px solid var(--warning-color); margin-bottom: 8px; background: #fff3cd;">
+                                <strong><%= item.sifra %> - <%= item.naziv %></strong><br>
+                                <small>Količina: <%= parseFloat(item.kolicina) %> <%= item.jm %></small>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <p>Nema artikala sa niskim zalihama.</p>
+                    <% } %>
+                </div>
+                
+                <h4 style="color: var(--accent-color); margin: 2rem 0 1rem 0;">
+                    <i class="fas fa-times-circle"></i> Artikli bez zaliha (<%= outStockItems.length %>)
+                </h4>
+                <div id="out-stock-list">
+                    <% if (outStockItems.length > 0) { %>
+                        <% outStockItems.forEach(function(item) { %>
+                            <div style="padding: 8px; border-left: 3px solid var(--accent-color); margin-bottom: 8px; background: #f8d7da;">
+                                <strong><%= item.sifra %> - <%= item.naziv %></strong><br>
+                                <small>Nema na stanju</small>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <p>Nema artikala bez zaliha.</p>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const mainContent = document.getElementById('main-content');
+        const header = document.getElementById('header');
+        const toggleSidebar = document.getElementById('toggle-sidebar');
+        const sidebarIcon = document.getElementById('sidebar-icon');
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        
+        // Modal elements
+        const stockModal = document.getElementById('stock-modal');
+        const alertModal = document.getElementById('alert-modal');
+        const addStockBtn = document.getElementById('add-stock-btn');
+        const stockAlertBtn = document.getElementById('stock-alert-btn');
+        const closeModal = document.getElementById('close-modal');
+        const closeAlertModal = document.getElementById('close-alert-modal');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const stockForm = document.getElementById('stock-form');
+        const modalTitle = document.getElementById('modal-title');
+
+        // Search and filter elements
+        const searchInput = document.getElementById('search-stock');
+        const statusFilter = document.getElementById('status-filter');
+
+        // Function to close mobile sidebar
+        function closeMobileSidebar() {
+            if (window.innerWidth <= 576) {
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Mobile menu functionality
+        mobileMenuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('mobile-open');
+            sidebarOverlay.classList.toggle('show');
+            
+            if (sidebar.classList.contains('mobile-open')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        });
+
+        // Close mobile menu when clicking overlay
+        sidebarOverlay.addEventListener('click', function() {
+            closeMobileSidebar();
+        });
+
+        // Toggle sidebar
+        toggleSidebar.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            header.classList.toggle('expanded');
+            
+            if (sidebar.classList.contains('collapsed')) {
+                sidebarIcon.classList.remove('fa-chevron-left');
+                sidebarIcon.classList.add('fa-chevron-right');
+            } else {
+                sidebarIcon.classList.remove('fa-chevron-right');
+                sidebarIcon.classList.add('fa-chevron-left');
+            }
+        });
+
+        // Submenu functionality
+        document.querySelectorAll('.nav-item.has-submenu > .nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const parent = this.parentElement;
+                const submenu = parent.querySelector('.submenu');
+                
+                document.querySelectorAll('.nav-item.has-submenu').forEach(item => {
+                    if (item !== parent) {
+                        item.classList.remove('open');
+                        item.querySelector('.submenu').classList.remove('open');
+                    }
+                });
+                
+                parent.classList.toggle('open');
+                submenu.classList.toggle('open');
+            });
+        });
+
+        // Navigation - close sidebar on submenu link click
+        document.querySelectorAll('.submenu .nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                closeMobileSidebar();
+            });
+        });
+
+        // Modal functionality
+        addStockBtn.addEventListener('click', () => {
+            clearForm();
+            modalTitle.textContent = 'Dodaj novi artikal';
+            stockModal.classList.add('show');
+        });
+
+        stockAlertBtn.addEventListener('click', () => {
+            alertModal.classList.add('show');
+        });
+
+        closeModal.addEventListener('click', () => stockModal.classList.remove('show'));
+        closeAlertModal.addEventListener('click', () => alertModal.classList.remove('show'));
+        cancelBtn.addEventListener('click', () => stockModal.classList.remove('show'));
+
+        stockModal.addEventListener('click', (e) => {
+            if (e.target === stockModal) stockModal.classList.remove('show');
+        });
+
+        alertModal.addEventListener('click', (e) => {
+            if (e.target === alertModal) alertModal.classList.remove('show');
+        });
+
+        // Form functions
+        function clearForm() {
+            stockForm.reset();
+            document.getElementById('stock-id').value = '';
+        }
+
+        function fillForm(data) {
+            document.getElementById('stock-id').value = data.id;
+            document.getElementById('stock-code').value = data.sifra;
+            document.getElementById('stock-name').value = data.naziv;
+            document.getElementById('stock-jm').value = data.jm;
+            document.getElementById('stock-quantity').value = data.kolicina;
+            document.getElementById('stock-price-bez').value = data.cenaBez;
+            document.getElementById('stock-price-sa').value = data.cenaSa;
+            document.getElementById('stock-code').readOnly = true; // Ne dozvoljavamo menjanje šifre kod izmene
+        }
+
+        // Table button handlers
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.edit-stock-btn')) {
+                const btn = e.target.closest('.edit-stock-btn');
+                const data = {
+                    id: btn.dataset.sifra,
+                    sifra: btn.dataset.sifra,
+                    naziv: btn.dataset.naziv,
+                    jm: btn.dataset.jm,
+                    kolicina: btn.dataset.kolicina,
+                    cenaBez: btn.dataset.cenaBez,
+                    cenaSa: btn.dataset.cenaSa
+                };
+                fillForm(data);
+                modalTitle.textContent = 'Izmeni artikal';
+                stockModal.classList.add('show');
+            }
+            
+            if (e.target.closest('.adjust-stock-btn')) {
+                const btn = e.target.closest('.adjust-stock-btn');
+                const currentQty = parseFloat(btn.dataset.kolicina);
+                const adjustment = prompt(`Trenutna količina: ${currentQty}\nUnesite promenu (+/- količina):`);
+                
+                if (adjustment !== null && !isNaN(adjustment)) {
+                    const newQuantity = Math.max(0, currentQty + parseFloat(adjustment));
+                    updateQuantity(btn.dataset.sifra, newQuantity);
+                }
+            }
+            
+            if (e.target.closest('.delete-stock-btn')) {
+                const btn = e.target.closest('.delete-stock-btn');
+                if (confirm(`Da li ste sigurni da želite da obrišete artikal ${btn.dataset.sifra}?`)) {
+                    deleteStock(btn.dataset.sifra);
+                }
+            }
+        });
+
+
+
+        async function updateQuantity(id, newQuantity) {
+            try {
+                const response = await fetch(`/lager/${id}/quantity`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        kolicina: newQuantity,
+                        operation: 'set'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showMessage('Količina uspešno ažurirana!', 'success');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showMessage(result.error || 'Greška pri ažuriranju količine', 'error');
+                }
+            } catch (error) {
+                showMessage('Greška pri komunikaciji sa serverom', 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        // Delete stock function
+        async function deleteStock(id) {
+
+    try {
+        const response = await fetch(`/lager/${id}`, { method: 'DELETE' });
+        const result = await response.json();
+
+        if (response.ok) {
+            showMessage('Artikal uspešno obrisan!', 'success');
+            setTimeout(() => window.location.reload(), 800);
+        } else {
+            showMessage(result.error || 'Greška pri brisanju', 'error');
+        }
+    } catch (error) {
+        showMessage('Greška pri komunikaciji sa serverom', 'error');
+        console.error('Error deleting stock:', error);
+    }
+}
+
+
+        // Message display function
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                padding: 1rem 1.5rem;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 3000;
+                max-width: 300px;
+                background-color: ${type === 'success' ? '#2ecc71' : '#e74c3c'};
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            `;
+            messageDiv.textContent = message;
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const term = this.value.toLowerCase();
+            const status = statusFilter.value;
+            filterTable(term, status);
+        });
+
+        statusFilter.addEventListener('change', function() {
+            const term = searchInput.value.toLowerCase();
+            const status = this.value;
+            filterTable(term, status);
+        });
+
+        function filterTable(searchTerm, statusFilter) {
+            const rows = document.querySelectorAll('#stock-tbody tr');
+            
+            rows.forEach(row => {
+                if (row.children.length === 1) return; // Skip "no data" row
+                
+                const sifra = row.children[0].textContent.toLowerCase();
+                const naziv = row.children[1].textContent.toLowerCase();
+                const status = row.dataset.status;
+                
+                const matchesSearch = !searchTerm || sifra.includes(searchTerm) || naziv.includes(searchTerm);
+                const matchesStatus = !statusFilter || status === statusFilter;
+                
+                row.style.display = matchesSearch && matchesStatus ? '' : 'none';
+            });
+        }
+
+        // Auto collapse sidebar on medium screens
+        if (window.innerWidth <= 992 && window.innerWidth > 576) {
+            sidebar.classList.add('collapsed');
+            mainContent.classList.add('expanded');
+            header.classList.add('expanded');
+            sidebarIcon.classList.remove('fa-chevron-left');
+            sidebarIcon.classList.add('fa-chevron-right');
+        }
+        // Funkcije za automatsko računanje PDV-a
+document.getElementById('stock-price-bez').addEventListener('input', function() {
+    const cenaBez = parseFloat(this.value);
+    if (!isNaN(cenaBez)) {
+        const cenaSa = cenaBez * 1.21;
+        document.getElementById('stock-price-sa').value = cenaSa.toFixed(2);
+    }
+});
+
+document.getElementById('stock-price-sa').addEventListener('input', function() {
+    const cenaSa = parseFloat(this.value);
+    if (!isNaN(cenaSa)) {
+        const cenaBez = cenaSa / 1.21;
+        document.getElementById('stock-price-bez').value = cenaBez.toFixed(2);
+    }
+});
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (stockModal.classList.contains('show')) {
+                    stockModal.classList.remove('show');
+                } else if (alertModal.classList.contains('show')) {
+                    alertModal.classList.remove('show');
+                } else if (sidebar.classList.contains('mobile-open')) {
+                    closeMobileSidebar();
+                }
+            }
+            
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                addStockBtn.click();
+            }
+            
+            if (e.ctrlKey && e.key === 'f') {
+                e.preventDefault();
+                searchInput.focus();
+            }
+        });
+        // PDV calculation functionality
+document.getElementById('stock-price-bez').addEventListener('input', function() {
+    const cenaBez = parseFloat(this.value);
+    if (!isNaN(cenaBez)) {
+        const cenaSa = cenaBez * 1.21;
+        document.getElementById('stock-price-sa').value = cenaSa.toFixed(2);
+    }
+});
+
+document.getElementById('stock-price-sa').addEventListener('input', function() {
+    const cenaSa = parseFloat(this.value);
+    if (!isNaN(cenaSa)) {
+        const cenaBez = cenaSa / 1.21;
+        document.getElementById('stock-price-bez').value = cenaBez.toFixed(2);
+    }
+});
+
+// Improved form submission with better error handling
+stockForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const stockId = document.getElementById('stock-id').value;
+    const isEdit = !!stockId;
+    
+    const formData = {
+        naziv: document.getElementById('stock-name').value,
+        jm: document.getElementById('stock-jm').value,
+        kolicina: parseFloat(document.getElementById('stock-quantity').value),
+        cena_bez_pdv: parseFloat(document.getElementById('stock-price-bez').value),
+        cena_sa_pdv: parseFloat(document.getElementById('stock-price-sa').value)
+    };
+
+    // Only include sifra for new items, not for edits
+    if (!isEdit) {
+        formData.sifra = document.getElementById('stock-code').value;
+    }
+    
+    try {
+        let response;
+        let url;
+        
+        if (isEdit) {
+            // For editing, use PUT to /lager/:id
+            url = `/lager/${stockId}`;
+            response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+        } else {
+            // For new items, use POST to /lager
+            url = '/lager';
+            response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+        }
+
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            throw new Error(`Server returned non-JSON response: ${text.substring(0, 100)}`);
+        }
+
+        const result = await response.json();
+        
+        if (response.ok) {
+            stockModal.classList.remove('show');
+            showMessage('Uspešno sačuvano!', 'success');
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showMessage(result.error || `Greška ${response.status}: ${response.statusText}`, 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        if (error.message.includes('non-JSON')) {
+            showMessage('Greška servera - neispravan odgovor', 'error');
+        } else {
+            showMessage('Greška pri komunikaciji sa serverom: ' + error.message, 'error');
+        }
+    }
+});
+
+// Improved fillForm function
+function fillForm(data) {
+    document.getElementById('stock-id').value = data.id;
+    document.getElementById('stock-code').value = data.sifra;
+    document.getElementById('stock-name').value = data.naziv;
+    document.getElementById('stock-jm').value = data.jm;
+    document.getElementById('stock-quantity').value = data.kolicina;
+    document.getElementById('stock-price-bez').value = parseFloat(data.cenaBez).toFixed(2);
+    document.getElementById('stock-price-sa').value = parseFloat(data.cenaSa).toFixed(2);
+    
+    // Make code field readonly for editing, writable for new items
+    document.getElementById('stock-code').readOnly = true;
+}
+
+// Improved clearForm function
+function clearForm() {
+    stockForm.reset();
+    document.getElementById('stock-id').value = '';
+    document.getElementById('stock-code').readOnly = false; // Allow editing for new items
+}
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 576) {
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+        });
+
+        console.log('Tehnolux Lager EJS panel initialized');
+    </script>
+</body>
+</html>

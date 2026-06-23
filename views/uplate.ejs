@@ -1,0 +1,2137 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tehnolux Admin Panel - Uplate</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #2ecc71;
+            --warning-color: #f1c40f;
+            --text-color: #333;
+            --light-text: #ecf0f1;
+            --sidebar-width: 280px;
+            --sidebar-collapsed: 70px;
+            --header-height: 60px;
+            --transition-speed: 0.3s;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        /* Sidebar styles */
+        .sidebar {
+            position: fixed;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--primary-color);
+            color: var(--light-text);
+            padding: 1.5rem 1rem;
+            transition: all var(--transition-speed);
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed);
+            padding: 1rem 0.5rem;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            justify-content: center;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--light-text);
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-icon {
+            margin-right: 10px;
+            font-size: 24px;
+            min-width: 24px;
+        }
+
+        .sidebar.collapsed .logo-text {
+            display: none;
+        }
+
+        .sidebar.collapsed .logo-icon {
+            margin-right: 0;
+        }
+
+        /* Menu sections */
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .menu-section {
+            margin-bottom: 1rem;
+        }
+
+        .menu-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 0.5rem;
+            padding: 0 1rem;
+            transition: all var(--transition-speed);
+        }
+
+        .sidebar.collapsed .menu-title {
+            display: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.2rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 10px 1rem;
+            color: var(--light-text);
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            transition: all var(--transition-speed);
+            position: relative;
+            font-size: 14px;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link.active {
+            background-color: var(--secondary-color);
+        }
+
+        .nav-icon {
+            margin-right: 12px;
+            font-size: 16px;
+            min-width: 16px;
+            text-align: center;
+        }
+
+        .sidebar.collapsed .nav-text {
+            display: none;
+        }
+
+        .sidebar.collapsed .nav-icon {
+            margin-right: 0;
+        }
+
+        .sidebar.collapsed .nav-link {
+            justify-content: center;
+            padding: 10px;
+        }
+
+        /* Submenu styles */
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height var(--transition-speed);
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: var(--border-radius);
+            margin-top: 0.2rem;
+            margin-left: 1rem;
+            margin-right: 0.5rem;
+        }
+
+        .submenu.open {
+            max-height: 400px;
+        }
+
+        .submenu .nav-link {
+            padding: 8px 1rem;
+            font-size: 13px;
+            margin-left: 0;
+        }
+
+        .sidebar.collapsed .submenu {
+            display: none;
+        }
+
+        /* Toggle button */
+        .toggle-sidebar {
+            position: sticky;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--light-text);
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            margin-top: auto;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-sidebar:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Main content area */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: all var(--transition-speed);
+            min-height: 100vh;
+            padding: 1rem;
+            padding-top: calc(var(--header-height) + 1rem);
+        }
+
+        .main-content.expanded {
+            margin-left: var(--sidebar-collapsed);
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            height: var(--header-height);
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all var(--transition-speed);
+            z-index: 900;
+        }
+
+        .header.expanded {
+            left: var(--sidebar-collapsed);
+        }
+
+        .page-title {
+            font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: clamp(11px, 1.5vw, 13px);
+            font-weight: 500;
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+
+        .btn-danger {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: #333;
+        }
+
+        .btn-warning:hover {
+            background-color: #e67e22;
+        }
+
+        .btn-info {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background-color: #138496;
+        }
+
+        /* Card styles */
+        .card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: clamp(1rem, 2vw, 1.5rem);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e6e9ed;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .card-title {
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            font-weight: 600;
+        }
+
+        /* Stats cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+            color: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card.success {
+            background: linear-gradient(135deg, var(--success-color), #27ae60);
+        }
+
+        .stat-card.warning {
+            background: linear-gradient(135deg, var(--warning-color), #e67e22);
+        }
+
+        .stat-card.info {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .stat-icon {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 2rem;
+            opacity: 0.3;
+        }
+
+        /* Table styles */
+        .table-container {
+            overflow-x: auto;
+            margin: 1rem -1rem -1rem -1rem;
+            padding: 0 1rem 1rem 1rem;
+        }
+
+        .data-table {
+            width: 100%;
+            min-width: 1000px;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: clamp(6px, 1vw, 8px) clamp(8px, 1.2vw, 10px);
+            text-align: left;
+            border-bottom: 1px solid #e6e9ed;
+            font-size: clamp(11px, 1.1vw, 12px);
+            white-space: nowrap;
+        }
+
+        .data-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table th:nth-child(1),
+        .data-table td:nth-child(1) { width: 70px; }
+        .data-table th:nth-child(2),
+        .data-table td:nth-child(2) { width: 90px; }
+        .data-table th:nth-child(3),
+        .data-table td:nth-child(3) { width: 150px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+        .data-table th:nth-child(4),
+        .data-table td:nth-child(4) { width: 80px; }
+        .data-table th:nth-child(5),
+        .data-table td:nth-child(5) { width: 90px; }
+        .data-table th:nth-child(6),
+        .data-table td:nth-child(6) { width: 80px; }
+        .data-table th:nth-child(7),
+        .data-table td:nth-child(7) { width: 90px; }
+        .data-table th:nth-child(8),
+        .data-table td:nth-child(8) { width: 100px; }
+        .data-table th:nth-child(9),
+        .data-table td:nth-child(9) { width: 80px; max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
+        .data-table th:nth-child(10),
+        .data-table td:nth-child(10) { width: 120px; }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Mobile menu toggle */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-color);
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
+            background-color: white;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 1rem;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: clamp(1.5rem, 3vw, 2rem);
+            width: 100%;
+            max-width: min(700px, 95vw);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e6e9ed;
+        }
+
+        .modal-title {
+            font-size: clamp(1.1rem, 2.2vw, 1.3rem);
+            font-weight: 600;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .close-modal:hover {
+            color: var(--accent-color);
+        }
+
+        /* Form styles */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: clamp(12px, 1.3vw, 13px);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: clamp(6px, 1.2vw, 8px) clamp(8px, 1.5vw, 10px);
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: clamp(12px, 1.3vw, 13px);
+            transition: border-color var(--transition-speed);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Autocomplete styles */
+        .autocomplete-container {
+            position: relative;
+        }
+
+        .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .autocomplete-list.show {
+            display: block;
+        }
+
+        .autocomplete-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+
+        .autocomplete-item:hover,
+        .autocomplete-item.selected {
+            background-color: #f8f9fa;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-item-title {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .autocomplete-item-subtitle {
+            font-size: 11px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        /* Search and filter */
+        .search-filter-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 200px;
+            max-width: 300px;
+        }
+
+        .search-box input {
+            padding-left: 35px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        /* Date filter styles */
+        .date-filter-container {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .date-filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .date-filter-group label {
+            font-weight: 500;
+            white-space: nowrap;
+            font-size: clamp(12px, 1.3vw, 14px);
+        }
+
+        .date-filter-group input {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: clamp(12px, 1.3vw, 14px);
+        }
+
+        .quick-dates {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .quick-date-btn {
+            padding: 4px 8px;
+            font-size: 11px;
+            border: 1px solid var(--secondary-color);
+            background: white;
+            color: var(--secondary-color);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-date-btn:hover,
+        .quick-date-btn.active {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        /* Action buttons in table */
+        .action-buttons {
+            display: flex;
+            gap: 0.2rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-sm {
+            padding: clamp(2px, 0.8vw, 3px) clamp(4px, 1.2vw, 6px);
+            font-size: clamp(9px, 1vw, 11px);
+        }
+
+        /* Status badges */
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-primljena {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-cekanje {
+            background-color: rgba(241, 196, 15, 0.1);
+            color: var(--warning-color);
+        }
+
+        .status-odbijena {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--accent-color);
+        }
+
+        /* Payment method badges */
+        .payment-method {
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .method-gotovina {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--success-color);
+        }
+
+        .method-kartica {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--secondary-color);
+        }
+
+        .method-virman {
+            background-color: rgba(155, 89, 182, 0.1);
+            color: #9b59b6;
+        }
+
+        /* Currency formatting */
+        .currency {
+            font-family: monospace;
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .amount-positive {
+            color: var(--success-color);
+        }
+
+        .amount-negative {
+            color: var(--accent-color);
+        }
+
+        /* Export buttons */
+        .export-container {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* Summary box */
+        .summary-box {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: 1px solid #dee2e6;
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-row:last-child {
+            margin-bottom: 0;
+            font-weight: 600;
+            font-size: 1.1em;
+            border-top: 1px solid #dee2e6;
+            padding-top: 0.5rem;
+        }
+
+        /* Responsive design */
+        @media (max-width: 1200px) {
+            .data-table {
+                min-width: 900px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                width: var(--sidebar-collapsed);
+            }
+            
+            .sidebar .logo-text,
+            .sidebar .nav-text,
+            .sidebar .menu-title {
+                display: none;
+            }
+            
+            .main-content,
+            .header {
+                margin-left: var(--sidebar-collapsed);
+            }
+            
+            .toggle-sidebar {
+                display: flex;
+            }
+
+            .data-table {
+                min-width: 850px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 320px;
+                height: 100vh;
+                padding: 1.5rem 1rem;
+                z-index: 2500;
+                background: var(--primary-color);
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            .sidebar.mobile-open .logo-text,
+            .sidebar.mobile-open .nav-text,
+            .sidebar.mobile-open .menu-title {
+                display: block;
+            }
+
+            .main-content,
+            .header {
+                margin-left: 0;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .data-table {
+                min-width: 100%;
+            }
+        }
+        
+        .sidebar-nav::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.5);
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar overlay za mobile -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="logo-container">
+            <div class="logo">
+                <span class="logo-text">Tehnolux</span>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="menu-section">
+                <div class="menu-title">Unos dokumentacije</div>
+                <div class="nav-item">
+                    <a href="/pravljenjedokumenta" class="nav-link">
+                        <i class="fas fa-file nav-icon"></i>
+                        <span class="nav-text">Dokumenti</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-title">Pregled</div>
+                <div class="nav-item has-submenu">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-eye nav-icon"></i>
+                        <span class="nav-text">Pregledi</span>
+                    </a>
+                    <div class="submenu open">
+                        <div class="nav-item">
+                            <a href="/lager" class="nav-link">
+                                <span class="nav-text">Lager</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/prometrobe" class="nav-link active">
+                                <span class="nav-text">Promet robe</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/dokumenti" class="nav-link">
+                                <span class="nav-text">Pregled dokumenata</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-title">Šifrarnik</div>
+                <div class="nav-item has-submenu">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-database nav-icon"></i>
+                        <span class="nav-text">Šifarnici</span>
+                    </a>
+                    <div class="submenu">
+                        <div class="nav-item">
+                            <a href="/artikli" class="nav-link">
+                                <span class="nav-text">Artikli</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/magacini" class="nav-link">
+                                <span class="nav-text">Magacini</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/komercijalisti" class="nav-link">
+                                <span class="nav-text">Komercijalisti</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-title">Kupci</div>
+                <div class="nav-item has-submenu">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-users nav-icon"></i>
+                        <span class="nav-text">Upravljanje kupcima</span>
+                    </a>
+                    <div class="submenu">
+                        <div class="nav-item">
+                            <a href="/uplate" class="nav-link">
+                                <span class="nav-text">Uplate</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/partneri" class="nav-link">
+                                <span class="nav-text">Partneri</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/karticekupca" class="nav-link">
+                                <span class="nav-text">Kartica kupca</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="menu-section">
+                <div class="menu-title">Servis</div>
+                <div class="nav-item">
+                    <a href="/servis" class="nav-link">
+                        <i class="fas fa-tools nav-icon"></i>
+                        <span class="nav-text">Servis</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <button class="toggle-sidebar" id="toggle-sidebar">
+            <i class="fas fa-chevron-left" id="sidebar-icon"></i>
+        </button>
+    </aside>
+
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <h1 class="page-title">Uplate kupaca</h1>
+        
+        <div class="header-actions">
+            <button class="btn btn-success" id="add-payment-btn">
+                <i class="fas fa-plus"></i>
+                <span>Nova uplata</span>
+            </button>
+            <button class="btn btn-secondary" id="refresh-btn">
+                <i class="fas fa-sync-alt"></i>
+                <span>Osvježi</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content" id="main-content">
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card success">
+                <i class="fas fa-euro-sign stat-icon"></i>
+                <div class="stat-number" id="total-payments">€0</div>
+                <div class="stat-label">Ukupne uplate (mjesečno)</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-receipt stat-icon"></i>
+                <div class="stat-number" id="payment-count">0</div>
+                <div class="stat-label">Broj uplata</div>
+            </div>
+            <div class="stat-card info">
+                <i class="fas fa-chart-line stat-icon"></i>
+                <div class="stat-number" id="avg-payment">€0</div>
+                <div class="stat-label">Prosječna uplata</div>
+            </div>
+            <div class="stat-card warning">
+                <i class="fas fa-clock stat-icon"></i>
+                <div class="stat-number" id="pending-payments">0</div>
+                <div class="stat-label">Na čekanju</div>
+            </div>
+        </div>
+
+        <!-- Date Filter -->
+        <div class="date-filter-container">
+            <div class="date-filter-group">
+                <label>Od:</label>
+                <input type="date" id="date-from" class="form-control" style="width: auto;">
+            </div>
+            <div class="date-filter-group">
+                <label>Do:</label>
+                <input type="date" id="date-to" class="form-control" style="width: auto;">
+            </div>
+            <div class="quick-dates">
+                <button class="quick-date-btn" data-days="0">Danas</button>
+                <button class="quick-date-btn" data-days="7">7 dana</button>
+                <button class="quick-date-btn" data-days="30">30 dana</button>
+                <button class="quick-date-btn" data-days="90">90 dana</button>
+                <button class="quick-date-btn" data-period="month">Ovaj mjesec</button>
+                <button class="quick-date-btn" data-period="year">Ova godina</button>
+            </div>
+            <button class="btn btn-primary" id="apply-date-filter">
+                <i class="fas fa-filter"></i>
+                <span>Primijeni</span>
+            </button>
+            <button class="btn btn-secondary" id="clear-date-filter">
+                <i class="fas fa-times"></i>
+                <span>Očisti</span>
+            </button>
+        </div>
+
+        <!-- Summary Box -->
+        <div class="summary-box" id="summary-box">
+            <div class="summary-row">
+                <span>Ukupne uplate za period:</span>
+                <span class="currency amount-positive" id="period-total">€0.00</span>
+            </div>
+            <div class="summary-row">
+                <span>Broj transakcija:</span>
+                <span id="period-count">0</span>
+            </div>
+            <div class="summary-row">
+                <span>Uspješne uplate:</span>
+                <span class="currency amount-positive" id="period-successful">€0.00</span>
+            </div>
+            <div class="summary-row">
+                <span>Neuspješne uplate:</span>
+                <span class="currency amount-negative" id="period-failed">€0.00</span>
+            </div>
+        </div>
+
+        <!-- Payments Table -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Lista uplata</h3>
+                <div class="search-filter-container">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="form-control" id="search-payments" placeholder="Pretraži uplate...">
+                    </div>
+                    <select class="form-control" id="status-filter" style="width: auto; min-width: 150px;">
+                        <option value="">Svi statusi</option>
+                        <option value="primljena">Primljena</option>
+                        <option value="cekanje">Na čekanju</option>
+                        <option value="odbijena">Odbijena</option>
+                    </select>
+                    <select class="form-control" id="method-filter" style="width: auto; min-width: 150px;">
+                        <option value="">Svi načini</option>
+                        <option value="gotovina">Gotovina</option>
+                        <option value="kartica">Kartica</option>
+                        <option value="virman">Virman</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table" id="payments-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Datum</th>
+                            <th>Kupac</th>
+                            <th>Iznos</th>
+                            <th>Način</th>
+                            <th>Status</th>
+                            <th>Dokument</th>
+                            <th>Komercijalist</th>
+                            <th>Napomene</th>
+                            <th>Akcije</th>
+                        </tr>
+                    </thead>
+                    <tbody id="payments-tbody">
+                        <% if (uplate && uplate.length > 0) { %>
+                            <% uplate.forEach(uplata => { %>
+                                <tr>
+                                    <td><strong><%= uplata.id %></strong></td>
+                                    <td><%= new Date(uplata.datum).toLocaleDateString('sr-RS') + ' ' + new Date(uplata.datum).toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' }) %></td>
+                                    <td title="<%= uplata.kupac %>"><%= uplata.kupac %></td>
+                                    <td class="currency amount-positive">€<%= parseFloat(uplata.iznos).toFixed(2) %></td>
+                                    <td>
+                                        <span class="payment-method method-<%= uplata.nacin.toLowerCase() %>">
+                                            <%= uplata.nacin %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge status-<%= uplata.status %>">
+                                            <%= uplata.status %>
+                                        </span>
+                                    </td>
+                                    <td><%= uplata.dokument || '-' %></td>
+                                    <td><%= uplata.komercijalist || '-' %></td>
+                                    <td title="<%= uplata.napomene || '' %>">
+                                        <%= uplata.napomene ? (uplata.napomene.length > 20 ? uplata.napomene.substring(0, 20) + '...' : uplata.napomene) : '-' %>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn btn-sm btn-primary edit-payment-btn" data-id="<%= uplata.id %>" title="Uredi">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                          
+                                            <button class="btn btn-sm btn-danger delete-payment-btn" data-id="<%= uplata.id %>" title="Obriši">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="10" style="text-align: center; padding: 2rem; color: #666;">
+                                    <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+                                    Nema uplata za prikaz
+                                </td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal za dodavanje/uređivanje uplate -->
+    <div class="modal" id="payment-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-title">Nova uplata</h3>
+                <button class="close-modal" id="close-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="payment-form">
+                <input type="hidden" id="payment-id">
+                <input type="hidden" id="partner-sifra">
+                <input type="hidden" id="komercijalist-id">
+                
+                <!-- Osnovna informacija -->
+                <h4 style="margin-bottom: 1rem; color: var(--primary-color); border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">
+                    <i class="fas fa-info-circle"></i> Osnovna informacija
+                </h4>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="payment-date">Datum uplate:</label>
+                        <input type="datetime-local" class="form-control" id="payment-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="payment-amount">Iznos (€):</label>
+                        <input type="number" class="form-control" id="payment-amount" step="0.01" min="0" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="customer-name">Kupac (partner):</label>
+                    <div class="autocomplete-container">
+                        <input type="text" class="form-control" id="customer-name" placeholder="Počnite kucati naziv partnera..." required>
+                        <div class="autocomplete-list" id="customer-autocomplete"></div>
+                    </div>
+                </div>
+
+                <!-- Način plaćanja -->
+                <h4 style="margin: 2rem 0 1rem 0; color: var(--primary-color); border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">
+                    <i class="fas fa-credit-card"></i> Način plaćanja
+                </h4>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="payment-method">Način plaćanja:</label>
+                        <select class="form-control" id="payment-method" required>
+                            <option value="">Izaberite način</option>
+                            <option value="gotovina">Gotovina</option>
+                            <option value="kartica">Kartica</option>
+                            <option value="virman">Virman</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="payment-status">Status:</label>
+                        <select class="form-control" id="payment-status" required>
+                            <option value="primljena">Primljena</option>
+                            <option value="cekanje">Na čekanju</option>
+                            <option value="odbijena">Odbijena</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Dokument i komercijalist -->
+                <h4 style="margin: 2rem 0 1rem 0; color: var(--primary-color); border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">
+                    <i class="fas fa-file-invoice"></i> Dodatne informacije
+                </h4>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="document-number">Broj računa/dokumenta:</label>
+                        <input type="text" class="form-control" id="document-number">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="salesperson">Komercijalist:</label>
+                        <div class="autocomplete-container">
+                            <input type="text" class="form-control" id="salesperson" placeholder="Počnite kucati ime komercijalista...">
+                            <div class="autocomplete-list" id="salesperson-autocomplete"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Napomene -->
+                <div class="form-group">
+                    <label class="form-label" for="payment-notes">Napomene:</label>
+                    <textarea class="form-control" id="payment-notes" rows="3" placeholder="Dodatne informacije o uplati..."></textarea>
+                </div>
+
+                <!-- Dugmad -->
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-secondary" id="cancel-btn">Otkaži</button>
+                    <button type="submit" class="btn btn-success">Sačuvaj</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Initialize with server data
+        let paymentsData = <%- JSON.stringify(uplate || []) %>;
+        let filteredData = [...paymentsData];
+        let partneriData = [];
+        let komercijalistiData = [];
+
+        // DOM Elements
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const mainContent = document.getElementById('main-content');
+        const header = document.getElementById('header');
+        const toggleSidebar = document.getElementById('toggle-sidebar');
+        const sidebarIcon = document.getElementById('sidebar-icon');
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        
+        // Modal elements
+        const paymentModal = document.getElementById('payment-modal');
+        const addPaymentBtn = document.getElementById('add-payment-btn');
+        const closeModal = document.getElementById('close-modal');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const paymentForm = document.getElementById('payment-form');
+        const modalTitle = document.getElementById('modal-title');
+        const paymentIdInput = document.getElementById('payment-id');
+
+        // Autocomplete elements
+        const customerInput = document.getElementById('customer-name');
+        const customerAutocomplete = document.getElementById('customer-autocomplete');
+        const salespersonInput = document.getElementById('salesperson');
+        const salespersonAutocomplete = document.getElementById('salesperson-autocomplete');
+        const partnerSifraInput = document.getElementById('partner-sifra');
+        const komercijalistIdInput = document.getElementById('komercijalist-id');
+
+        // Table and filter elements
+        const paymentsTable = document.getElementById('payments-tbody');
+        const searchInput = document.getElementById('search-payments');
+        const statusFilter = document.getElementById('status-filter');
+        const methodFilter = document.getElementById('method-filter');
+        const refreshBtn = document.getElementById('refresh-btn');
+
+        // Date filter elements
+        const dateFromInput = document.getElementById('date-from');
+        const dateToInput = document.getElementById('date-to');
+        const applyDateFilterBtn = document.getElementById('apply-date-filter');
+        const clearDateFilterBtn = document.getElementById('clear-date-filter');
+        const quickDateBtns = document.querySelectorAll('.quick-date-btn');
+
+        // Load partners and komercijalisti data
+        async function loadPartneriData() {
+            try {
+                const response = await fetch('/api/partneri');
+                partneriData = await response.json();
+                console.log('Loaded partneri data:', partneriData.length, 'partners');
+            } catch (error) {
+                console.error('Error loading partneri:', error);
+                partneriData = [];
+            }
+        }
+
+        async function loadKomercijalistiData() {
+            try {
+                const response = await fetch('/api/komercijalisti');
+                komercijalistiData = await response.json();
+                console.log('Loaded komercijalisti data:', komercijalistiData.length, 'komercijalisti');
+            } catch (error) {
+                console.error('Error loading komercijalisti:', error);
+                komercijalistiData = [];
+            }
+        }
+
+        // Autocomplete functionality
+        function setupAutocomplete(input, dropdown, data, searchFields, displayField, subtitleField, callback) {
+            let selectedIndex = -1;
+            let filteredItems = [];
+
+            input.addEventListener('input', function() {
+                const value = this.value.toLowerCase().trim();
+                dropdown.innerHTML = '';
+                selectedIndex = -1;
+                
+                if (value.length < 2) {
+                    dropdown.classList.remove('show');
+                    return;
+                }
+
+                filteredItems = data.filter(item => {
+                    return searchFields.some(field => {
+                        const fieldValue = item[field];
+                        return fieldValue && fieldValue.toLowerCase().includes(value);
+                    });
+                }).slice(0, 10); // Limit to 10 results
+
+                if (filteredItems.length === 0) {
+                    dropdown.classList.remove('show');
+                    return;
+                }
+
+                filteredItems.forEach((item, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'autocomplete-item';
+                    div.innerHTML = `
+                        <div class="autocomplete-item-title">${item[displayField]}</div>
+                        ${subtitleField && item[subtitleField] ? `<div class="autocomplete-item-subtitle">${item[subtitleField]}</div>` : ''}
+                    `;
+                    
+                    div.addEventListener('click', function() {
+                        input.value = item[displayField];
+                        dropdown.classList.remove('show');
+                        if (callback) callback(item);
+                    });
+                    
+                    dropdown.appendChild(div);
+                });
+
+                dropdown.classList.add('show');
+            });
+
+            input.addEventListener('keydown', function(e) {
+                const items = dropdown.querySelectorAll('.autocomplete-item');
+                
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                    updateSelection(items);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selectedIndex = Math.max(selectedIndex - 1, -1);
+                    updateSelection(items);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && items[selectedIndex]) {
+                        items[selectedIndex].click();
+                    }
+                } else if (e.key === 'Escape') {
+                    dropdown.classList.remove('show');
+                    selectedIndex = -1;
+                }
+            });
+
+            function updateSelection(items) {
+                items.forEach((item, index) => {
+                    item.classList.toggle('selected', index === selectedIndex);
+                });
+            }
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.remove('show');
+                }
+            });
+        }
+
+        // Format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('de-DE', {
+                style: 'currency',
+                currency: 'EUR',
+                minimumFractionDigits: 2
+            }).format(amount);
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('sr-RS') + ' ' + date.toLocaleTimeString('sr-RS', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+        }
+
+        // Get status badge HTML
+        function getStatusBadge(status) {
+            let badgeClass = '';
+            switch(status) {
+                case 'primljena':
+                    badgeClass = 'status-primljena';
+                    break;
+                case 'cekanje':
+                    badgeClass = 'status-cekanje';
+                    break;
+                case 'odbijena':
+                    badgeClass = 'status-odbijena';
+                    break;
+            }
+            return `<span class="status-badge ${badgeClass}">${status}</span>`;
+        }
+
+        // Get payment method badge HTML
+        function getPaymentMethodBadge(method) {
+            let badgeClass = '';
+            switch(method) {
+                case 'gotovina':
+                    badgeClass = 'method-gotovina';
+                    break;
+                case 'kartica':
+                    badgeClass = 'method-kartica';
+                    break;
+                case 'virman':
+                    badgeClass = 'method-virman';
+                    break;
+            }
+            return `<span class="payment-method ${badgeClass}">${method}</span>`;
+        }
+
+        // Update statistics
+        async function updateStatistics() {
+            try {
+                const from = dateFromInput.value;
+                const to = dateToInput.value;
+                let url = '/api/uplate/stats/summary';
+                
+                if (from || to) {
+                    const params = new URLSearchParams();
+                    if (from) params.append('from', from);
+                    if (to) params.append('to', to);
+                    url += '?' + params.toString();
+                }
+                
+                const response = await fetch(url);
+                const stats = await response.json();
+                
+                document.getElementById('total-payments').textContent = formatCurrency(stats.totalPayments);
+                document.getElementById('payment-count').textContent = stats.paymentCount;
+                document.getElementById('avg-payment').textContent = formatCurrency(stats.avgPayment);
+                document.getElementById('pending-payments').textContent = stats.pendingPayments;
+                
+                // Update summary
+                document.getElementById('period-total').textContent = formatCurrency(stats.totalPayments);
+                document.getElementById('period-count').textContent = stats.paymentCount;
+                document.getElementById('period-successful').textContent = formatCurrency(stats.successfulAmount);
+                document.getElementById('period-failed').textContent = formatCurrency(stats.failedAmount);
+                
+            } catch (error) {
+                console.error('Error updating statistics:', error);
+            }
+        }
+
+        // Load payments from API
+        async function loadPayments() {
+            try {
+                const response = await fetch('/api/uplate');
+                const data = await response.json();
+                paymentsData = data;
+                applyFilters();
+                updateStatistics();
+            } catch (error) {
+                console.error('Error loading payments:', error);
+                alert('Greška pri učitavanju uplata.');
+            }
+        }
+
+        // Render payments table
+        function renderPaymentsTable(data = filteredData) {
+            const tbody = document.getElementById('payments-tbody');
+            tbody.innerHTML = '';
+            
+            if (data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="10" style="text-align: center; padding: 2rem; color: #666;">
+                            <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+                            Nema uplata za prikaz
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            data.forEach(payment => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${payment.id}</strong></td>
+                    <td>${formatDate(payment.datum)}</td>
+                    <td title="${payment.kupac}">${payment.kupac}</td>
+                    <td class="currency amount-positive">${formatCurrency(payment.iznos)}</td>
+                    <td>${getPaymentMethodBadge(payment.nacin)}</td>
+                    <td>${getStatusBadge(payment.status)}</td>
+                    <td>${payment.dokument || '-'}</td>
+                    <td>${payment.komercijalist || '-'}</td>
+                    <td title="${payment.napomene || ''}">${payment.napomene ? (payment.napomene.length > 20 ? payment.napomene.substring(0, 20) + '...' : payment.napomene) : '-'}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-primary edit-payment-btn" data-id="${payment.id}" title="Uredi">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-info view-payment-btn" data-id="${payment.id}" title="Detalji">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-success print-receipt-btn" data-id="${payment.id}" title="Štampaj">
+                                <i class="fas fa-print"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger delete-payment-btn" data-id="${payment.id}" title="Obriši">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Attach event listeners to new buttons
+            attachActionListeners();
+        }
+
+        // Attach event listeners to action buttons
+        function attachActionListeners() {
+            // Edit buttons (blue button with edit icon)
+            document.querySelectorAll('.edit-payment-btn').forEach(btn => {
+                btn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const id = this.dataset.id;
+                    console.log('Edit button clicked for payment ID:', id);
+                    
+                    try {
+                        const response = await fetch(`/api/uplate/${id}`);
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        const payment = await response.json();
+                        console.log('Payment data loaded for editing:', payment);
+                        
+                        fillForm(payment);
+                        modalTitle.textContent = 'Uredi uplatu';
+                        paymentModal.classList.add('show');
+                    } catch (error) {
+                        console.error('Error fetching payment for edit:', error);
+                        alert('Greška pri dohvatanju uplate za pregled.');
+                    }
+                });
+            });
+
+            // Print receipt buttons
+            document.querySelectorAll('.print-receipt-btn').forEach(btn => {
+                btn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const id = this.dataset.id;
+                    console.log('Print button clicked for payment ID:', id);
+                    
+                    try {
+                        const response = await fetch(`/api/uplate/${id}`);
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        const payment = await response.json();
+                        console.log('Payment data loaded for printing:', payment);
+                        
+                        printReceipt(payment);
+                    } catch (error) {
+                        console.error('Error fetching payment for print:', error);
+                        alert('Greška pri dohvatanju uplate za štampanje.');
+                    }
+                });
+            });
+
+            // Delete buttons
+            document.querySelectorAll('.delete-payment-btn').forEach(btn => {
+                btn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const id = this.dataset.id;
+                    console.log('Delete button clicked for payment ID:', id);
+                    
+                    if (confirm(`Da li ste sigurni da želite da obrišete uplatu "${id}"?`)) {
+                        try {
+                            const response = await fetch(`/api/uplate/${id}`, {
+                                method: 'DELETE'
+                            });
+                            
+                            if (response.ok) {
+                                await loadPayments();
+                                alert('Uplata je uspješno obrisana.');
+                            } else {
+                                throw new Error('Delete failed');
+                            }
+                        } catch (error) {
+                            console.error('Error deleting payment:', error);
+                            alert('Greška pri brisanju uplate.');
+                        }
+                    }
+                });
+            });
+        }
+
+        // Show payment details in a better formatted popup
+        function showPaymentDetails(payment) {
+            const statusText = {
+                'primljena': 'Primljena',
+                'cekanje': 'Na čekanju', 
+                'odbijena': 'Odbijena'
+            };
+            
+            const methodText = {
+                'gotovina': 'Gotovina',
+                'kartica': 'Kartica',
+                'virman': 'Virman'
+            };
+            
+            const details = `
+=== DETALJI UPLATE ===
+
+ID Uplate: ${payment.id}
+Datum: ${formatDate(payment.datum)}
+Kupac: ${payment.kupac}
+Iznos: ${formatCurrency(payment.iznos)}
+Način plaćanja: ${methodText[payment.nacin] || payment.nacin}
+Status: ${statusText[payment.status] || payment.status}
+Dokument: ${payment.dokument || 'Nije unešen'}
+Komercijalist: ${payment.komercijalist || 'Nije dodjeljen'}
+
+Napomene: 
+${payment.napomene || 'Nema dodatnih napomena'}
+
+========================
+            `.trim();
+            
+            alert(details);
+        }
+
+        // Print receipt
+        function printReceipt(payment) {
+            const receipt = `
+TEHNOLUX d.o.o.
+Potvrda o uplati
+==================
+
+ID Uplate: ${payment.id}
+Datum: ${formatDate(payment.datum)}
+Kupac: ${payment.kupac}
+Iznos: ${formatCurrency(payment.iznos)}
+Način plaćanja: ${payment.nacin}
+Status: ${payment.status}
+Dokument: ${payment.dokument || 'N/A'}
+Komercijalist: ${payment.komercijalist || 'N/A'}
+
+Napomene: ${payment.napomene || 'Nema napomena'}
+
+==================
+Hvala Vam na ukazanom povjerenju!
+            `.trim();
+            
+            alert('Potvrda o uplati:\n\n' + receipt);
+        }
+
+        // Fill form with payment data
+        function fillForm(payment) {
+            paymentIdInput.value = payment.id;
+            
+            // Convert database datetime to input format
+            const date = new Date(payment.datum);
+            const formattedDate = date.getFullYear() + '-' + 
+                String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(date.getDate()).padStart(2, '0') + 'T' +
+                String(date.getHours()).padStart(2, '0') + ':' +
+                String(date.getMinutes()).padStart(2, '0');
+            
+            document.getElementById('payment-date').value = formattedDate;
+            document.getElementById('payment-amount').value = payment.iznos;
+            document.getElementById('customer-name').value = payment.kupac;
+            document.getElementById('payment-method').value = payment.nacin;
+            document.getElementById('payment-status').value = payment.status;
+            document.getElementById('document-number').value = payment.dokument || '';
+            document.getElementById('salesperson').value = payment.komercijalist || '';
+            document.getElementById('payment-notes').value = payment.napomene || '';
+
+            // Try to find partner and komercijalist IDs
+            const partner = partneriData.find(p => p.Naziv_partnera === payment.kupac);
+            if (partner) {
+                partnerSifraInput.value = partner.Sifra;
+            }
+
+            const komercijalist = komercijalistiData.find(k => k.ime_prezime === payment.komercijalist);
+            if (komercijalist) {
+                komercijalistIdInput.value = komercijalist.id;
+            }
+        }
+
+        // Clear form
+        function clearForm() {
+            paymentForm.reset();
+            paymentIdInput.value = '';
+            partnerSifraInput.value = '';
+            komercijalistIdInput.value = '';
+            
+            const now = new Date();
+            const formattedNow = now.getFullYear() + '-' + 
+                String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(now.getDate()).padStart(2, '0') + 'T' +
+                String(now.getHours()).padStart(2, '0') + ':' +
+                String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('payment-date').value = formattedNow;
+            document.getElementById('payment-status').value = 'primljena';
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const term = searchInput.value.toLowerCase();
+            const status = statusFilter.value;
+            const method = methodFilter.value;
+            const dateFrom = dateFromInput.value ? new Date(dateFromInput.value) : null;
+            const dateTo = dateToInput.value ? new Date(dateToInput.value + 'T23:59:59') : null;
+
+            filteredData = paymentsData.filter(payment => {
+                const paymentDate = new Date(payment.datum);
+                
+                const matchesSearch = payment.id.toString().includes(term) ||
+                                    payment.kupac.toLowerCase().includes(term) ||
+                                    (payment.dokument && payment.dokument.toLowerCase().includes(term)) ||
+                                    (payment.komercijalist && payment.komercijalist.toLowerCase().includes(term));
+                
+                const matchesStatus = !status || payment.status === status;
+                const matchesMethod = !method || payment.nacin === method;
+                
+                const matchesDateFrom = !dateFrom || paymentDate >= dateFrom;
+                const matchesDateTo = !dateTo || paymentDate <= dateTo;
+                
+                return matchesSearch && matchesStatus && matchesMethod && matchesDateFrom && matchesDateTo;
+            });
+
+            renderPaymentsTable(filteredData);
+            updateStatistics();
+        }
+
+        // Quick date functions
+        function setQuickDate(days, period) {
+            const now = new Date();
+            let fromDate, toDate;
+            
+            if (period === 'month') {
+                fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                toDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            } else if (period === 'year') {
+                fromDate = new Date(now.getFullYear(), 0, 1);
+                toDate = new Date(now.getFullYear(), 11, 31);
+            } else {
+                fromDate = new Date(now);
+                fromDate.setDate(now.getDate() - days);
+                toDate = new Date(now);
+            }
+            
+            dateFromInput.value = fromDate.toISOString().split('T')[0];
+            dateToInput.value = toDate.toISOString().split('T')[0];
+            
+            // Remove active class from all buttons and add to clicked one
+            quickDateBtns.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // Event listeners for quick date buttons
+        quickDateBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const days = this.dataset.days;
+                const period = this.dataset.period;
+                
+                if (days !== undefined) {
+                    setQuickDate(parseInt(days));
+                } else if (period) {
+                    setQuickDate(0, period);
+                }
+            });
+        });
+
+        // Modal functionality
+        addPaymentBtn.addEventListener('click', () => {
+            clearForm();
+            modalTitle.textContent = 'Nova uplata';
+            paymentModal.classList.add('show');
+        });
+
+        closeModal.addEventListener('click', () => {
+            paymentModal.classList.remove('show');
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            paymentModal.classList.remove('show');
+        });
+
+        paymentModal.addEventListener('click', (e) => {
+            if (e.target === paymentModal) {
+                paymentModal.classList.remove('show');
+            }
+        });
+
+        // Form submission
+        paymentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                datum: document.getElementById('payment-date').value.replace('T', ' ') + ':00',
+                kupac: document.getElementById('customer-name').value,
+                iznos: parseFloat(document.getElementById('payment-amount').value),
+                nacin: document.getElementById('payment-method').value,
+                status: document.getElementById('payment-status').value,
+                dokument: document.getElementById('document-number').value,
+                komercijalist: document.getElementById('salesperson').value,
+                napomene: document.getElementById('payment-notes').value,
+                partner_sifra: partnerSifraInput.value,
+                komercijalist_id: komercijalistIdInput.value
+            };
+
+            try {
+                const paymentId = paymentIdInput.value;
+                let response;
+                
+                if (paymentId) {
+                    // Update existing
+                    response = await fetch(`/api/uplate/${paymentId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                } else {
+                    // Add new
+                    response = await fetch('/api/uplate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                }
+
+                if (response.ok) {
+                    paymentModal.classList.remove('show');
+                    await loadPayments();
+                    alert(paymentId ? 'Uplata je uspješno ažurirana.' : 'Uplata je uspješno dodana.');
+                } else {
+                    throw new Error('Save failed');
+                }
+            } catch (error) {
+                console.error('Error saving payment:', error);
+                alert('Greška pri snimanju uplate.');
+            }
+        });
+
+        // Search and filter functionality
+        searchInput.addEventListener('input', applyFilters);
+        statusFilter.addEventListener('change', applyFilters);
+        methodFilter.addEventListener('change', applyFilters);
+
+        // Date filter functionality
+        applyDateFilterBtn.addEventListener('click', applyFilters);
+
+        clearDateFilterBtn.addEventListener('click', () => {
+            dateFromInput.value = '';
+            dateToInput.value = '';
+            quickDateBtns.forEach(btn => btn.classList.remove('active'));
+            applyFilters();
+        });
+
+        // Refresh button
+        refreshBtn.addEventListener('click', async function() {
+            await loadPayments();
+            await loadPartneriData();
+            await loadKomercijalistiData();
+            searchInput.value = '';
+            statusFilter.value = '';
+            methodFilter.value = '';
+            dateFromInput.value = '';
+            dateToInput.value = '';
+            quickDateBtns.forEach(btn => btn.classList.remove('active'));
+        });
+
+        // Sidebar functionality
+        function closeMobileSidebar() {
+            if (window.innerWidth <= 576) {
+                sidebar.classList.remove('mobile-open');
+                if (sidebarOverlay) sidebarOverlay.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+        }
+
+        if (mobileMenuToggle) {
+            mobileMenuToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('mobile-open');
+                if (sidebarOverlay) sidebarOverlay.classList.toggle('show');
+                
+                if (sidebar.classList.contains('mobile-open')) {
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.body.style.overflow = '';
+                }
+            });
+        }
+
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', closeMobileSidebar);
+        }
+
+        if (toggleSidebar) {
+            toggleSidebar.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+                header.classList.toggle('expanded');
+                
+                if (sidebar.classList.contains('collapsed')) {
+                    sidebarIcon.classList.remove('fa-chevron-left');
+                    sidebarIcon.classList.add('fa-chevron-right');
+                } else {
+                    sidebarIcon.classList.remove('fa-chevron-right');
+                    sidebarIcon.classList.add('fa-chevron-left');
+                }
+            });
+        }
+
+        // Submenu functionality
+        document.querySelectorAll('.nav-item.has-submenu > .nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const parent = this.parentElement;
+                const submenu = parent.querySelector('.submenu');
+                
+                document.querySelectorAll('.nav-item.has-submenu').forEach(item => {
+                    if (item !== parent) {
+                        item.classList.remove('open');
+                        item.querySelector('.submenu').classList.remove('open');
+                    }
+                });
+                
+                parent.classList.toggle('open');
+                submenu.classList.toggle('open');
+            });
+        });
+
+        // Navigation click handlers
+        document.querySelectorAll('.submenu .nav-link').forEach(link => {
+            link.addEventListener('click', closeMobileSidebar);
+        });
+
+        // Initialize date inputs with current month
+        function initializeDateInputs() {
+            const now = new Date();
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            
+            dateFromInput.value = firstDay.toISOString().split('T')[0];
+            dateToInput.value = lastDay.toISOString().split('T')[0];
+            
+            quickDateBtns.forEach(btn => {
+                if (btn.dataset.period === 'month') {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // Auto collapse sidebar on medium screens
+        function handleResponsiveLayout() {
+            if (window.innerWidth <= 992 && window.innerWidth > 576) {
+                if (!sidebar.classList.contains('collapsed')) {
+                    sidebar.classList.add('collapsed');
+                    mainContent.classList.add('expanded');
+                    header.classList.add('expanded');
+                    if (sidebarIcon) {
+                        sidebarIcon.classList.remove('fa-chevron-left');
+                        sidebarIcon.classList.add('fa-chevron-right');
+                    }
+                }
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (paymentModal.classList.contains('show')) {
+                    paymentModal.classList.remove('show');
+                } else if (sidebar.classList.contains('mobile-open')) {
+                    closeMobileSidebar();
+                }
+            }
+            
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                addPaymentBtn.click();
+            }
+            
+            if (e.ctrlKey && e.key === 'f') {
+                e.preventDefault();
+                searchInput.focus();
+            }
+        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            initializeDateInputs();
+            updateStatistics();
+            handleResponsiveLayout();
+            attachActionListeners();
+            
+            // Load data for autocomplete
+            await loadPartneriData();
+            await loadKomercijalistiData();
+            
+            // Setup autocomplete for customers (partneri)
+            setupAutocomplete(
+                customerInput,
+                customerAutocomplete,
+                partneriData,
+                ['Naziv_partnera', 'Grad', 'PIB'], // Search fields
+                'Naziv_partnera', // Display field
+                'Grad', // Subtitle field
+                function(selectedPartner) {
+                    partnerSifraInput.value = selectedPartner.Sifra;
+                    console.log('Selected partner:', selectedPartner.Naziv_partnera, 'Sifra:', selectedPartner.Sifra);
+                }
+            );
+
+            // Setup autocomplete for salesperson (komercijalisti)
+            setupAutocomplete(
+                salespersonInput,
+                salespersonAutocomplete,
+                komercijalistiData.filter(k => k.status === 'aktivan'), // Only active komercijalisti
+                ['ime_prezime'], // Search fields
+                'ime_prezime', // Display field
+                'status', // Subtitle field
+                function(selectedKomercijalist) {
+                    komercijalistIdInput.value = selectedKomercijalist.id;
+                    console.log('Selected komercijalist:', selectedKomercijalist.ime_prezime, 'ID:', selectedKomercijalist.id);
+                }
+            );
+            
+            console.log('Tehnolux Uplate panel initialized with autocomplete functionality');
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', handleResponsiveLayout);
+    </script>
+</body>
+</html>

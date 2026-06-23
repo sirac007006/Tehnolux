@@ -1,0 +1,1619 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tehnolux Admin Panel - Kartica Kupca</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #2ecc71;
+            --warning-color: #f1c40f;
+            --text-color: #333;
+            --light-text: #ecf0f1;
+            --sidebar-width: 280px;
+            --sidebar-collapsed: 70px;
+            --header-height: 60px;
+            --transition-speed: 0.3s;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        /* Sidebar styles */
+        .sidebar {
+            position: fixed;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--primary-color);
+            color: var(--light-text);
+            padding: 1.5rem 1rem;
+            transition: all var(--transition-speed);
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed);
+            padding: 1rem 0.5rem;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            justify-content: center;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--light-text);
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-icon {
+            margin-right: 10px;
+            font-size: 24px;
+            min-width: 24px;
+        }
+
+        .sidebar.collapsed .logo-text {
+            display: none;
+        }
+
+        .sidebar.collapsed .logo-icon {
+            margin-right: 0;
+        }
+
+        /* Menu sections */
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .menu-section {
+            margin-bottom: 1rem;
+        }
+
+        .menu-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 0.5rem;
+            padding: 0 1rem;
+            transition: all var(--transition-speed);
+        }
+
+        .sidebar.collapsed .menu-title {
+            display: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.2rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 10px 1rem;
+            color: var(--light-text);
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            transition: all var(--transition-speed);
+            position: relative;
+            font-size: 14px;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link.active {
+            background-color: var(--secondary-color);
+        }
+
+        .nav-icon {
+            margin-right: 12px;
+            font-size: 16px;
+            min-width: 16px;
+            text-align: center;
+        }
+
+        .sidebar.collapsed .nav-text {
+            display: none;
+        }
+
+        .sidebar.collapsed .nav-icon {
+            margin-right: 0;
+        }
+
+        .sidebar.collapsed .nav-link {
+            justify-content: center;
+            padding: 10px;
+        }
+
+        /* Submenu styles */
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height var(--transition-speed);
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: var(--border-radius);
+            margin-top: 0.2rem;
+            margin-left: 1rem;
+            margin-right: 0.5rem;
+        }
+
+        .submenu.open {
+            max-height: 400px;
+        }
+
+        .submenu .nav-link {
+            padding: 8px 1rem;
+            font-size: 13px;
+            margin-left: 0;
+        }
+
+        .sidebar.collapsed .submenu {
+            display: none;
+        }
+
+        /* Toggle button */
+        .toggle-sidebar {
+            position: sticky;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--light-text);
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            margin-top: auto;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-sidebar:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Main content area */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: all var(--transition-speed);
+            min-height: 100vh;
+            padding: 1rem;
+            padding-top: calc(var(--header-height) + 1rem);
+        }
+
+        .main-content.expanded {
+            margin-left: var(--sidebar-collapsed);
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            height: var(--header-height);
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all var(--transition-speed);
+            z-index: 900;
+        }
+
+        .header.expanded {
+            left: var(--sidebar-collapsed);
+        }
+
+        .page-title {
+            font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: clamp(11px, 1.5vw, 13px);
+            font-weight: 500;
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+
+        .btn-danger {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        /* Mobile menu toggle */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-color);
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
+            background-color: white;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        /* Card styles */
+        .card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: clamp(1rem, 2vw, 1.5rem);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e6e9ed;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .card-title {
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            font-weight: 600;
+        }
+
+        /* Filter controls */
+        .filter-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #666;
+        }
+
+        .period-inputs {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .date-input {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+        }
+
+        /* Table styles */
+        .table-container {
+            overflow-x: auto;
+            margin: 1rem -1rem -1rem -1rem;
+            padding: 0 1rem 1rem 1rem;
+        }
+
+        .data-table {
+            width: 100%;
+            min-width: 900px;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: clamp(8px, 1.5vw, 12px) clamp(10px, 2vw, 15px);
+            text-align: left;
+            border-bottom: 1px solid #e6e9ed;
+            font-size: clamp(12px, 1.3vw, 14px);
+        }
+
+        .data-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            white-space: nowrap;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .saldo-positive {
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        .saldo-negative {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        /* Customer row hover effect */
+        .customer-row {
+            cursor: pointer;
+            transition: background-color var(--transition-speed);
+        }
+
+        .customer-row:hover {
+            background-color: #e3f2fd !important;
+        }
+
+        .customer-row.selected {
+            background-color: #bbdefb !important;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 1rem;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: clamp(1.5rem, 3vw, 2rem);
+            width: 100%;
+            max-width: min(800px, 95vw);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e6e9ed;
+        }
+
+        .modal-title {
+            font-size: clamp(1.1rem, 2.2vw, 1.3rem);
+            font-weight: 600;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .close-modal:hover {
+            color: var(--accent-color);
+        }
+
+        /* Form styles */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: clamp(13px, 1.4vw, 14px);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: clamp(8px, 1.5vw, 10px) clamp(10px, 2vw, 12px);
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: clamp(13px, 1.4vw, 14px);
+            transition: border-color var(--transition-speed);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Search and filter */
+        .search-filter-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 200px;
+            max-width: 300px;
+        }
+
+        .search-box input {
+            padding-left: 35px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        /* Summary boxes */
+        .summary-box {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .summary-item {
+            text-align: center;
+            padding: 0.5rem;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .summary-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .saldo-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .saldo-info h3 {
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .saldo-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+.sidebar-nav::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.5);
+        }
+        /* Responsive design */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: var(--sidebar-collapsed);
+            }
+            
+            .sidebar .logo-text,
+            .sidebar .nav-text,
+            .sidebar .menu-title {
+                display: none;
+            }
+            
+            .main-content,
+            .header {
+                margin-left: var(--sidebar-collapsed);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 320px;
+                z-index: 2500;
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            .sidebar.mobile-open .logo-text,
+            .sidebar.mobile-open .nav-text,
+            .sidebar.mobile-open .menu-title {
+                display: block;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+                position: fixed;
+                top: 8px;
+                left: 12px;
+                z-index: 2600;
+                width: 44px;
+                height: 44px;
+            }
+
+            .main-content,
+            .header {
+                margin-left: 0;
+            }
+
+            .header {
+                padding: 0 1rem 0 60px;
+            }
+        }
+
+        .sidebar-nav::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar-nav::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+        }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.5);
+        }
+
+        /* Partner info card styling */
+        .partner-info-card {
+            background: linear-gradient(135deg, #f6f8fb 0%, #e5eef7 100%);
+            border: 1px solid #d1e3f8;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1.5rem;
+        }
+
+        .partner-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .partner-detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .partner-detail-item strong {
+            color: var(--primary-color);
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+            font-weight: 600;
+        }
+
+        .partner-detail-item span {
+            color: #555;
+            font-size: 0.95rem;
+        }
+        .transaction-type {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.transaction-otpremnica {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.transaction-uplata {
+    background-color: #e8f5e8;
+    color: #2e7d32;
+}
+
+/* Print styles */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    
+    .modal,
+    .modal * {
+        visibility: visible;
+    }
+    
+    .modal {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: auto;
+        background: white;
+        padding: 0;
+        margin: 0;
+        box-shadow: none;
+    }
+    
+    .modal-content {
+        box-shadow: none;
+        border: 1px solid #000;
+        max-width: 100% !important;
+        max-height: none !important;
+    }
+    
+    .btn,
+    .mobile-menu-toggle,
+    .toggle-sidebar,
+    .header-actions,
+    .close-modal {
+        display: none !important;
+    }
+    
+    .card {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+    
+    .saldo-info {
+        background: #f8f9fa !important;
+        color: #000 !important;
+        border: 1px solid #000;
+    }
+}
+.nav-item.has-submenu.open .submenu {
+    max-height: 400px;
+}
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="logo-container">
+            <div class="logo">
+                <span class="logo-text">Tehnolux</span>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <!-- Unos Dokumentacije -->
+            <div class="menu-section">
+                <div class="menu-title">Unos dokumentacije</div>
+                <div class="nav-item">
+                    <a href="/pravljenjedokumenta" class="nav-link">
+                        <i class="fas fa-file nav-icon"></i>
+                        <span class="nav-text">Dokumenti</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Pregled -->
+            <div class="menu-section">
+                <div class="menu-title">Pregled</div>
+                <div class="nav-item has-submenu">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-eye nav-icon"></i>
+                        <span class="nav-text">Pregledi</span>
+                    </a>
+                    <div class="submenu">
+                        <div class="nav-item">
+                            <a href="/lager" class="nav-link">
+                                <span class="nav-text">Lager</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/prometrobe" class="nav-link">
+                                <span class="nav-text">Promet robe</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/dokumenti" class="nav-link">
+                                <span class="nav-text">Pregled dokumenata</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Šifrarnik -->
+            <div class="menu-section">
+                <div class="menu-title">Šifrarnik</div>
+                <div class="nav-item has-submenu">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-database nav-icon"></i>
+                        <span class="nav-text">Šifarnici</span>
+                    </a>
+                    <div class="submenu">
+                        <div class="nav-item">
+                            <a href="/artikli" class="nav-link">
+                                <span class="nav-text">Artikli</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/magacini" class="nav-link">
+                                <span class="nav-text">Magacini</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/komercijalisti" class="nav-link">
+                                <span class="nav-text">Komercijalisti</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kupci -->
+            <div class="menu-section">
+                <div class="menu-title">Kupci</div>
+                <div class="nav-item has-submenu">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-users nav-icon"></i>
+                        <span class="nav-text">Upravljanje kupcima</span>
+                    </a>
+                    <div class="submenu open">
+                        <div class="nav-item">
+                            <a href="/uplate" class="nav-link">
+                                <span class="nav-text">Uplate</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/partneri" class="nav-link">
+                                <span class="nav-text">Partneri</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="/karticekupca" class="nav-link active">
+                                <span class="nav-text">Kartica kupca</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="menu-section">
+                <div class="menu-title">Servis</div>
+                <div class="nav-item">
+                    <a href="/servis" class="nav-link">
+                        <i class="fas fa-tools nav-icon"></i>
+                        <span class="nav-text">Servis</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <button class="toggle-sidebar" id="toggle-sidebar">
+            <i class="fas fa-chevron-left" id="sidebar-icon"></i>
+        </button>
+    </aside>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <h1 class="page-title">Kartica kupca</h1>
+        
+        <div class="header-actions">
+            <button class="btn btn-primary" id="print-btn">
+                <i class="fas fa-print"></i>
+                <span>Print</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content" id="main-content">
+        <!-- Filter Card -->
+        <div class="card">
+            <div class="filter-container">
+                <div class="filter-group">
+                    <label class="filter-label">Period:</label>
+                    <div class="period-inputs">
+                        <input type="date" class="date-input" id="date-from" value="2025-01-01">
+                        <span>-</span>
+                        <input type="date" class="date-input" id="date-to" value="2025-12-31">
+                    </div>
+                </div>
+                
+                <div class="filter-group">
+                    <button class="btn btn-primary" id="apply-filter">
+                        <i class="fas fa-filter"></i>
+                        <span>Primeni filter</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Card -->
+        <div class="card">
+            <div class="summary-box">
+                <div class="summary-item">
+                    <div class="summary-label">Ukupno partnera:</div>
+                    <div class="summary-value" id="total-records"><%= partneri.length %></div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Partneri sa pozitivnim saldom:</div>
+                    <div class="summary-value" id="positive-saldo">0</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Partneri sa negativnim saldom:</div>
+                    <div class="summary-value" id="negative-saldo">0</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Ukupan saldo:</div>
+                    <div class="summary-value" id="total-saldo">0,00 €</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Data Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Lista partnera</h3>
+                <div class="search-filter-container">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="form-control" id="search-customers" placeholder="Pretraži partnere...">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table" id="customers-table">
+                    <thead>
+                        <tr>
+                            <th>Šifra</th>
+                            <th>Naziv</th>
+                            <th>Grad</th>
+                            <th>PIB</th>
+                            <th>PDV</th>
+                            <th>Telefon</th>
+                            <th>Saldo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customers-tbody">
+                        <% partneri.forEach(partner => { %>
+                        <tr class="customer-row" data-partner-id="<%= partner.Sifra %>" data-partner-name="<%= partner.Naziv_partnera %>">
+                            <td><%= partner.Sifra %></td>
+                            <td><%= partner.Naziv_partnera %></td>
+                            <td><%= partner.Grad || '' %></td>
+                            <td><%= partner.PIB || '' %></td>
+                            <td><%= partner.PDV || '' %></td>
+                            <td><%= partner.Telefon || '' %></td>
+                            <td class="saldo-cell" data-saldo="0">
+                                <span class="saldo-value">0,00 €</span>
+                            </td>
+                        </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Customer Details Modal -->
+    <div class="modal" id="customer-modal">
+        <div class="modal-content" style="max-width: 95vw; max-height: 90vh;">
+            <div class="modal-header">
+    <h3 class="modal-title" id="modal-title">Detalji partnera</h3>
+    <div>
+        <button class="btn btn-primary" id="print-modal-btn">
+            <i class="fas fa-print"></i>
+            <span>Print</span>
+        </button>
+        <button class="close-modal" id="close-modal">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+</div>
+            <div class="modal-body">
+                <!-- Partner Info -->
+                <div class="partner-info-card">
+                    <div class="partner-details">
+                        <div class="partner-detail-item">
+                            <strong>Šifra:</strong>
+                            <span id="partner-sifra"></span>
+                        </div>
+                        <div class="partner-detail-item">
+                            <strong>Naziv:</strong>
+                            <span id="partner-naziv"></span>
+                        </div>
+                        <div class="partner-detail-item">
+                            <strong>Grad:</strong>
+                            <span id="partner-grad"></span>
+                        </div>
+                        <div class="partner-detail-item">
+                            <strong>PIB:</strong>
+                            <span id="partner-pib"></span>
+                        </div>
+                        <div class="partner-detail-item">
+                            <strong>PDV:</strong>
+                            <span id="partner-pdv"></span>
+                        </div>
+                        <div class="partner-detail-item">
+                            <strong>Adresa:</strong>
+                            <span id="partner-adresa"></span>
+                        </div>
+                        <div class="partner-detail-item">
+                            <strong>Telefon:</strong>
+                            <span id="partner-telefon"></span>
+                        </div>
+                        <div class="partner-detail-item">
+                            <strong>Fax:</strong>
+                            <span id="partner-fax"></span>
+                        </div>
+                        <div class="partner-detail-item">
+                            <strong>E-mail:</strong>
+                            <span id="partner-email"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Saldo Info -->
+                <div class="saldo-info">
+                    <h3>Finansijski pregled</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 0.5rem;">
+                        <div>
+                            <div style="font-size: 0.9rem; opacity: 0.9;">Ukupne otpremnice:</div>
+                            <div class="saldo-value" id="partner-otpremnice">0,00 €</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.9rem; opacity: 0.9;">Ukupne uplate:</div>
+                            <div class="saldo-value" id="partner-uplate">0,00 €</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.9rem; opacity: 0.9;">Saldo:</div>
+                            <div class="saldo-value" id="partner-saldo">0,00 €</div>
+                        </div>
+                    </div>
+                </div>
+
+
+<div>
+    <h4 style="margin-bottom: 1rem; color: var(--primary-color);">Sve transakcije</h4>
+    <div class="table-container">
+        <table class="data-table" id="transactions-table">
+            <thead>
+                <tr>
+                    <th>Datum</th>
+                    <th>Tip transakcije</th>
+                    <th>Tip dokumenta</th>
+                    <th>Količina</th>
+                    <th>Iznos bez PDV</th>
+                    <th>Iznos sa PDV</th>
+                    <th>PDV iznos</th>
+                    <th>Način plaćanja</th>
+                    <th>Status</th>
+                    <th>Dokument</th>
+                    <th>Napomene</th>
+                </tr>
+            </thead>
+            <tbody id="transactions-tbody">
+                <!-- Combined transactions will be loaded here -->
+            </tbody>
+        </table>
+    </div>
+</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+        const header = document.getElementById('header');
+        const toggleSidebar = document.getElementById('toggle-sidebar');
+        const sidebarIcon = document.getElementById('sidebar-icon');
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const searchInput = document.getElementById('search-customers');
+        const customerModal = document.getElementById('customer-modal');
+        const closeModal = document.getElementById('close-modal');
+
+        // Global variables
+        let partnersData = [];
+        let filteredPartnersData = [];
+
+        // Mobile menu functionality
+        mobileMenuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('mobile-open');
+        });
+
+        // Toggle sidebar
+        toggleSidebar.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            header.classList.toggle('expanded');
+            
+            if (sidebar.classList.contains('collapsed')) {
+                sidebarIcon.classList.remove('fa-chevron-left');
+                sidebarIcon.classList.add('fa-chevron-right');
+            } else {
+                sidebarIcon.classList.remove('fa-chevron-right');
+                sidebarIcon.classList.add('fa-chevron-left');
+            }
+        });
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const term = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.customer-row');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const visible = text.includes(term);
+                row.style.display = visible ? '' : 'none';
+                if (visible) visibleCount++;
+            });
+            
+            document.getElementById('total-records').textContent = visibleCount;
+            updateSummaryStats();
+        });
+
+        // Customer row click handler
+        document.addEventListener('click', function(e) {
+            const customerRow = e.target.closest('.customer-row');
+            if (customerRow) {
+                const partnerId = customerRow.dataset.partnerId;
+                const partnerName = customerRow.dataset.partnerName;
+                showCustomerDetails(partnerId, partnerName);
+            }
+        });
+        // Print modal functionality
+document.getElementById('print-modal-btn').addEventListener('click', function() {
+    printModal();
+});
+// Submenu functionality - DODAJTE OVAJ KOD
+document.querySelectorAll('.nav-item.has-submenu > .nav-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const parent = this.parentElement;
+        const submenu = parent.querySelector('.submenu');
+        
+        // Zatvori druge submenije
+        document.querySelectorAll('.nav-item.has-submenu').forEach(item => {
+            if (item !== parent) {
+                item.classList.remove('open');
+                item.querySelector('.submenu').classList.remove('open');
+            }
+        });
+        
+        parent.classList.toggle('open');
+        submenu.classList.toggle('open');
+    });
+});
+
+// Enhanced navigation - zatvori sidebar pri kliku na submenu linkove
+document.querySelectorAll('.submenu .nav-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+        // Dodaj vizuelnu povratnu informaciju
+        this.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            this.style.transform = 'scale(1)';
+        }, 100);
+        
+        // Zatvori mobile sidebar odmah
+        closeMobileSidebar();
+    });
+});
+function printModal() {
+    const modalContent = document.querySelector('.modal-content').cloneNode(true);
+    
+    // Remove buttons from print version
+    const buttons = modalContent.querySelectorAll('.btn, .close-modal');
+    buttons.forEach(btn => btn.remove());
+    
+    // Create print window
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Kartica Kupca - Print</title>
+            <style>
+                body { 
+                    font-family: Arial, sans-serif; 
+                    margin: 20px;
+                    color: #000;
+                }
+                .modal-header { 
+                    border-bottom: 2px solid #000; 
+                    margin-bottom: 20px; 
+                    padding-bottom: 10px;
+                }
+                .modal-title { 
+                    font-size: 24px; 
+                    margin: 0;
+                    color: #000;
+                }
+                .partner-info-card { 
+                    background: #f8f9fa; 
+                    padding: 15px; 
+                    border: 1px solid #000; 
+                    margin-bottom: 20px;
+                }
+                .partner-details { 
+                    display: grid; 
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+                    gap: 10px;
+                }
+                .partner-detail-item strong { 
+                    display: block; 
+                    font-weight: bold;
+                    color: #000;
+                }
+                .saldo-info { 
+                    background: #e9ecef; 
+                    padding: 15px; 
+                    border: 1px solid #000; 
+                    margin-bottom: 20px;
+                }
+                .saldo-value { 
+                    font-size: 18px; 
+                    font-weight: bold;
+                }
+                table { 
+                    width: 100%; 
+                    border-collapse: collapse; 
+                    margin-top: 10px;
+                }
+                th, td { 
+                    border: 1px solid #000; 
+                    padding: 8px; 
+                    text-align: left;
+                }
+                th { 
+                    background-color: #f8f9fa; 
+                    font-weight: bold;
+                }
+                .transaction-type { 
+                    padding: 2px 6px; 
+                    border-radius: 3px; 
+                    font-size: 11px; 
+                    font-weight: bold;
+                }
+                .transaction-otpremnica { 
+                    background-color: #e3f2fd; 
+                    color: #1976d2;
+                }
+                .transaction-uplata { 
+                    background-color: #e8f5e8; 
+                    color: #2e7d32;
+                }
+                @media print {
+                    body { margin: 0; }
+                }
+            </style>
+        </head>
+        <body>
+            ${modalContent.innerHTML}
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.focus();
+    
+    // Wait for content to load then print
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 500);
+}
+        // Load partner saldos on page load
+        async function loadPartnerSaldos() {
+            try {
+                const response = await fetch('/api/karticekupca/saldos');
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update saldo values in table
+                    data.saldos.forEach(saldo => {
+                        const row = document.querySelector(`[data-partner-id="${saldo.sifra}"]`);
+                        if (row) {
+                            const saldoCell = row.querySelector('.saldo-cell');
+                            const saldoValue = row.querySelector('.saldo-value');
+                            
+                            const saldoAmount = parseFloat(saldo.saldo) || 0;
+                            saldoCell.dataset.saldo = saldoAmount;
+                            saldoValue.textContent = formatCurrency(saldoAmount);
+                            
+                            // Add appropriate class for styling
+                            saldoValue.classList.remove('saldo-positive', 'saldo-negative');
+                            if (saldoAmount > 0) {
+                                saldoValue.classList.add('saldo-positive');
+                            } else if (saldoAmount < 0) {
+                                saldoValue.classList.add('saldo-negative');
+                            }
+                        }
+                    });
+                    
+                    updateSummaryStats();
+                }
+            } catch (error) {
+                console.error('Error loading partner saldos:', error);
+            }
+        }
+
+        // Update summary statistics
+        function updateSummaryStats() {
+            const visibleRows = document.querySelectorAll('.customer-row:not([style*="display: none"])');
+            let positiveSaldo = 0;
+            let negativeSaldo = 0;
+            let totalSaldo = 0;
+            
+            visibleRows.forEach(row => {
+                const saldoValue = parseFloat(row.querySelector('.saldo-cell').dataset.saldo) || 0;
+                totalSaldo += saldoValue;
+                
+                if (saldoValue > 0) {
+                    positiveSaldo++;
+                } else if (saldoValue < 0) {
+                    negativeSaldo++;
+                }
+            });
+            
+            document.getElementById('positive-saldo').textContent = positiveSaldo;
+            document.getElementById('negative-saldo').textContent = negativeSaldo;
+            document.getElementById('total-saldo').textContent = formatCurrency(totalSaldo);
+        }
+
+
+        // Show customer details modal
+async function showCustomerDetails(partnerId, partnerName) {
+    try {
+        const dateFrom = document.getElementById('date-from').value;
+        const dateTo = document.getElementById('date-to').value;
+        
+        const url = `/api/karticekupca/partner/${partnerId}?datum_od=${dateFrom}&datum_do=${dateTo}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.success) {
+            // Fill partner info
+            document.getElementById('partner-sifra').textContent = data.partner.Sifra || '';
+            document.getElementById('partner-naziv').textContent = data.partner.Naziv_partnera || '';
+            document.getElementById('partner-grad').textContent = data.partner.Grad || '';
+            document.getElementById('partner-pib').textContent = data.partner.PIB || '';
+            document.getElementById('partner-pdv').textContent = data.partner.PDV || '';
+            document.getElementById('partner-adresa').textContent = data.partner.Adresa || '';
+            document.getElementById('partner-telefon').textContent = data.partner.Telefon || '';
+            document.getElementById('partner-fax').textContent = data.partner.Fax || '';
+            document.getElementById('partner-email').textContent = data.partner.E_mail || '';
+            
+            // Calculate and display financial overview
+            const otpremniceTotal = data.otpremnice.reduce((sum, doc) => sum + (parseFloat(doc.iznos_sa_pdv) || 0), 0);
+            const uplateTotal = data.uplate.reduce((sum, payment) => sum + (parseFloat(payment.iznos) || 0), 0);
+            const saldo = uplateTotal - otpremniceTotal;
+            
+            document.getElementById('partner-otpremnice').textContent = formatCurrency(otpremniceTotal);
+            document.getElementById('partner-uplate').textContent = formatCurrency(uplateTotal);
+            document.getElementById('partner-saldo').textContent = formatCurrency(saldo);
+            
+            // Style saldo based on value
+            const saldoElement = document.getElementById('partner-saldo');
+            saldoElement.classList.remove('saldo-positive', 'saldo-negative');
+            if (saldo > 0) {
+                saldoElement.classList.add('saldo-positive');
+            } else if (saldo < 0) {
+                saldoElement.classList.add('saldo-negative');
+            }
+            
+            // Combine and sort transactions
+            const transactionsTbody = document.getElementById('transactions-tbody');
+            transactionsTbody.innerHTML = '';
+            
+            // Create combined array of all transactions
+            const allTransactions = [];
+            
+            // Add otpremnice
+            if (data.otpremnice && data.otpremnice.length > 0) {
+                data.otpremnice.forEach(doc => {
+                    allTransactions.push({
+                        type: 'otpremnica',
+                        datum: doc.datum,
+                        tip_dokumenta: doc.tip_dokumenta,
+                        kolicina: doc.kolicina,
+                        iznos_bez_pdv: doc.iznos_bez_pdv,
+                        iznos_sa_pdv: doc.iznos_sa_pdv,
+                        pdv_iznos: doc.pdv_iznos,
+                        nacin_placanja: '',
+                        status: '',
+                        dokument: '',
+                        napomene: ''
+                    });
+                });
+            }
+            
+            // Add uplate
+            if (data.uplate && data.uplate.length > 0) {
+                data.uplate.forEach(payment => {
+                    allTransactions.push({
+                        type: 'uplata',
+                        datum: payment.datum,
+                        tip_dokumenta: '',
+                        kolicina: '',
+                        iznos_bez_pdv: '',
+                        iznos_sa_pdv: '',
+                        pdv_iznos: '',
+                        nacin_placanja: payment.nacin,
+                        status: payment.status,
+                        dokument: payment.dokument,
+                        napomene: payment.napomene,
+                        iznos: payment.iznos
+                    });
+                });
+            }
+            
+            // Sort transactions by date (oldest first)
+            allTransactions.sort((a, b) => new Date(a.datum) - new Date(b.datum));
+            
+            // Populate the combined table
+            if (allTransactions.length > 0) {
+                allTransactions.forEach(transaction => {
+                    const row = document.createElement('tr');
+                    const datum = transaction.datum ? new Date(transaction.datum).toLocaleDateString('sr-RS') : '';
+                    
+                    let statusClass = '';
+                    if (transaction.type === 'uplata') {
+                        switch(transaction.status) {
+                            case 'primljena':
+                                statusClass = 'style="color: var(--success-color); font-weight: 600;"';
+                                break;
+                            case 'odbijena':
+                                statusClass = 'style="color: var(--accent-color); font-weight: 600;"';
+                                break;
+                            case 'cekanje':
+                                statusClass = 'style="color: var(--warning-color); font-weight: 600;"';
+                                break;
+                        }
+                    }
+                    
+                    // Format amounts
+                    const iznosBezPdv = transaction.type === 'otpremnica' ? 
+                        formatCurrency(parseFloat(transaction.iznos_bez_pdv) || 0) : '';
+                    const iznosSaPdv = transaction.type === 'otpremnica' ? 
+                        formatCurrency(parseFloat(transaction.iznos_sa_pdv) || 0) : 
+                        formatCurrency(parseFloat(transaction.iznos) || 0);
+                    const pdvIznos = transaction.type === 'otpremnica' ? 
+                        formatCurrency(parseFloat(transaction.pdv_iznos) || 0) : '';
+                    
+                    row.innerHTML = `
+                        <td>${datum}</td>
+                        <td>
+                            <span class="transaction-type ${transaction.type === 'otpremnica' ? 'transaction-otpremnica' : 'transaction-uplata'}">
+                                ${transaction.type === 'otpremnica' ? 'Otpremnica' : 'Uplata'}
+                            </span>
+                        </td>
+                        <td>${transaction.tip_dokumenta || ''}</td>
+                        <td>${transaction.kolicina || ''}</td>
+                        <td>${iznosBezPdv}</td>
+                        <td>${iznosSaPdv}</td>
+                        <td>${pdvIznos}</td>
+                        <td>${transaction.nacin_placanja || ''}</td>
+                        <td ${statusClass}>${transaction.status || ''}</td>
+                        <td>${transaction.dokument || ''}</td>
+                        <td>${transaction.napomene || ''}</td>
+                    `;
+                    transactionsTbody.appendChild(row);
+                });
+            } else {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="11" style="text-align: center; color: #666;">Nema pronađenih transakcija</td>';
+                transactionsTbody.appendChild(row);
+            }
+            
+            // Show modal
+            customerModal.classList.add('show');
+        } else {
+            alert('Greška pri učitavanju podataka o partneru');
+        }
+    } catch (error) {
+        console.error('Error fetching partner details:', error);
+        alert('Greška pri učitavanju podataka o partneru');
+    }
+}
+
+
+        closeModal.addEventListener('click', function() {
+            customerModal.classList.remove('show');
+        });
+
+        customerModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('show');
+            }
+        });
+
+        // Print functionality
+        document.getElementById('print-btn').addEventListener('click', function() {
+            window.print();
+        });
+
+        // Filter functionality
+        document.getElementById('apply-filter').addEventListener('click', function() {
+            const fromDate = document.getElementById('date-from').value;
+            const toDate = document.getElementById('date-to').value;
+            
+            if (fromDate && toDate && new Date(fromDate) > new Date(toDate)) {
+                alert('Početni datum ne može biti veći od krajnjeg datuma!');
+                return;
+            }
+            
+            loadPartnerSaldos();
+        });
+
+        // Utility function to format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('sr-RS', {
+                style: 'currency',
+                currency: 'EUR',
+                minimumFractionDigits: 2
+            }).format(amount);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 576) {
+                sidebar.classList.remove('mobile-open');
+            }
+            
+            if (window.innerWidth <= 992 && window.innerWidth > 576) {
+                if (!sidebar.classList.contains('collapsed')) {
+                    sidebar.classList.add('collapsed');
+                    mainContent.classList.add('expanded');
+                    header.classList.add('expanded');
+                    sidebarIcon.classList.remove('fa-chevron-left');
+                    sidebarIcon.classList.add('fa-chevron-right');
+                }
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto collapse sidebar on medium screens on load
+            if (window.innerWidth <= 992 && window.innerWidth > 576) {
+                sidebar.classList.add('collapsed');
+                mainContent.classList.add('expanded');
+                header.classList.add('expanded');
+                sidebarIcon.classList.remove('fa-chevron-left');
+                sidebarIcon.classList.add('fa-chevron-right');
+            }
+            
+            // Load initial saldos
+            loadPartnerSaldos();
+        });
+    </script>
+</body>
+</html>

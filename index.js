@@ -22,12 +22,14 @@ const db = new pg.Pool({
     ssl: { rejectUnauthorized: false },
     max: 10,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    connectionTimeoutMillis: 10000,
 });
 
 // Migracija: dodaj datum_kupovine kolonu ako ne postoji
-db.query(`ALTER TABLE servisi ADD COLUMN IF NOT EXISTS datum_kupovine DATE`)
-  .catch(err => console.error('Migration error (datum_kupovine):', err.message));
+setTimeout(() => {
+  db.query(`ALTER TABLE servisi ADD COLUMN IF NOT EXISTS datum_kupovine DATE`)
+    .catch(err => console.error('Migration error (datum_kupovine):', err.message));
+}, 5000);
 
 // bcrypt hash vrednosti za sve korisnike
 const ADMIN_HASH   = '$2b$12$GlMBYvuE3/jZuhfrZcagXOv.w3uVmwQEo5hdhqlpXtw9mOTbyfgfa'; // jasmin

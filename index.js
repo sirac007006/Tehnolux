@@ -2377,6 +2377,7 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
         await db.query('BEGIN');
         
         const { 
+            datum,
             tipDokumenta, 
             partner, 
             komercijalist_id,
@@ -2407,6 +2408,10 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
         const komercijalist = komercijalistResult.rows[0];
 
         const today = new Date().toISOString().split('T')[0];
+
+        // Datum dokumenta - korisnik ga moze izabrati (i buduci datum); fallback na danasnji
+        const datumUnos = (datum || '').toString().slice(0, 10);
+        const datumDokumenta = /^\d{4}-\d{2}-\d{2}$/.test(datumUnos) ? datumUnos : today;
         
         // Generiši šifru dokumenta
         const documentTypeMap = {
@@ -2601,7 +2606,7 @@ app.post("/api/pravljenjedokumenta", async (req, res) => {
             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20) 
             RETURNING id`,
             [
-                today,
+                datumDokumenta,
                 partnerNaziv,
                 fullDocumentNumber,
                 magacin,

@@ -1625,6 +1625,11 @@
                 </div>
 
                 <div class="form-group">
+                    <label class="form-label">Datum dokumenta:</label>
+                    <input type="date" class="form-control" id="document-datum" style="max-width: 200px;">
+                </div>
+
+                <div class="form-group">
     <label class="form-label">Napomena (opciono):</label>
     <textarea class="form-control" id="document-napomena" rows="3" 
               placeholder="Unesite napomenu za ovaj dokument..."></textarea>
@@ -1931,6 +1936,21 @@
             document.getElementById('next-step-3').disabled = true;
             document.getElementById('next-step-4').disabled = true;
             document.getElementById('selected-count').style.display = 'none';
+            document.getElementById('document-datum').value = danasnjiDatum();
+        }
+
+        function danasnjiDatum() {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            return now.toISOString().split('T')[0];
+        }
+
+        // Postavlja danasnji datum samo ako korisnik nije sam izabrao datum
+        function postaviDefaultDatum() {
+            const input = document.getElementById('document-datum');
+            if (!input.value) {
+                input.value = danasnjiDatum();
+            }
         }
 
         function goToStep(stepNumber) {
@@ -1960,6 +1980,7 @@
             if (stepNumber === 6) {
                 updateReviewSection();
                 updateArticlesReviewTable();
+                postaviDefaultDatum();
             }
         }
 
@@ -2383,7 +2404,7 @@ async function createDocument() {
         const napomena = document.getElementById('document-napomena').value.trim();
 
         const documentData = {
-            datum: new Date().toISOString(),
+            datum: document.getElementById('document-datum').value || danasnjiDatum(),
             tipDokumenta: selectedDocumentType,
             magacin: selectedMagacin,
             partner: partnerIdent,

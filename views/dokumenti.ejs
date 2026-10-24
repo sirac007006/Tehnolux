@@ -2007,7 +2007,7 @@
                 <td><input type="number" class="artikal-cena-bez numeric-input" value="${artikal ? parseFloat(artikal.cena_bez_pdv).toFixed(2) : 0}" step="0.01" min="0" required readonly></td>
                 <td><input type="number" class="artikal-cena-sa numeric-input" value="${artikal ? parseFloat(artikal.cena_sa_pdv).toFixed(2) : 0}" step="0.01" min="0" required readonly></td>
                 <td style="display: flex; gap: 5px; align-items: center;">
-                    <input type="number" class="artikal-rabat numeric-input" value="${artikal ? parseFloat(artikal.rabat).toFixed(4) : 0}" step="0.0001" min="0" max="100" oninput="calculateEditRow(this)" style="flex: 1;">
+                    <input type="number" class="artikal-rabat numeric-input" value="${artikal ? parseFloat(artikal.rabat).toFixed(4) : 0}" step="any" min="0" max="100" oninput="calculateEditRow(this)" style="flex: 1;">
                     <button type="button" class="btn-save-rabat" onclick="sacuvajRabatEdit(this)" title="Sačuvaj rabat">💾</button>
                 </td>
                 <td><input type="text" class="artikal-total-bez numeric-input" readonly></td>

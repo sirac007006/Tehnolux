@@ -1531,7 +1531,7 @@
                                         </td>
                                         <td>
                                             <input type="number" class="form-control rabat-input" 
-                                                   value="0" min="0" max="100" step="0.1" 
+                                                   value="0" min="0" max="100" step="any" 
                                                    disabled>
                                         </td>
                                         <td class="price-column"><%= parseFloat(artikal.cena_bez_PDV || 0).toFixed(2) %></td>
@@ -2124,7 +2124,7 @@
                         quantityInput.focus();
                         
                         const savedRabat = await getRabatForArtikal(artikalSifra);
-                        rabatInput.value = savedRabat.toFixed(1);
+                        rabatInput.value = savedRabat.toFixed(4);
                         
                         console.log(`Loaded rabat for ${artikalSifra}: ${savedRabat}%`);
                     } else {
@@ -2177,7 +2177,7 @@
                     rabatInput.disabled = false;
                     
                     const savedRabat = await getRabatForArtikal(artikalSifra);
-                    rabatInput.value = savedRabat.toFixed(1);
+                    rabatInput.value = savedRabat.toFixed(4);
                     
                     updateArticleTotals(row);
                 }
